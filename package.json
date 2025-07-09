@@ -1,0 +1,24 @@
+{
+	"name": "plugin-template",
+	"version": "1.0.0",
+	"scripts": {
+		"build": "rbxtsc && rojo build --plugin Plugin.rbxm",
+		"watch": "nodemon"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"description": "",
+	"devDependencies": {
+		"@rbxts/compiler-types": "3.0.0-types.0",
+		"@rbxts/types": "^1.0.813",
+		"nodemon": "^3.1.10",
+		"roblox-ts": "3.0.0",
+		"typescript": "^5.7.2"
+	},
+	"dependencies": {
+		"@rbxts/react": "^17.2.3",
+		"@rbxts/react-roblox": "^17.2.3",
+		"@rbxts/services": "^1.5.5"
+	}
+}

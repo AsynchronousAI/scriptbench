@@ -1,0 +1,6 @@
+A template for plugins created with roblox-ts.
+
+Notes: be sure to have `nodemon` installed locally or globally and be sure that Rojo has been installed.
+
+1. Run `pnpm run watch` in the terminal. Any changes made will automatically re-build the plugin file.
+2. Open Roblox Studio and the plugin should appear (if not, check Plugins folder)
