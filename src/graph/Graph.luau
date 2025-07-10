@@ -149,7 +149,7 @@ function Graph.new(Frame)
 			return
 		end
 
-		while Busy do wait(0.1) end
+		while Busy do task.wait() end
 		Busy = true
 
 		-- Clear old graph values
@@ -174,10 +174,9 @@ function Graph.new(Frame)
 		KeyLayout.Padding = UDim.new(0.01,0)
 		KeyLayout.Parent = KeyNames]]
 
-		local Max, Min = -math.huge,math.huge
 		local Range, Domain
-
 		-- Calculate our range of values
+		local RangeMax, RangeMin = -math.huge,math.huge
 		for Key, Set in pairs(GraphHandler.Data) do
 			local SetAmount = #Set
 
@@ -192,8 +191,8 @@ function Graph.new(Frame)
 				if not Value then continue end
 
 				-- Record for our range calc
-				Min = math.min(Min, Value)
-				Max = math.max(Max, Value)
+				RangeMin = math.min(RangeMin, Value)
+				RangeMax = math.max(RangeMax, Value)
 			end
 		end
 
@@ -205,24 +204,21 @@ function Graph.new(Frame)
 		Range = Max-Min
 
 		-- Calculate the domain of our values
-		Max, Min = -math.huge, math.huge
-		print(GraphHandler.Data)
+		local DomainMax, DomainMin = -math.huge, math.huge
 		for Key, Set in pairs(GraphHandler.Data) do
-			local SetAmount = #Set
-
 			for i=1,SetAmount, math.ceil(SetAmount/GraphHandler.Resolution) do
 				local SortedChunk = {}
 				for x=i,i+math.ceil(SetAmount/GraphHandler.Resolution) do
-					SortedChunk[#SortedChunk+1] = Set[x]
+					SortedChunk[#SortedChunk+1] = x--Set[x]
 				end
 				table.sort(SortedChunk)
 
 				local Value = SortedChunk[math.round(#SortedChunk*0.55)]
 				if not Value then continue end
 
-				-- Record for our range calc
-				Min = math.min(Min, Value)
-				Max = math.max(Max, Value)
+				-- Record for our domain calc
+				DomainMin = math.min(DomainMin, Value)
+				DomainMax = math.max(DomainMax, Value)
 			end
 		end
 
@@ -236,7 +232,7 @@ function Graph.new(Frame)
 			Marker.Size = UDim2.new(1,0,0.08,0)
 			Marker.AnchorPoint = Vector2.new(0,0.5)
 			Marker.Position = UDim2.new(0,0,0.9 - y,0)
-			Marker.Text = string.format("%.2f  ",(Min + (Range*y)))
+			Marker.Text = string.format("%.2f  ", (RangeMin + (Range*y)))
 			Marker.TextXAlignment = Enum.TextXAlignment.Right
 
 			Marker.TextColor3 = Theme.Text
@@ -255,7 +251,7 @@ function Graph.new(Frame)
 			Marker.Size = UDim2.new(1,0,0.08,0)
 			Marker.AnchorPoint = Vector2.new(0,0.5)
 			Marker.Position = UDim2.new(x - 0.9,0,0.5,0)
-			Marker.Text = string.format("%.2f  ",(Min + (Domain*x)))
+			Marker.Text = string.format("%.2f µm", (DomainMin + (Domain*x)))
 			Marker.TextXAlignment = Enum.TextXAlignment.Right
 
 			Marker.TextColor3 = Theme.Text
@@ -291,14 +287,13 @@ function Graph.new(Frame)
 			--print("  "..Key, Set)
 
 			for i=1,SetAmount, math.ceil(SetAmount/GraphHandler.Resolution) do
-
 				local SortedChunk = {}
 				for x=i,i+math.ceil(SetAmount/GraphHandler.Resolution) do
-					SortedChunk[#SortedChunk+1] = Set[x]
+					SortedChunk[#SortedChunk+1] = {x,Set[x]}
 				end
 				table.sort(SortedChunk)
 
-				local Value = SortedChunk[math.round(#SortedChunk*0.55)]
+				local Index, Value = unpack(SortedChunk[math.round(#SortedChunk*0.55)])
 				if not Value then continue end
 
 				-- Create the point
@@ -318,15 +313,21 @@ function Graph.new(Frame)
 				UICorner.CornerRadius = UDim.new(1,0)
 				UICorner.Parent = Point
 
+                local color = getKeyColor(Key)
+				local Title = `<b><font color="rgb({color.R},{color.G},{color.B})">{Key}</font></b>`
+				local Calls = `Calls: {string.format("%.5f",Value)}`
+				local Value = `Time: {string.format("%."+precision+"f",Index)}}µm`
+
 				local Label = Instance.new("TextLabel")
 				Label.Visible = false
-				Label.Text = `Calls: {string.format("%.5f",Value)}`
+				Label.RichText = true
+				Label.Text = `{Title}\n\n{Calls}\n{Value}`
 				Label.BackgroundColor3 = Theme.LightBackground
 				Label.TextColor3 = Theme.Text
 				Label.Position = UDim2.new(1,0,0.4,0)
 				Label.Font = Enum.Font.Code
 				Label.TextSize = (GraphHandler.Frame.AbsoluteSize.X*0.025)
-				Label.Size = UDim2.new(0,Label.TextSize * 0.6 * #Label.Text,0,Label.TextSize * 1.1)
+				Label.Size = UDim2.new(0,Label.TextSize * 0.6 * #Label.Text,0,Label.TextSize * 6.6)
 				Label.Parent = Point
 				Label.ZIndex = BaseZIndex+10
 
