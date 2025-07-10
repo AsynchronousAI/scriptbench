@@ -46,10 +46,10 @@ export default function Sidebar(props: SidebarProps) {
             }}
           >
             <uipadding
-              PaddingTop={new UDim(0.25, 0)}
-              PaddingBottom={new UDim(0.25, 0)}
+              PaddingTop={new UDim(0.15, 0)}
+              PaddingBottom={new UDim(0.15, 0)}
             />
-            <uicorner CornerRadius={new UDim(0, 8)} />
+            <uicorner CornerRadius={new UDim(0.25, 0)} />
           </textbutton>
         );
       })}
