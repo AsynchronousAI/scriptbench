@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from "@rbxts/react";
 import Graph from "./Graph";
+import { COLORS } from "colors";
 
 export interface Theme {
   Name?: string;
@@ -9,7 +10,7 @@ export interface Theme {
 }
 export interface GraphProps {
   Resolution: number;
-  Data: { [key: string]: number[] };
+  Data: { [key: string]: { [key: number]: number } };
   BaselineZero: boolean;
   Theme?: Theme;
 }
@@ -24,6 +25,12 @@ function ReactGraph(props: GraphProps) {
     if (!frame || graph) return;
 
     graph = new Graph(frame);
+    graph.Theme({
+      Name: "Dark",
+      LightBackground: COLORS.LightBackground,
+      Background: COLORS.Background,
+      Text: COLORS.Text,
+    });
   }, []);
 
   /** Edit graph props whenever our props change */

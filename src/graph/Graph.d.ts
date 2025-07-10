@@ -13,7 +13,7 @@ type Graph = {
   Resolution: number;
 
   /** A dictionary of data sets to be graphed. */
-  Data: { [key: string]: number[] };
+  Data: { [key: string]: { [key2: number]: number } };
 
   /** Wheteher or not the bottom of the grpah should start at zero (as opposed to the minimum value) */
   BaselineZero: boolean;

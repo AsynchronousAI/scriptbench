@@ -14,10 +14,20 @@ const story = {
       <Graph
         Resolution={100}
         Data={{
-          a: [0, 1, 2, 3, 5, 4, 5],
-          b: [0, 5, 4, 3, 4, 2, 1],
+          a: {
+            0.1: 1,
+            0.2: 2,
+            0.3: 3,
+            0.4: 2,
+          },
+          b: {
+            0.1: 2,
+            0.2: 3,
+            0.3: 2,
+            0.4: 1,
+          },
         }}
-        BaselineZero={true}
+        BaselineZero={false}
         //{...props}
       />
     );

@@ -40,7 +40,7 @@ local function getKeyColor(name)
 	local rng = Random.new(seed)
 	local hue = rng:NextInteger(0,50)/50
 
-	return Color3.fromHSV(hue, isDark and 0.63 or 1, isDark and 0.84 or 0.8)
+	return Color3.fromHSV(hue, isDark and 0.8 or 1, isDark and 0.84 or 0.8)
 end
 
 
@@ -81,11 +81,20 @@ function Graph.new(Frame)
 	local YMarkers = Instance.new("Frame")
 	YMarkers.Name = "Markers"
 	YMarkers.Size = UDim2.new(0.05,0,0.85,0)
-	YMarkers.Position = UDim2.new(0,0,0.15,0)
+	YMarkers.Position = UDim2.new(0.015,0,0.15,0)
 	YMarkers.BackgroundTransparency = 1
 	YMarkers.BorderSizePixel = 0
 	YMarkers.ZIndex = BaseZIndex+2
 	YMarkers.Parent = GraphHandler.Frame
+
+	local XMarkers = Instance.new("Frame")
+	XMarkers.Name = "Markers"
+	XMarkers.Size = UDim2.new(1,0,0.066,0)
+	XMarkers.Position = UDim2.new(0,0,0.934,0)
+	XMarkers.BackgroundTransparency = 1
+	XMarkers.BorderSizePixel = 0
+	XMarkers.ZIndex = BaseZIndex+2
+	XMarkers.Parent = GraphHandler.Frame
 
 	local GraphingFrame = Instance.new("Frame")
 	GraphingFrame.Name = "GraphingFrame"
@@ -146,6 +155,7 @@ function Graph.new(Frame)
 		-- Clear old graph values
 		YMarkers:ClearAllChildren()
 		GraphingFrame:ClearAllChildren()
+		XMarkers:ClearAllChildren()
 		--KeyNames:ClearAllChildren()
 
 		BaseZIndex = GraphHandler.Frame.ZIndex
@@ -165,10 +175,9 @@ function Graph.new(Frame)
 		KeyLayout.Parent = KeyNames]]
 
 		local Max, Min = -math.huge,math.huge
-		local Range
+		local Range, Domain
 
 		-- Calculate our range of values
-
 		for Key, Set in pairs(GraphHandler.Data) do
 			local SetAmount = #Set
 
@@ -195,8 +204,32 @@ function Graph.new(Frame)
 
 		Range = Max-Min
 
-		-- Mark our Y axis values along the derived range
+		-- Calculate the domain of our values
+		Max, Min = -math.huge, math.huge
+		print(GraphHandler.Data)
+		for Key, Set in pairs(GraphHandler.Data) do
+			local SetAmount = #Set
 
+			for i=1,SetAmount, math.ceil(SetAmount/GraphHandler.Resolution) do
+				local SortedChunk = {}
+				for x=i,i+math.ceil(SetAmount/GraphHandler.Resolution) do
+					SortedChunk[#SortedChunk+1] = Set[x]
+				end
+				table.sort(SortedChunk)
+
+				local Value = SortedChunk[math.round(#SortedChunk*0.55)]
+				if not Value then continue end
+
+				-- Record for our range calc
+				Min = math.min(Min, Value)
+				Max = math.max(Max, Value)
+			end
+		end
+
+		Domain = Max-Min
+
+
+		-- Mark our Y axis values along the derived range
 		for y=0,1,0.2 do
 			local Marker = Instance.new("TextLabel")
 			Marker.Name = y
@@ -212,6 +245,25 @@ function Graph.new(Frame)
 			Marker.TextSize = (GraphHandler.Frame.AbsoluteSize.X*0.02)
 			Marker.ZIndex = BaseZIndex+3
 			Marker.Parent = YMarkers
+		end
+
+
+		-- Mark our X axis values along the derived domain
+		for x=0,1,0.2 do
+			local Marker = Instance.new("TextLabel")
+			Marker.Name = x
+			Marker.Size = UDim2.new(1,0,0.08,0)
+			Marker.AnchorPoint = Vector2.new(0,0.5)
+			Marker.Position = UDim2.new(x - 0.9,0,0.5,0)
+			Marker.Text = string.format("%.2f  ",(Min + (Domain*x)))
+			Marker.TextXAlignment = Enum.TextXAlignment.Right
+
+			Marker.TextColor3 = Theme.Text
+			Marker.Font = Enum.Font.SourceSans
+			Marker.BackgroundTransparency = 1
+			Marker.TextSize = (GraphHandler.Frame.AbsoluteSize.X*0.02)
+			Marker.ZIndex = BaseZIndex+3
+			Marker.Parent = XMarkers
 		end
 
 		-- Draw the graph at this range
@@ -233,7 +285,6 @@ function Graph.new(Frame)
 			KeyMarker.Parent = KeyNames]]
 
 			-- Graph the set
-
 			local SetAmount = #Set
 			local LastPoint
 
@@ -251,12 +302,14 @@ function Graph.new(Frame)
 				if not Value then continue end
 
 				-- Create the point
+				local diameter = math.clamp(0.7/GraphHandler.Resolution, 0.003,0.035)
+
 				local Point = Instance.new("Frame")
 				Point.Name = Key..i
 				Point.Position = UDim2.new(0.05+((i/SetAmount)),0, 0.9 - (((Value-Min)/Range)),0)
 				Point.AnchorPoint = Vector2.new(0.5,0.5)
 				Point.SizeConstraint = Enum.SizeConstraint.RelativeXX
-				Point.Size = UDim2.new(math.clamp(0.7/GraphHandler.Resolution, 0.003,0.025),0,math.clamp(0.5/GraphHandler.Resolution, 0.003,0.016),0)
+				Point.Size = UDim2.new(diameter,0,diameter,0)
 				Point.BackgroundColor3 = KeyColors[Key]
 				Point.BorderSizePixel = 0
 				Point.ZIndex = BaseZIndex+5
@@ -267,7 +320,7 @@ function Graph.new(Frame)
 
 				local Label = Instance.new("TextLabel")
 				Label.Visible = false
-				Label.Text = string.format("%.5f",Value)
+				Label.Text = `Calls: {string.format("%.5f",Value)}`
 				Label.BackgroundColor3 = Theme.LightBackground
 				Label.TextColor3 = Theme.Text
 				Label.Position = UDim2.new(1,0,0.4,0)
