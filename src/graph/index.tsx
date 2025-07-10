@@ -1,17 +1,24 @@
 import React, { useRef, useEffect } from "@rbxts/react";
-import Graph, { Theme } from "./Graph";
+import Graph from "./Graph";
 
-interface GraphProps {
+export interface Theme {
+  Name?: string;
+  Background?: Color3;
+  LightBackground?: Color3;
+  Text?: Color3;
+}
+export interface GraphProps {
   Resolution: number;
   Data: { [key: string]: number[] };
   BaselineZero: boolean;
   Theme?: Theme;
 }
+
 function ReactGraph(props: GraphProps) {
   const frameRef = useRef<Frame>(undefined);
 
   /** hacky way to mount the Graph as a react component. */
-  let graph: Graph;
+  let graph: Graph | undefined = undefined;
   useEffect(() => {
     const frame = frameRef.current;
     if (!frame || graph) return;

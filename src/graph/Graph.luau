@@ -24,9 +24,9 @@ local Graph = {}
 local Theme = {
 	Name = "Dark";
 
-	Background = Color3.fromRGB(35,35,40);
-	LightBackground = Color3.fromRGB(45,45,50);
-	Text = Color3.fromRGB(220,220,230)
+	Background = Color3.fromHex("#212121"),
+	LightBackground = Color3.fromHex("#1E1E1F"),
+	Text = Color3.fromRGB(200,200,200)
 }
 local isDark = true
 
@@ -62,16 +62,25 @@ function Graph.new(Frame)
 	Background.Parent = GraphHandler.Frame
 
 	local MarkerBG = Instance.new("Frame")
-	MarkerBG.Name = "MarkerBackground"
-	MarkerBG.Size = UDim2.new(0.1,0,1,0)
+	MarkerBG.Name = "YMarkerBackground"
+	MarkerBG.Size = UDim2.new(0.066,0,1,0)
 	MarkerBG.BackgroundColor3 = Theme.LightBackground
 	MarkerBG.BorderSizePixel = 0
 	MarkerBG.ZIndex = BaseZIndex+2
 	MarkerBG.Parent = GraphHandler.Frame
 
+	local XMarkerBG = Instance.new("Frame")
+	XMarkerBG.Name = "XMarkerBackground"
+	XMarkerBG.Size = UDim2.new(1,0,0.066,0)
+	XMarkerBG.Position = UDim2.new(0,0,0.934,0)
+	XMarkerBG.BackgroundColor3 = Theme.LightBackground
+	XMarkerBG.BorderSizePixel = 0
+	XMarkerBG.ZIndex = BaseZIndex+2
+	XMarkerBG.Parent = GraphHandler.Frame
+
 	local YMarkers = Instance.new("Frame")
 	YMarkers.Name = "Markers"
-	YMarkers.Size = UDim2.new(0.1,0,0.85,0)
+	YMarkers.Size = UDim2.new(0.05,0,0.85,0)
 	YMarkers.Position = UDim2.new(0,0,0.15,0)
 	YMarkers.BackgroundTransparency = 1
 	YMarkers.BorderSizePixel = 0
@@ -81,11 +90,11 @@ function Graph.new(Frame)
 	local GraphingFrame = Instance.new("Frame")
 	GraphingFrame.Name = "GraphingFrame"
 	GraphingFrame.Size = UDim2.new(0.9,0,0.85,0)
-	GraphingFrame.Position = UDim2.new(0.1,0,0.15,0)
+	GraphingFrame.Position = UDim2.new(-0.066,0,0.15,0)
 	GraphingFrame.BackgroundTransparency = 1
 	GraphingFrame.ZIndex = BaseZIndex+2
 	GraphingFrame.Parent = GraphHandler.Frame
-
+--[[
 	local KeyNames = Instance.new("Frame")
 	KeyNames.Name = "KeyNames"
 	KeyNames.Size = UDim2.new(1,0,0.1,0)
@@ -94,18 +103,19 @@ function Graph.new(Frame)
 	KeyNames.BorderSizePixel = 0
 	KeyNames.ZIndex = BaseZIndex+2
 	KeyNames.Parent = GraphHandler.Frame
+]]
 
 	-- Rerender if the frame changes size since our lines will be all wonky
 	GraphHandler.Frame:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
 		local Size = GraphHandler.Frame.AbsoluteSize
-		wait(0.04)
+		task.wait(0.04)
 		if Size == GraphHandler.Frame.AbsoluteSize then
 			GraphHandler.Render()
 		end
 	end)
 
 	function GraphHandler.Theme(newTheme)
-		wait()
+		task.wait()
 		-- Make sure we have latest theme data
 		Theme = {
 			Name = newTheme.Name or "Dark";
@@ -118,7 +128,7 @@ function Graph.new(Frame)
 		-- Update GUIs
 		Background.BackgroundColor3 = Theme.Background
 		MarkerBG.BackgroundColor3 = Theme.LightBackground
-		KeyNames.BackgroundColor3 = Theme.LightBackground
+		--KeyNames.BackgroundColor3 = Theme.LightBackground
 
 		-- Redraw graph with new colors
 		GraphHandler.Render()
@@ -136,22 +146,23 @@ function Graph.new(Frame)
 		-- Clear old graph values
 		YMarkers:ClearAllChildren()
 		GraphingFrame:ClearAllChildren()
-		KeyNames:ClearAllChildren()
+		--KeyNames:ClearAllChildren()
 
 		BaseZIndex = GraphHandler.Frame.ZIndex
 
 		Background.ZIndex = BaseZIndex+1
 		MarkerBG.ZIndex = BaseZIndex+2
+		XMarkerBG.ZIndex = BaseZIndex+2
 		YMarkers.ZIndex = BaseZIndex+2
 		GraphingFrame.ZIndex = BaseZIndex+2
-		KeyNames.ZIndex = BaseZIndex+2
+		--KeyNames.ZIndex = BaseZIndex+2
 
-		local KeyLayout = Instance.new("UIListLayout")
+		--[[local KeyLayout = Instance.new("UIListLayout")
 		KeyLayout.FillDirection = Enum.FillDirection.Horizontal
 		KeyLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
 		KeyLayout.VerticalAlignment = Enum.VerticalAlignment.Center
 		KeyLayout.Padding = UDim.new(0.01,0)
-		KeyLayout.Parent = KeyNames
+		KeyLayout.Parent = KeyNames]]
 
 		local Max, Min = -math.huge,math.huge
 		local Range
@@ -191,14 +202,14 @@ function Graph.new(Frame)
 			Marker.Name = y
 			Marker.Size = UDim2.new(1,0,0.08,0)
 			Marker.AnchorPoint = Vector2.new(0,0.5)
-			Marker.Position = UDim2.new(0,0,0.9 - (y*0.9),0)
+			Marker.Position = UDim2.new(0,0,0.9 - y,0)
 			Marker.Text = string.format("%.2f  ",(Min + (Range*y)))
 			Marker.TextXAlignment = Enum.TextXAlignment.Right
 
 			Marker.TextColor3 = Theme.Text
 			Marker.Font = Enum.Font.SourceSans
 			Marker.BackgroundTransparency = 1
-			Marker.TextSize = (GraphHandler.Frame.AbsoluteSize.X*0.03)
+			Marker.TextSize = (GraphHandler.Frame.AbsoluteSize.X*0.02)
 			Marker.ZIndex = BaseZIndex+3
 			Marker.Parent = YMarkers
 		end
@@ -209,9 +220,9 @@ function Graph.new(Frame)
 			-- Designate a color for this dataset
 			KeyColors[Key] = getKeyColor(Key)
 
-			local TextSize = GraphHandler.Frame.AbsoluteSize.Y*0.08
-			local Size = TextService:GetTextSize(Key, TextSize, Enum.Font.SourceSansSemibold, KeyNames.AbsoluteSize)
-			local KeyMarker = Instance.new("TextLabel")
+			--local TextSize = GraphHandler.Frame.AbsoluteSize.Y*0.08
+			--local Size = TextService:GetTextSize(Key, TextSize, Enum.Font.SourceSansSemibold, KeyNames.AbsoluteSize)
+			--[[local KeyMarker = Instance.new("TextLabel")
 			KeyMarker.Text = Key
 			KeyMarker.TextColor3 = KeyColors[Key]
 			KeyMarker.Font = Enum.Font.SourceSansSemibold
@@ -219,7 +230,7 @@ function Graph.new(Frame)
 			KeyMarker.TextSize = TextSize
 			KeyMarker.Size = UDim2.new(0,Size.X+TextSize,1,0)
 			KeyMarker.ZIndex = BaseZIndex+3
-			KeyMarker.Parent = KeyNames
+			KeyMarker.Parent = KeyNames]]
 
 			-- Graph the set
 
@@ -240,18 +251,19 @@ function Graph.new(Frame)
 				if not Value then continue end
 
 				-- Create the point
-				local Point = Instance.new("ImageLabel")
+				local Point = Instance.new("Frame")
 				Point.Name = Key..i
-				Point.Position = UDim2.new(0.05+((i/SetAmount)*0.9),0, 0.9 - (((Value-Min)/Range)*0.9),0)
+				Point.Position = UDim2.new(0.05+((i/SetAmount)),0, 0.9 - (((Value-Min)/Range)),0)
 				Point.AnchorPoint = Vector2.new(0.5,0.5)
 				Point.SizeConstraint = Enum.SizeConstraint.RelativeXX
-				Point.Size = UDim2.new(math.clamp(0.5/GraphHandler.Resolution, 0.003,0.016),0,math.clamp(0.5/GraphHandler.Resolution, 0.003,0.016),0)
-
-				Point.ImageColor3 = KeyColors[Key]
+				Point.Size = UDim2.new(math.clamp(0.7/GraphHandler.Resolution, 0.003,0.025),0,math.clamp(0.5/GraphHandler.Resolution, 0.003,0.016),0)
+				Point.BackgroundColor3 = KeyColors[Key]
 				Point.BorderSizePixel = 0
-				Point.BackgroundTransparency = 1
-				Point.Image = "rbxassetid://200182847"
 				Point.ZIndex = BaseZIndex+5
+
+				local UICorner = Instance.new("UICorner")
+				UICorner.CornerRadius = UDim.new(1,0)
+				UICorner.Parent = Point
 
 				local Label = Instance.new("TextLabel")
 				Label.Visible = false
@@ -288,7 +300,7 @@ function Graph.new(Frame)
 
 					local Distance = (Vector2.new(startX, startY) - Vector2.new(endX, endY)).Magnitude
 
-					Connector.Size = UDim2.new(0, Distance, math.clamp(0.2/GraphHandler.Resolution, 0.002,0.0035), 0)
+					Connector.Size = UDim2.new(0, Distance, math.clamp(0.7/GraphHandler.Resolution, 0.002,0.025), 0)
 					Connector.Position = UDim2.new(0, (startX + endX) / 2, 0, (startY + endY) / 2)
 					Connector.Rotation = math.atan2(endY - startY, endX - startX) * (180 / math.pi)
 

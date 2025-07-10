@@ -7,6 +7,7 @@
         "@rbxts/react": "^17.2.3",
         "@rbxts/react-roblox": "^17.2.3",
         "@rbxts/services": "^1.5.5",
+        "@rbxts/ui-labs": "^2.4.0",
       },
       "devDependencies": {
         "@rbxts/compiler-types": "3.0.0-types.0",
@@ -31,6 +32,8 @@
     "@rbxts/services": ["@rbxts/services@1.5.5", "", {}, "sha512-Hu7QH2ecefS60zpakKG3T2vgABydoOJqpSG7nXr59wFAbPk/cA+OcsntYPHUWyHAat0VFGZ5jNZLTLdiqfssvg=="],
 
     "@rbxts/types": ["@rbxts/types@1.0.861", "", {}, "sha512-WYIODP9WM7r2uc7+M6PA38yeSKf4bvIrh4MTbk4pvb1vzLwYlnJ3tq9q4SaI5e8BQsNWMSjXcI+s9p4tXY4v5A=="],
+
+    "@rbxts/ui-labs": ["@rbxts/ui-labs@2.4.0", "", {}, "sha512-Ifqd9zelHOlPTrBs9m8louagrXon4nOgp2vcvlLSJeDK3aqmb/ssFwt+GmbvpORCLxTirEl9xwDaxHJWejz2kA=="],
 
     "@roblox-ts/luau-ast": ["@roblox-ts/luau-ast@2.0.0", "", {}, "sha512-cmMi093IdwBOLVxwuordhM8AmtbyTIyRpsTbB0D/JauidW4SXsQRQowSwWjHo4QP0DRJBXvOIlxtqEQi50uNzQ=="],
 

@@ -1,7 +1,7 @@
 /**
  * Interface for theme overrides.
  */
-export interface Theme {
+interface Theme {
   Name?: string;
   Background?: Color3;
   LightBackground?: Color3;
@@ -37,4 +37,4 @@ interface GraphConstructor {
 
 declare const Graph: GraphConstructor;
 
-export default Graph;
+export = Graph;

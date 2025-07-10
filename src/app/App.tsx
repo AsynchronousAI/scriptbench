@@ -1,7 +1,7 @@
 import React from "@rbxts/react";
 import Graph from "graph";
 
-function App() {
+export function App() {
   return (
     <>
       <Graph
