@@ -97,7 +97,7 @@ function Graph.new(Frame)
 	local GraphingFrame = Instance.new("Frame")
 	GraphingFrame.Name = "GraphingFrame"
 	GraphingFrame.Size = UDim2.new(1,0,0.85,0)
-	GraphingFrame.Position = UDim2.new(-0.225,0,0.15,0)
+	GraphingFrame.Position = UDim2.new(0,-65,0.15,0)
 	GraphingFrame.BackgroundTransparency = 1
 	GraphingFrame.ZIndex = BaseZIndex+2
 	GraphingFrame.Parent = GraphHandler.Frame
@@ -234,7 +234,7 @@ function Graph.new(Frame)
 			Marker.Size = UDim2.new(1,0,0.08,0)
 			Marker.AnchorPoint = Vector2.new(0,0.5)
 			Marker.Position = UDim2.new(0,0,0.9 - y,0)
-			Marker.Text = string.format("%.2f  ", (RangeMin + (Range*y)))
+			Marker.Text = string.format("%.2f Calls", (RangeMin + (Range*y)))
 			Marker.TextXAlignment = Enum.TextXAlignment.Right
 
 			Marker.TextColor3 = Theme.Text
@@ -253,7 +253,7 @@ function Graph.new(Frame)
 			Marker.Size = UDim2.new(1,0,0.08,0)
 			Marker.AnchorPoint = Vector2.new(0,0.5)
 			Marker.Position = UDim2.new(x - 0.9,0,0.5,0)
-			Marker.Text = string.format("%.2f µm", (DomainMin + (DomainMax*x)))
+			Marker.Text = `{math.floor(DomainMin + (DomainMax*x))} µs`
 			Marker.TextXAlignment = Enum.TextXAlignment.Right
 
 			Marker.TextColor3 = Theme.Text
@@ -316,7 +316,7 @@ function Graph.new(Frame)
                 local color = getKeyColor(Key)
 				local Title = `<b><font color="rgb({math.floor(color.R*255)},{math.floor(color.G*255)},{math.floor(color.B*255)})">{Key}</font></b>`
 				local Calls = `Calls: {Value}`
-				local Value = `Time: {string.format("%.5f",Index)}µm`
+				local Value = `Time: {Index}µs`
 
 				local Label = Instance.new("TextLabel")
 				Label.Visible = false
