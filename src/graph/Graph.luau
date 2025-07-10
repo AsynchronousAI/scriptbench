@@ -38,7 +38,7 @@ local function getKeyColor(name)
 	local rng = Random.new(seed)
 	local hue = rng:NextInteger(0,50)/50
 
-	return Color3.fromHSV(hue, isDark and 0.8 or 1, isDark and 0.84 or 0.8)
+	return Color3.fromHSV(hue, isDark and 0.9 or 1, isDark and 0.84 or 0.8)
 end
 
 
@@ -224,7 +224,6 @@ function Graph.new(Frame)
 		end
 
 		Domain = DomainMax-DomainMin
-		print(Domain)
 
 
 		-- Mark our Y axis values along the derived range
@@ -266,9 +265,21 @@ function Graph.new(Frame)
 
 		-- Draw the graph at this range
 		local KeyColors = {}
+		local thickness = math.clamp(0.2/GraphHandler.Resolution, 0.002,0.01)
 		for Key, Set in pairs(GraphHandler.Data) do
 			-- Designate a color for this dataset
 			KeyColors[Key] = getKeyColor(Key)
+
+            if GraphHandler.HighlightedX then
+                local x = ((GraphHandler.HighlightedX - DomainMin) / DomainMax)
+                local HighlightedXMarker = Instance.new("Frame")
+                HighlightedXMarker.Size = UDim2.new(thickness,0,1.05,0)
+                HighlightedXMarker.Position = UDim2.new(x, 0, -0.125, 0)
+                HighlightedXMarker.BackgroundColor3 = KeyColors[Key]
+                HighlightedXMarker.BackgroundTransparency = 0.5
+                HighlightedXMarker.ZIndex = BaseZIndex+4
+                HighlightedXMarker.Parent = GraphingFrame
+            end
 
 			--local TextSize = GraphHandler.Frame.AbsoluteSize.Y*0.08
 			--local Size = TextService:GetTextSize(Key, TextSize, Enum.Font.SourceSansSemibold, KeyNames.AbsoluteSize)
@@ -313,11 +324,12 @@ function Graph.new(Frame)
 				UICorner.CornerRadius = UDim.new(1,0)
 				UICorner.Parent = Point
 
-                local color = getKeyColor(Key)
+				local color = KeyColors[Key]
 				local Title = `<b><font color="rgb({math.floor(color.R*255)},{math.floor(color.G*255)},{math.floor(color.B*255)})">{Key}</font></b>`
 				local Calls = `Calls: {Value}`
 				local Value = `Time: {Index}µs`
 
+				-- Label
 				local Label = Instance.new("TextLabel")
 				Label.Visible = false
 				Label.RichText = true
@@ -354,7 +366,7 @@ function Graph.new(Frame)
 
 					local Distance = (Vector2.new(startX, startY) - Vector2.new(endX, endY)).Magnitude
 
-					Connector.Size = UDim2.new(0, Distance, math.clamp(0.2/GraphHandler.Resolution, 0.002,0.0035), 0)
+					Connector.Size = UDim2.new(0, Distance, thickness, 0)
 					Connector.Position = UDim2.new(0, (startX + endX) / 2, 0, (startY + endY) / 2)
 					Connector.Rotation = math.atan2(endY - startY, endX - startX) * (180 / math.pi)
 
@@ -384,6 +396,9 @@ function Graph.new(Frame)
 				GraphHandler.Render()
 			elseif Key == "BaselineZero" and type(Value) == "boolean" then
 				GraphHandler.BaselineZero = Value
+				GraphHandler.Render()
+			elseif Key == "HighlightedX" and type(Value) == "number" then
+				GraphHandler.HighlightedX = Value
 				GraphHandler.Render()
 			end
 		end;

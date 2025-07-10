@@ -28,6 +28,7 @@ const story = {
           },
         }}
         BaselineZero={false}
+        HighlightedX={6}
         //{...props}
       />
     );

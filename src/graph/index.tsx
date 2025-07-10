@@ -13,6 +13,7 @@ export interface GraphProps {
   Data: { [key: string]: { [key: number]: number } };
   BaselineZero: boolean;
   Theme?: Theme;
+  HighlightedX?: number;
 }
 
 function ReactGraph(props: GraphProps) {
@@ -33,6 +34,7 @@ function ReactGraph(props: GraphProps) {
 
     graph.Resolution = props.Resolution;
     graph.Data = props.Data;
+    graph.HighlightedX = props.HighlightedX;
     graph.BaselineZero = props.BaselineZero;
     if (props.Theme) graph.Theme(props.Theme);
 

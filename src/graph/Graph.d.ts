@@ -9,25 +9,12 @@ interface Theme {
 }
 
 type Graph = {
-  /** The number of points rendered on the graph. */
   Resolution: number;
-
-  /** A dictionary of data sets to be graphed. */
   Data: { [key: string]: { [key2: number]: number } };
-
-  /** Wheteher or not the bottom of the grpah should start at zero (as opposed to the minimum value) */
   BaselineZero: boolean;
-
-  /**
-   * Set a theme to be used for the graph.
-   * @param newTheme The theme to use
-   */
   Theme(newTheme: Theme): void;
-
-  /**
-   * Render the graph
-   */
   Render(): void;
+  HighlightedX?: number;
 };
 
 interface GraphConstructor {
