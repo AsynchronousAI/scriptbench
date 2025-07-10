@@ -1,19 +1,20 @@
 {
-	"name": "roblox-ts-plugin",
-	"globIgnorePaths": [
-		"**/package.json",
-		"**/tsconfig.json"
-	],
-	"tree": {
-		"$path": "out",
-		"include": {
-			"$path": "include",
-			"node_modules": {
-				"$className": "Folder",
-				"@rbxts": {
-					"$path": "node_modules/@rbxts"
-				}
-			}
-		}
-	}
+  "name": "robloxts-benchmarker",
+  "tree": {
+    "$className": "DataModel",
+
+    "Plugin": {
+      "$path": "out",
+
+      "include": {
+        "$path": "include",
+        "node_modules": {
+          "$className": "Folder",
+          "@rbxts": {
+            "$path": "node_modules/@rbxts"
+          }
+        }
+      }
+    }
+  }
 }
