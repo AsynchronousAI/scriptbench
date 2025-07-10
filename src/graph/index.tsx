@@ -25,12 +25,6 @@ function ReactGraph(props: GraphProps) {
     if (!frame || graph) return;
 
     graph = new Graph(frame);
-    graph.Theme({
-      Name: "Dark",
-      LightBackground: COLORS.LightBackground,
-      Background: COLORS.Background,
-      Text: COLORS.Text,
-    });
   }, []);
 
   /** Edit graph props whenever our props change */
@@ -42,8 +36,8 @@ function ReactGraph(props: GraphProps) {
     graph.BaselineZero = props.BaselineZero;
     if (props.Theme) graph.Theme(props.Theme);
 
-    graph.Render(); /* disabled automatic rerendering. */
-  });
+    graph.Render(); // disabled automatic rerendering.
+  }, [props.Resolution, props.Data, props.BaselineZero, props.Theme]);
 
   return (
     <frame

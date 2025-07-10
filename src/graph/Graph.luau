@@ -17,8 +17,6 @@ function GraphHandler.Theme(ThemeDictionary)
 
 --]=]
 
-local TextService = game:GetService("TextService")
-
 local Graph = {}
 
 local Theme = {
@@ -175,6 +173,7 @@ function Graph.new(Frame)
 		KeyLayout.Parent = KeyNames]]
 
 		local Range, Domain
+
 		-- Calculate our range of values
 		local RangeMax, RangeMin = -math.huge,math.huge
 		for Key, Set in pairs(GraphHandler.Data) do
@@ -197,15 +196,17 @@ function Graph.new(Frame)
 		end
 
 		if GraphHandler.BaselineZero then
-			Min = 0
-			Max = Max * 1.75
+			RangeMin = 0
+			RangeMax = RangeMax * 1.75
 		end
 
-		Range = Max-Min
+		Range = RangeMax-RangeMin
 
 		-- Calculate the domain of our values
 		local DomainMax, DomainMin = -math.huge, math.huge
 		for Key, Set in pairs(GraphHandler.Data) do
+		    local SetAmount = #Set
+
 			for i=1,SetAmount, math.ceil(SetAmount/GraphHandler.Resolution) do
 				local SortedChunk = {}
 				for x=i,i+math.ceil(SetAmount/GraphHandler.Resolution) do
@@ -222,7 +223,8 @@ function Graph.new(Frame)
 			end
 		end
 
-		Domain = Max-Min
+		Domain = DomainMax-DomainMin
+		print(Domain)
 
 
 		-- Mark our Y axis values along the derived range
@@ -289,9 +291,9 @@ function Graph.new(Frame)
 			for i=1,SetAmount, math.ceil(SetAmount/GraphHandler.Resolution) do
 				local SortedChunk = {}
 				for x=i,i+math.ceil(SetAmount/GraphHandler.Resolution) do
-					SortedChunk[#SortedChunk+1] = {x,Set[x]}
+					if Set[x] then SortedChunk[#SortedChunk+1] = {x,Set[x]} end
 				end
-				table.sort(SortedChunk)
+				table.sort(SortedChunk, function(a, b) return a[2] < b[2] end)
 
 				local Index, Value = unpack(SortedChunk[math.round(#SortedChunk*0.55)])
 				if not Value then continue end
@@ -301,7 +303,7 @@ function Graph.new(Frame)
 
 				local Point = Instance.new("Frame")
 				Point.Name = Key..i
-				Point.Position = UDim2.new(0.05+((i/SetAmount)),0, 0.9 - (((Value-Min)/Range)),0)
+				Point.Position = UDim2.new(0.05+((i/SetAmount)),0, 0.9 - (((Value-RangeMin)/Range)),0)
 				Point.AnchorPoint = Vector2.new(0.5,0.5)
 				Point.SizeConstraint = Enum.SizeConstraint.RelativeXX
 				Point.Size = UDim2.new(diameter,0,diameter,0)
@@ -314,9 +316,9 @@ function Graph.new(Frame)
 				UICorner.Parent = Point
 
                 local color = getKeyColor(Key)
-				local Title = `<b><font color="rgb({color.R},{color.G},{color.B})">{Key}</font></b>`
-				local Calls = `Calls: {string.format("%.5f",Value)}`
-				local Value = `Time: {string.format("%."+precision+"f",Index)}}µm`
+				local Title = `<b><font color="rgb({math.floor(color.R*255)},{math.floor(color.G*255)},{math.floor(color.B*255)})">{Key}</font></b>`
+				local Calls = `Calls: {Value}`
+				local Value = `Time: {string.format("%.5f",Index)}µm`
 
 				local Label = Instance.new("TextLabel")
 				Label.Visible = false
@@ -327,7 +329,7 @@ function Graph.new(Frame)
 				Label.Position = UDim2.new(1,0,0.4,0)
 				Label.Font = Enum.Font.Code
 				Label.TextSize = (GraphHandler.Frame.AbsoluteSize.X*0.025)
-				Label.Size = UDim2.new(0,Label.TextSize * 0.6 * #Label.Text,0,Label.TextSize * 6.6)
+				Label.Size = UDim2.new(0,Label.TextSize * 10,0,Label.TextSize * 4.5)
 				Label.Parent = Point
 				Label.ZIndex = BaseZIndex+10
 
@@ -378,13 +380,13 @@ function Graph.new(Frame)
 		__newindex = function(t, Key, Value)
 			if Key == "Data" and type(Value) == "table" then
 				GraphHandler.Data = Value
-				--GraphHandler.Render()
+				GraphHandler.Render()
 			elseif Key == "Resolution" and type(Value) == "number" then
 				GraphHandler.Resolution = math.clamp(Value, 3, 500)
-				--GraphHandler.Render()
+				GraphHandler.Render()
 			elseif Key == "BaselineZero" and type(Value) == "boolean" then
 				GraphHandler.BaselineZero = Value
-				--GraphHandler.Render()
+				GraphHandler.Render()
 			end
 		end;
 	})

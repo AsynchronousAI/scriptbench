@@ -12,19 +12,19 @@ const story = {
     const props: GraphProps = input.controls;
     const component = (
       <Graph
-        Resolution={100}
+        Resolution={10}
         Data={{
           a: {
-            0.1: 1,
-            0.2: 2,
-            0.3: 3,
-            0.4: 2,
+            1: 1,
+            2: 2,
+            3: 3,
+            4: 4,
           },
           b: {
-            0.1: 2,
-            0.2: 3,
-            0.3: 2,
-            0.4: 1,
+            1: 2,
+            2: 3,
+            3: 4,
+            4: 5,
           },
         }}
         BaselineZero={false}
