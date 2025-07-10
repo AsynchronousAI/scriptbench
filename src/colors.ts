@@ -3,5 +3,5 @@ export const COLORS = {
   LightBackground: Color3.fromHex("#1E1E1F"),
   Text: Color3.fromRGB(200, 200, 200),
   DarkText: Color3.fromRGB(35, 35, 35),
-  Selected: Color3.fromRGB(150, 160, 255),
+  Selected: Color3.fromRGB(123, 175, 255),
 };
