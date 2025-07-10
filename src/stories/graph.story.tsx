@@ -26,9 +26,24 @@ const story = {
             9: 2,
             10: 1,
           },
+          b: {
+            1: 0,
+            2: 0,
+            3: 1,
+            4: 2,
+            5: 4,
+            6: 5,
+            7: 6,
+            8: 6,
+            9: 5,
+            10: 2,
+          },
         }}
         BaselineZero={false}
-        HighlightedX={6}
+        HighlightedX={{
+          a: 6,
+          b: 9,
+        }}
         //{...props}
       />
     );

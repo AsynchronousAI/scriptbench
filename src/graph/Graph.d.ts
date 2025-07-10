@@ -14,7 +14,7 @@ type Graph = {
   BaselineZero: boolean;
   Theme(newTheme: Theme): void;
   Render(): void;
-  HighlightedX?: number;
+  HighlightedX?: { [key: string]: number };
 };
 
 interface GraphConstructor {

@@ -270,8 +270,9 @@ function Graph.new(Frame)
 			-- Designate a color for this dataset
 			KeyColors[Key] = getKeyColor(Key)
 
-            if GraphHandler.HighlightedX then
-                local x = ((GraphHandler.HighlightedX - DomainMin) / DomainMax)
+            if GraphHandler.HighlightedX and GraphHandler.HighlightedX[Key] then
+                local highlightedX = GraphHandler.HighlightedX[Key]
+                local x = ((highlightedX - DomainMin) / DomainMax)
                 local HighlightedXMarker = Instance.new("Frame")
                 HighlightedXMarker.Size = UDim2.new(thickness,0,1.05,0)
                 HighlightedXMarker.Position = UDim2.new(x, 0, -0.125, 0)
@@ -397,7 +398,7 @@ function Graph.new(Frame)
 			elseif Key == "BaselineZero" and type(Value) == "boolean" then
 				GraphHandler.BaselineZero = Value
 				GraphHandler.Render()
-			elseif Key == "HighlightedX" and type(Value) == "number" then
+			elseif Key == "HighlightedX" and type(Value) == "table" then
 				GraphHandler.HighlightedX = Value
 				GraphHandler.Render()
 			end

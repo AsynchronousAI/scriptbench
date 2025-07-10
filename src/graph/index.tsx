@@ -13,7 +13,7 @@ export interface GraphProps {
   Data: { [key: string]: { [key: number]: number } };
   BaselineZero: boolean;
   Theme?: Theme;
-  HighlightedX?: number;
+  HighlightedX?: { [key: string]: number };
 }
 
 function ReactGraph(props: GraphProps) {
