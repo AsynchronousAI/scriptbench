@@ -23,7 +23,7 @@ local Theme = {
 	Name = "Dark";
 
 	Background = Color3.fromHex("#212121"),
-	LightBackground = Color3.fromHex("#1E1E1F"),
+	LightBackground = Color3.fromRGB(30,30,30),
 	Text = Color3.fromRGB(200,200,200)
 }
 local isDark = true
@@ -77,7 +77,7 @@ function Graph.new(Frame)
 	XMarkerBG.Parent = GraphHandler.Frame
 
 	local YMarkers = Instance.new("Frame")
-	YMarkers.Name = "Markers"
+	YMarkers.Name = "YMarkers"
 	YMarkers.Size = UDim2.new(0.05,0,0.85,0)
 	YMarkers.Position = UDim2.new(0.015,0,0.15,0)
 	YMarkers.BackgroundTransparency = 1
@@ -86,7 +86,7 @@ function Graph.new(Frame)
 	YMarkers.Parent = GraphHandler.Frame
 
 	local XMarkers = Instance.new("Frame")
-	XMarkers.Name = "Markers"
+	XMarkers.Name = "XMarkers"
 	XMarkers.Size = UDim2.new(1,0,0.066,0)
 	XMarkers.Position = UDim2.new(0,0,0.934,0)
 	XMarkers.BackgroundTransparency = 1
@@ -96,8 +96,8 @@ function Graph.new(Frame)
 
 	local GraphingFrame = Instance.new("Frame")
 	GraphingFrame.Name = "GraphingFrame"
-	GraphingFrame.Size = UDim2.new(0.9,0,0.85,0)
-	GraphingFrame.Position = UDim2.new(-0.066,0,0.15,0)
+	GraphingFrame.Size = UDim2.new(1,0,0.85,0)
+	GraphingFrame.Position = UDim2.new(-0.225,0,0.15,0)
 	GraphingFrame.BackgroundTransparency = 1
 	GraphingFrame.ZIndex = BaseZIndex+2
 	GraphingFrame.Parent = GraphHandler.Frame
@@ -253,7 +253,7 @@ function Graph.new(Frame)
 			Marker.Size = UDim2.new(1,0,0.08,0)
 			Marker.AnchorPoint = Vector2.new(0,0.5)
 			Marker.Position = UDim2.new(x - 0.9,0,0.5,0)
-			Marker.Text = string.format("%.2f µm", (DomainMin + (Domain*x)))
+			Marker.Text = string.format("%.2f µm", (DomainMin + (DomainMax*x)))
 			Marker.TextXAlignment = Enum.TextXAlignment.Right
 
 			Marker.TextColor3 = Theme.Text
@@ -299,14 +299,12 @@ function Graph.new(Frame)
 				if not Value then continue end
 
 				-- Create the point
-				local diameter = math.clamp(0.7/GraphHandler.Resolution, 0.003,0.035)
-
 				local Point = Instance.new("Frame")
 				Point.Name = Key..i
 				Point.Position = UDim2.new(0.05+((i/SetAmount)),0, 0.9 - (((Value-RangeMin)/Range)),0)
 				Point.AnchorPoint = Vector2.new(0.5,0.5)
 				Point.SizeConstraint = Enum.SizeConstraint.RelativeXX
-				Point.Size = UDim2.new(diameter,0,diameter,0)
+				Point.Size = UDim2.new(math.clamp(0.5/GraphHandler.Resolution, 0.003,0.016),0,math.clamp(0.5/GraphHandler.Resolution, 0.003,0.016),0)
 				Point.BackgroundColor3 = KeyColors[Key]
 				Point.BorderSizePixel = 0
 				Point.ZIndex = BaseZIndex+5
@@ -356,7 +354,7 @@ function Graph.new(Frame)
 
 					local Distance = (Vector2.new(startX, startY) - Vector2.new(endX, endY)).Magnitude
 
-					Connector.Size = UDim2.new(0, Distance, math.clamp(0.7/GraphHandler.Resolution, 0.002,0.025), 0)
+					Connector.Size = UDim2.new(0, Distance, math.clamp(0.2/GraphHandler.Resolution, 0.002,0.0035), 0)
 					Connector.Position = UDim2.new(0, (startX + endX) / 2, 0, (startY + endY) / 2)
 					Connector.Rotation = math.atan2(endY - startY, endX - startX) * (180 / math.pi)
 
