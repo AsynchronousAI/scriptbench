@@ -12,7 +12,7 @@ const story = {
     const props: GraphProps = input.controls;
     const component = (
       <Graph
-        Resolution={10}
+        Resolution={15}
         Data={{
           a: {
             1: 1,

@@ -1,197 +1,154 @@
---[=[
-
-Docs: https://devforum.roblox.com/t/graph-module-easily-draw-graphs-of-your-data/828982/1
-
-API:
-
-function Graph.new(Frame)
-	returns a GraphHandler
-
-GraphHandler.Resolution = The number of points it renders
-GraphHandler.BaselineZero = Whether the bottom of the graph should start at zero (or at the minimum value)
-GraphHandler.Data = The dictionary of data sets
-	(Data must be a dictionary of arrays with no holes)
-
-function GraphHandler.Theme(ThemeDictionary)
-	Updates the Colors of the graph
-
---]=]
+-- GraphModule.lua
 
 local Graph = {}
 
 local Theme = {
-	Name = "Dark";
-
+	Name = "Dark",
 	Background = Color3.fromHex("#212121"),
-	LightBackground = Color3.fromRGB(30,30,30),
-	Text = Color3.fromRGB(200,200,200)
+	LightBackground = Color3.fromRGB(30, 30, 30),
+	Text = Color3.fromRGB(200, 200, 200)
 }
 local isDark = true
 
 local function getKeyColor(name)
-	-- Shoutout to Vocksel for the core of this function
-
 	local seed = 0
-	for i=1, #name do
-		seed = seed + (name:byte(i))
+	for i = 1, #name do
+		seed += name:byte(i)
 	end
 	local rng = Random.new(seed)
-	local hue = rng:NextInteger(0,50)/50
-
+	local hue = rng:NextInteger(0, 50) / 50
 	return Color3.fromHSV(hue, isDark and 0.9 or 1, isDark and 0.84 or 0.8)
 end
 
+local function preprocessDataSet(Set, resolution)
+	local chunkSize = math.ceil(#Set / resolution)
+	local downsampled = {}
+
+	for i = 1, #Set, chunkSize do
+		local chunk = {}
+		for j = i, math.min(i + chunkSize - 1, #Set) do
+			local v = Set[j]
+			if typeof(v) == "number" then
+				table.insert(chunk, {Index = j, Value = v})
+			end
+		end
+		table.sort(chunk, function(a, b) return a.Value < b.Value end)
+		local median = chunk[math.round(#chunk * 0.55)]
+		if median then table.insert(downsampled, median) end
+	end
+
+	return downsampled
+end
 
 function Graph.new(Frame)
-	if not Frame then error("Must give graph a frame") end
-	local GraphHandler = {Frame = Frame; Resolution = 75;}
+	assert(Frame, "Must provide a Frame to draw graph")
 
-	-- Private variables
+	local GraphHandler = {
+		Frame = Frame,
+		Resolution = 75,
+		BaselineZero = false,
+		Data = {},
+		HighlightedX = {},
+	}
+
 	local Busy = false
-
-	-- Create the GUIs
-	local BaseZIndex = GraphHandler.Frame.ZIndex
+	local BaseZIndex = Frame.ZIndex
 
 	local Background = Instance.new("Frame")
-	Background.Name = "Background"
 	Background.BackgroundColor3 = Theme.Background
-	Background.Size = UDim2.new(1,0,1,0)
-	Background.ZIndex = BaseZIndex+1
-	Background.Parent = GraphHandler.Frame
+	Background.Size = UDim2.new(1, 0, 1, 0)
+	Background.ZIndex = BaseZIndex + 1
+	Background.Parent = Frame
 
 	local MarkerBG = Instance.new("Frame")
-	MarkerBG.Name = "YMarkerBackground"
-	MarkerBG.Size = UDim2.new(0.066,0,1,0)
+	MarkerBG.Size = UDim2.new(0.066, 0, 1, 0)
 	MarkerBG.BackgroundColor3 = Theme.LightBackground
 	MarkerBG.BorderSizePixel = 0
-	MarkerBG.ZIndex = BaseZIndex+2
-	MarkerBG.Parent = GraphHandler.Frame
+	MarkerBG.ZIndex = BaseZIndex + 2
+	MarkerBG.Parent = Frame
 
 	local XMarkerBG = Instance.new("Frame")
-	XMarkerBG.Name = "XMarkerBackground"
-	XMarkerBG.Size = UDim2.new(1,0,0.066,0)
-	XMarkerBG.Position = UDim2.new(0,0,0.934,0)
+	XMarkerBG.Size = UDim2.new(1, 0, 0.066, 0)
+	XMarkerBG.Position = UDim2.new(0, 0, 0.934, 0)
 	XMarkerBG.BackgroundColor3 = Theme.LightBackground
 	XMarkerBG.BorderSizePixel = 0
-	XMarkerBG.ZIndex = BaseZIndex+2
-	XMarkerBG.Parent = GraphHandler.Frame
+	XMarkerBG.ZIndex = BaseZIndex + 2
+	XMarkerBG.Parent = Frame
 
 	local YMarkers = Instance.new("Frame")
-	YMarkers.Name = "YMarkers"
-	YMarkers.Size = UDim2.new(0.05,0,0.85,0)
-	YMarkers.Position = UDim2.new(0.015,0,0.15,0)
+	YMarkers.Size = UDim2.new(0.066, 0, 1, 0)
+	YMarkers.Position = UDim2.new(-0.02, 0, 0, 0)
 	YMarkers.BackgroundTransparency = 1
-	YMarkers.BorderSizePixel = 0
-	YMarkers.ZIndex = BaseZIndex+2
-	YMarkers.Parent = GraphHandler.Frame
+	YMarkers.ZIndex = BaseZIndex + 3
+	YMarkers.Parent = Frame
 
 	local XMarkers = Instance.new("Frame")
-	XMarkers.Name = "XMarkers"
-	XMarkers.Size = UDim2.new(1,0,0.066,0)
-	XMarkers.Position = UDim2.new(0,0,0.934,0)
+	XMarkers.Size = UDim2.new(1, 0, 0.066, 0)
+	XMarkers.Position = UDim2.new(0, 0, 0.934, 0)
 	XMarkers.BackgroundTransparency = 1
-	XMarkers.BorderSizePixel = 0
-	XMarkers.ZIndex = BaseZIndex+2
-	XMarkers.Parent = GraphHandler.Frame
+	XMarkers.ZIndex = BaseZIndex + 3
+	XMarkers.Parent = Frame
 
 	local GraphingFrame = Instance.new("Frame")
-	GraphingFrame.Name = "GraphingFrame"
-	GraphingFrame.Size = UDim2.new(1,0,0.85,0)
-	GraphingFrame.Position = UDim2.new(0,-65,0.15,0)
+	GraphingFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+	GraphingFrame.Size = UDim2.new(0.935, 0, 0.949, 0)
+	GraphingFrame.Position = UDim2.new(0.532, 0, 0.475, 0)
 	GraphingFrame.BackgroundTransparency = 1
-	GraphingFrame.ZIndex = BaseZIndex+2
-	GraphingFrame.Parent = GraphHandler.Frame
---[[
-	local KeyNames = Instance.new("Frame")
-	KeyNames.Name = "KeyNames"
-	KeyNames.Size = UDim2.new(1,0,0.1,0)
-	KeyNames.Position = UDim2.new(0,0,0,0)
-	KeyNames.BackgroundColor3 = Theme.LightBackground
-	KeyNames.BorderSizePixel = 0
-	KeyNames.ZIndex = BaseZIndex+2
-	KeyNames.Parent = GraphHandler.Frame
-]]
+	GraphingFrame.ZIndex = BaseZIndex + 4
+	GraphingFrame.Parent = Frame
 
-	-- Rerender if the frame changes size since our lines will be all wonky
-	GraphHandler.Frame:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
-		local Size = GraphHandler.Frame.AbsoluteSize
-		task.wait(0.04)
-		if Size == GraphHandler.Frame.AbsoluteSize then
-			GraphHandler.Render()
+	local function renderAxisLabels(RangeMin, Range, DomainMin, Domain)
+		YMarkers:ClearAllChildren()
+		XMarkers:ClearAllChildren()
+
+		for y = 0, 1, 0.125 do
+			local label = Instance.new("TextLabel")
+			label.Size = UDim2.new(1, 0, 0.08, 0)
+			label.AnchorPoint = Vector2.new(0, 0.5)
+			label.Position = UDim2.new(0, 0, 0.9 - y, 0)
+			label.Text = string.format("%.2f", 1 + RangeMin + (Range * y))
+			label.TextColor3 = Theme.Text
+			label.Font = Enum.Font.SourceSans
+			label.BackgroundTransparency = 1
+			label.TextXAlignment = Enum.TextXAlignment.Right
+			label.TextSize = (Frame.AbsoluteSize.X * 0.02)
+			label.ZIndex = BaseZIndex + 5
+			label.Parent = YMarkers
 		end
-	end)
 
-	function GraphHandler.Theme(newTheme)
-		task.wait()
-		-- Make sure we have latest theme data
-		Theme = {
-			Name = newTheme.Name or "Dark";
-
-			Background = newTheme.Background or Color3.fromRGB(46,46,46);
-			LightBackground = newTheme.LightBackground or Color3.fromRGB(70,70,70);
-			Text = newTheme.Text or Color3.fromRGB(220,220,230);
-		}
-
-		-- Update GUIs
-		Background.BackgroundColor3 = Theme.Background
-		MarkerBG.BackgroundColor3 = Theme.LightBackground
-		--KeyNames.BackgroundColor3 = Theme.LightBackground
-
-		-- Redraw graph with new colors
-		GraphHandler.Render()
+		for x = 0, 1, 0.111 do
+			local label = Instance.new("TextLabel")
+			label.Size = UDim2.new(1, 0, 0.08, 0)
+			label.AnchorPoint = Vector2.new(0, 0.5)
+			label.Position = UDim2.new(x - 0.9, 0, 0.5, 0)
+			label.Text = string.format("%.2f µs", DomainMin + (Domain) * x)
+			label.TextColor3 = Theme.Text
+			label.Font = Enum.Font.SourceSans
+			label.BackgroundTransparency = 1
+			label.TextXAlignment = Enum.TextXAlignment.Right
+			label.TextSize = (Frame.AbsoluteSize.X * 0.02)
+			label.ZIndex = BaseZIndex + 5
+			label.Parent = XMarkers
+		end
 	end
 
 	function GraphHandler.Render()
-		-- Validate we have stuff to render
-		if not GraphHandler.Frame or not GraphHandler.Data or not GraphHandler.Resolution then
-			return
-		end
-
-		while Busy do task.wait() end
+		if Busy then return end
 		Busy = true
 
-		-- Clear old graph values
-		YMarkers:ClearAllChildren()
 		GraphingFrame:ClearAllChildren()
-		XMarkers:ClearAllChildren()
-		--KeyNames:ClearAllChildren()
+		local allData = {}
+		local RangeMin, RangeMax = math.huge, -math.huge
+		local DomainMin, DomainMax = math.huge, -math.huge
 
-		BaseZIndex = GraphHandler.Frame.ZIndex
-
-		Background.ZIndex = BaseZIndex+1
-		MarkerBG.ZIndex = BaseZIndex+2
-		XMarkerBG.ZIndex = BaseZIndex+2
-		YMarkers.ZIndex = BaseZIndex+2
-		GraphingFrame.ZIndex = BaseZIndex+2
-		--KeyNames.ZIndex = BaseZIndex+2
-
-		--[[local KeyLayout = Instance.new("UIListLayout")
-		KeyLayout.FillDirection = Enum.FillDirection.Horizontal
-		KeyLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
-		KeyLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-		KeyLayout.Padding = UDim.new(0.01,0)
-		KeyLayout.Parent = KeyNames]]
-
-		local Range, Domain
-
-		-- Calculate our range of values
-		local RangeMax, RangeMin = -math.huge,math.huge
 		for Key, Set in pairs(GraphHandler.Data) do
-			local SetAmount = #Set
-
-			for i=1,SetAmount, math.ceil(SetAmount/GraphHandler.Resolution) do
-				local SortedChunk = {}
-				for x=i,i+math.ceil(SetAmount/GraphHandler.Resolution) do
-					SortedChunk[#SortedChunk+1] = Set[x]
-				end
-				table.sort(SortedChunk)
-
-				local Value = SortedChunk[math.round(#SortedChunk*0.55)]
-				if not Value then continue end
-
-				-- Record for our range calc
-				RangeMin = math.min(RangeMin, Value)
-				RangeMax = math.max(RangeMax, Value)
+			local dataPoints = preprocessDataSet(Set, GraphHandler.Resolution)
+			allData[Key] = dataPoints
+			for _, pt in ipairs(dataPoints) do
+				RangeMin = math.min(RangeMin, pt.Value)
+				RangeMax = math.max(RangeMax, pt.Value)
+				DomainMin = math.min(DomainMin, pt.Index)
+				DomainMax = math.max(DomainMax, pt.Index)
 			end
 		end
 
@@ -200,212 +157,134 @@ function Graph.new(Frame)
 			RangeMax = RangeMax * 1.75
 		end
 
-		Range = RangeMax-RangeMin
+		local Range = RangeMax - RangeMin
+		local Domain = DomainMax - DomainMin
 
-		-- Calculate the domain of our values
-		local DomainMax, DomainMin = -math.huge, math.huge
-		for Key, Set in pairs(GraphHandler.Data) do
-		    local SetAmount = #Set
+		renderAxisLabels(RangeMin, Range, DomainMin, Domain)
 
-			for i=1,SetAmount, math.ceil(SetAmount/GraphHandler.Resolution) do
-				local SortedChunk = {}
-				for x=i,i+math.ceil(SetAmount/GraphHandler.Resolution) do
-					SortedChunk[#SortedChunk+1] = x--Set[x]
-				end
-				table.sort(SortedChunk)
-
-				local Value = SortedChunk[math.round(#SortedChunk*0.55)]
-				if not Value then continue end
-
-				-- Record for our domain calc
-				DomainMin = math.min(DomainMin, Value)
-				DomainMax = math.max(DomainMax, Value)
-			end
-		end
-
-		Domain = DomainMax-DomainMin
-
-
-		-- Mark our Y axis values along the derived range
-		for y=0,1,0.2 do
-			local Marker = Instance.new("TextLabel")
-			Marker.Name = y
-			Marker.Size = UDim2.new(1,0,0.08,0)
-			Marker.AnchorPoint = Vector2.new(0,0.5)
-			Marker.Position = UDim2.new(0,0,0.9 - y,0)
-			Marker.Text = string.format("%.2f Calls", (RangeMin + (Range*y)))
-			Marker.TextXAlignment = Enum.TextXAlignment.Right
-
-			Marker.TextColor3 = Theme.Text
-			Marker.Font = Enum.Font.SourceSans
-			Marker.BackgroundTransparency = 1
-			Marker.TextSize = (GraphHandler.Frame.AbsoluteSize.X*0.02)
-			Marker.ZIndex = BaseZIndex+3
-			Marker.Parent = YMarkers
-		end
-
-
-		-- Mark our X axis values along the derived domain
-		for x=0,1,0.2 do
-			local Marker = Instance.new("TextLabel")
-			Marker.Name = x
-			Marker.Size = UDim2.new(1,0,0.08,0)
-			Marker.AnchorPoint = Vector2.new(0,0.5)
-			Marker.Position = UDim2.new(x - 0.9,0,0.5,0)
-			Marker.Text = `{string.format("%.2f", DomainMin + (DomainMax*x))} µs`
-			Marker.TextXAlignment = Enum.TextXAlignment.Right
-
-			Marker.TextColor3 = Theme.Text
-			Marker.Font = Enum.Font.SourceSans
-			Marker.BackgroundTransparency = 1
-			Marker.TextSize = (GraphHandler.Frame.AbsoluteSize.X*0.02)
-			Marker.ZIndex = BaseZIndex+3
-			Marker.Parent = XMarkers
-		end
-
-		-- Draw the graph at this range
-		local KeyColors = {}
-		local thickness = math.clamp(0.2/GraphHandler.Resolution, 0.002,0.01)
-		for Key, Set in pairs(GraphHandler.Data) do
-			-- Designate a color for this dataset
-			KeyColors[Key] = getKeyColor(Key)
-
-            if GraphHandler.HighlightedX and GraphHandler.HighlightedX[Key] then
-                local highlightedX = GraphHandler.HighlightedX[Key]
-                local x = ((highlightedX - DomainMin) / DomainMax)
-                local HighlightedXMarker = Instance.new("Frame")
-                HighlightedXMarker.Size = UDim2.new(thickness,0,1.05,0)
-                HighlightedXMarker.Position = UDim2.new(x, 0, -0.125, 0)
-                HighlightedXMarker.BackgroundColor3 = KeyColors[Key]
-                HighlightedXMarker.BackgroundTransparency = 0.5
-                HighlightedXMarker.ZIndex = BaseZIndex+4
-                HighlightedXMarker.Parent = GraphingFrame
-            end
-
-			--local TextSize = GraphHandler.Frame.AbsoluteSize.Y*0.08
-			--local Size = TextService:GetTextSize(Key, TextSize, Enum.Font.SourceSansSemibold, KeyNames.AbsoluteSize)
-			--[[local KeyMarker = Instance.new("TextLabel")
-			KeyMarker.Text = Key
-			KeyMarker.TextColor3 = KeyColors[Key]
-			KeyMarker.Font = Enum.Font.SourceSansSemibold
-			KeyMarker.BackgroundTransparency = 1
-			KeyMarker.TextSize = TextSize
-			KeyMarker.Size = UDim2.new(0,Size.X+TextSize,1,0)
-			KeyMarker.ZIndex = BaseZIndex+3
-			KeyMarker.Parent = KeyNames]]
-
-			-- Graph the set
-			local SetAmount = #Set
+		for Key, Points in pairs(allData) do
+			local Color = getKeyColor(Key)
 			local LastPoint
 
-			--print("  "..Key, Set)
+			for _, point in ipairs(Points) do
+				local XScale = 0.025 + (point.Index - DomainMin) / (Domain + 1)
+				local YScale = 0.95 - ((point.Value - RangeMin) / (Range + 1))
 
-			for i=1,SetAmount, math.ceil(SetAmount/GraphHandler.Resolution) do
-				local SortedChunk = {}
-				for x=i,i+math.ceil(SetAmount/GraphHandler.Resolution) do
-					if Set[x] then SortedChunk[#SortedChunk+1] = {x,Set[x]} end
-				end
-				table.sort(SortedChunk, function(a, b) return a[2] < b[2] end)
+				local Dot = Instance.new("Frame")
+                Dot.Position = UDim2.new(XScale, 0, YScale, 0)
+                Dot.Size = UDim2.new(0.02, 0, 0.02, 0)
+                Dot.AnchorPoint = Vector2.new(0.5, 0.5)
+                Dot.BackgroundColor3 = Color
+                Dot.BorderSizePixel = 0
+                Dot.ZIndex = BaseZIndex + 6
 
-				local Index, Value = unpack(SortedChunk[math.round(#SortedChunk*0.55)])
-				if not Value then continue end
+                Instance.new("UIAspectRatioConstraint", Dot)
 
-				-- Create the point
-				local Point = Instance.new("Frame")
-				Point.Name = Key..i
-				Point.Position = UDim2.new(0.05+((i/SetAmount)),0, 0.9 - (((Value-RangeMin)/Range)),0)
-				Point.AnchorPoint = Vector2.new(0.5,0.5)
-				Point.SizeConstraint = Enum.SizeConstraint.RelativeXX
-				Point.Size = UDim2.new(math.clamp(0.5/GraphHandler.Resolution, 0.003,0.016),0,math.clamp(0.5/GraphHandler.Resolution, 0.003,0.016),0)
-				Point.BackgroundColor3 = KeyColors[Key]
-				Point.BorderSizePixel = 0
-				Point.ZIndex = BaseZIndex+5
+                local Corner = Instance.new("UICorner")
+                Corner.CornerRadius = UDim.new(1, 0)
+                Corner.Parent = Dot
 
-				local UICorner = Instance.new("UICorner")
-				UICorner.CornerRadius = UDim.new(1,0)
-				UICorner.Parent = Point
+                -- Tooltip Label
+                local Tooltip = Instance.new("TextLabel")
+                Tooltip.Visible = false
+                Tooltip.RichText = true
+                Tooltip.BackgroundColor3 = Theme.LightBackground
+                Tooltip.TextColor3 = Theme.Text
+                Tooltip.Font = Enum.Font.Code
+                Tooltip.ZIndex = BaseZIndex + 10
 
-				local color = KeyColors[Key]
-				local Title = `<b><font color="rgb({math.floor(color.R*255)},{math.floor(color.G*255)},{math.floor(color.B*255)})">{Key}</font></b>`
-				local Calls = `Calls: {Value}`
-				local Value = `Time: {Index}µs`
+                local color = Color
+                local R, G, B = math.floor(color.R * 255), math.floor(color.G * 255), math.floor(color.B * 255)
+                Tooltip.Text = string.format(
+               					'<b><font color="rgb(%d,%d,%d)">%s</font></b>\n\nCalls: %.2f\nTime: %d µs',
+               					R, G, B, Key, point.Value, point.Index
+                )
+                Tooltip.Size = UDim2.new(0, Frame.AbsoluteSize.X * 0.15, 0, Frame.AbsoluteSize.Y * 0.12)
+                Tooltip.Position = UDim2.new(1, 0, 0.4, 0)
+                Tooltip.BackgroundTransparency = 0.05
+                Tooltip.TextSize = Frame.AbsoluteSize.X * 0.025
+                Tooltip.TextWrapped = true
+                Tooltip.Parent = Dot
 
-				-- Label
-				local Label = Instance.new("TextLabel")
-				Label.Visible = false
-				Label.RichText = true
-				Label.Text = `{Title}\n\n{Calls}\n{Value}`
-				Label.BackgroundColor3 = Theme.LightBackground
-				Label.TextColor3 = Theme.Text
-				Label.Position = UDim2.new(1,0,0.4,0)
-				Label.Font = Enum.Font.Code
-				Label.TextSize = (GraphHandler.Frame.AbsoluteSize.X*0.025)
-				Label.Size = UDim2.new(0,Label.TextSize * 10,0,Label.TextSize * 4.5)
-				Label.Parent = Point
-				Label.ZIndex = BaseZIndex+10
+                -- Hover behavior
+                Dot.MouseEnter:Connect(function()
+               					Tooltip.Visible = true
+                end)
+                Dot.MouseLeave:Connect(function()
+               					Tooltip.Visible = false
+                end)
 
-				Point.MouseEnter:Connect(function()
-					Label.Visible = true
-				end)
-				Point.MouseLeave:Connect(function()
-					Label.Visible = false
-				end)
+                Dot.Parent = GraphingFrame
 
-				-- Create the line
+
+				local Corner = Instance.new("UICorner")
+				Corner.CornerRadius = UDim.new(1, 0)
+				Corner.Parent = Dot
+
+				Dot.Parent = GraphingFrame
+
 				if LastPoint then
-					local Connector = Instance.new("Frame")
-					Connector.Name = Key..i.."-"..i-1
-					Connector.BackgroundColor3 = KeyColors[Key]
-					Connector.BorderSizePixel = 0
-					Connector.SizeConstraint = Enum.SizeConstraint.RelativeXX
-					Connector.AnchorPoint = Vector2.new(0.5, 0.5)
-					Connector.ZIndex = BaseZIndex+4
+					local Line = Instance.new("Frame")
+					local s = GraphingFrame.AbsoluteSize
+					local from = s * Vector2.new(LastPoint.X, LastPoint.Y)
+					local to = s * Vector2.new(XScale, YScale)
+					local delta = to - from
 
-					local Size = GraphingFrame.AbsoluteSize
-					local startX, startY = Point.Position.X.Scale*Size.X, Point.Position.Y.Scale*Size.Y
-					local endX, endY = LastPoint.Position.X.Scale*Size.X, LastPoint.Position.Y.Scale*Size.Y
-
-					local Distance = (Vector2.new(startX, startY) - Vector2.new(endX, endY)).Magnitude
-
-					Connector.Size = UDim2.new(0, Distance, thickness, 0)
-					Connector.Position = UDim2.new(0, (startX + endX) / 2, 0, (startY + endY) / 2)
-					Connector.Rotation = math.atan2(endY - startY, endX - startX) * (180 / math.pi)
-
-					Connector.Parent = GraphingFrame
+					Line.Size = UDim2.new(0, delta.Magnitude, 0, 2)
+					Line.Position = UDim2.new(0, from.X + delta.X/2, 0, from.Y + delta.Y/2)
+					Line.AnchorPoint = Vector2.new(0.5, 0.5)
+					Line.BackgroundColor3 = Color
+					Line.BorderSizePixel = 0
+					Line.Rotation = math.deg(math.atan2(delta.Y, delta.X))
+					Line.ZIndex = BaseZIndex + 5
+					Line.Parent = GraphingFrame
 				end
 
-				LastPoint = Point
-				Point.Parent = GraphingFrame
-
+				LastPoint = {X = XScale, Y = YScale}
 			end
-
 		end
 
 		Busy = false
 	end
 
+	function GraphHandler.Theme(newTheme)
+		Theme = {
+			Name = newTheme.Name or "Dark",
+			Background = newTheme.Background or Color3.fromRGB(46,46,46),
+			LightBackground = newTheme.LightBackground or Color3.fromRGB(70,70,70),
+			Text = newTheme.Text or Color3.fromRGB(220,220,230),
+		}
+		Background.BackgroundColor3 = Theme.Background
+		MarkerBG.BackgroundColor3 = Theme.LightBackground
+		XMarkerBG.BackgroundColor3 = Theme.LightBackground
+		GraphHandler.Render()
+	end
+
+	-- React to resizing
+	Frame:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+		task.defer(function()
+			GraphHandler.Render()
+		end)
+	end)
+
 	return setmetatable({}, {
-		__index = function(t,Key)
-			return GraphHandler[Key]
-		end;
-		__newindex = function(t, Key, Value)
-			if Key == "Data" and type(Value) == "table" then
-				GraphHandler.Data = Value
+		__index = function(_, key) return GraphHandler[key] end,
+		__newindex = function(_, key, value)
+			if key == "Data" then
+				GraphHandler.Data = value
 				GraphHandler.Render()
-			elseif Key == "Resolution" and type(Value) == "number" then
-				GraphHandler.Resolution = math.clamp(Value, 3, 500)
+			elseif key == "Resolution" then
+				GraphHandler.Resolution = math.clamp(value, 3, 500)
 				GraphHandler.Render()
-			elseif Key == "BaselineZero" and type(Value) == "boolean" then
-				GraphHandler.BaselineZero = Value
+			elseif key == "BaselineZero" then
+				GraphHandler.BaselineZero = value
 				GraphHandler.Render()
-			elseif Key == "HighlightedX" and type(Value) == "table" then
-				GraphHandler.HighlightedX = Value
+			elseif key == "HighlightedX" then
+				GraphHandler.HighlightedX = value
 				GraphHandler.Render()
 			end
-		end;
+		end,
 	})
-
 end
-
 
 return Graph

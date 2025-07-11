@@ -1,0 +1,5 @@
+std = "roblox"
+
+[lints]
+global_usage = "allow"
+roblox_incorrect_roact_usage = "allow"
