@@ -21,6 +21,7 @@
     "@rbxts/react": "^17.2.3",
     "@rbxts/react-roblox": "^17.2.3",
     "@rbxts/services": "^1.5.5",
+    "@rbxts/studiocomponents-react2": "github:AsynchronousAI/StudioComponents",
     "@rbxts/ui-labs": "^2.4.0"
   }
 }

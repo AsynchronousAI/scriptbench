@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "@rbxts/react";
+import { Background, Button, MainButton } from "@rbxts/studiocomponents-react2";
 import { COLORS } from "colors";
 
 export interface SidebarProps {
@@ -6,6 +7,13 @@ export interface SidebarProps {
 
   OnSelection?: (benchmarkName: string) => void;
 }
+
+const GraphIcon = {
+  Image: "rbxassetid://105442920358687",
+  Size: Vector2.one.mul(16),
+  UseThemeColor: true,
+  Alignment: Enum.HorizontalAlignment.Left,
+};
 export default function Sidebar(props: SidebarProps) {
   const [currentlySelected, setCurrentlySelected] = useState("");
 
@@ -23,34 +31,21 @@ export default function Sidebar(props: SidebarProps) {
       />
 
       {props.Benchmarks.map((name, index) => {
-        return (
-          <textbutton
-            AutoButtonColor={false}
-            Size={new UDim2(0.65, 0, 0.15, 0)}
-            BackgroundColor3={
-              currentlySelected === name
-                ? COLORS.Selected
-                : COLORS.LightBackground
-            }
-            TextColor3={
-              currentlySelected === name ? new Color3(0, 0, 0) : COLORS.Text
-            }
-            BackgroundTransparency={0}
+        return currentlySelected === name ? (
+          <MainButton
             Text={name}
-            Font="BuilderSansBold"
-            TextScaled
-            Event={{
-              MouseButton1Click: () => {
-                setCurrentlySelected(name);
-              },
+            Icon={GraphIcon}
+            Size={new UDim2(0.2, 0, 0.075, 0)}
+          />
+        ) : (
+          <Button
+            Text={name}
+            Icon={GraphIcon}
+            Size={new UDim2(0.2, 0, 0.075, 0)}
+            OnActivated={() => {
+              setCurrentlySelected(name);
             }}
-          >
-            <uipadding
-              PaddingTop={new UDim(0.15, 0)}
-              PaddingBottom={new UDim(0.15, 0)}
-            />
-            <uicorner CornerRadius={new UDim(0.25, 0)} />
-          </textbutton>
+          />
         );
       })}
     </frame>
