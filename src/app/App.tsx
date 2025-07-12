@@ -172,7 +172,7 @@ export function App() {
         />
 
         {data /* Data exists, show it! */ ? (
-          <Graph Data={data} key="Side2" />
+          <Graph Data={data} XPrefix="µs" />
         ) : progress /* Currently runnning benchmark */ ? (
           <ProgressBar
             Value={progress}
@@ -181,13 +181,11 @@ export function App() {
             Position={new UDim2(0.5, 0, 0.5, 0)}
             AnchorPoint={new Vector2(0.5, 0.5)}
             Size={new UDim2(0.75, 0, 0.05, 0)}
-            key="Side2"
           />
         ) : currentBenchmark ? (
           /* Just previewing */
           <MainButton
             Text="Start Benchmark"
-            key="Side2"
             Position={new UDim2(0.5, 0, 0.5, 0)}
             AnchorPoint={new Vector2(0.5, 0.5)}
             Size={new UDim2(0.2, 0, 0.05, 0)}

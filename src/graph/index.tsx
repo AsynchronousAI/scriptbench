@@ -7,6 +7,8 @@ import { usePx } from "hooks/usePx";
 export interface GraphProps {
   Data: { [key: string]: { [key: number]: number } };
   HighlightedX?: { [key: string]: number };
+  XPrefix?: string;
+  YPrefix?: string;
 }
 interface DomainRange {
   DomainMin: number;
@@ -32,8 +34,8 @@ function AsPosition(Min: number, Max: number, Value: number, IsRange = false) {
   }
   return value;
 }
-function FormatNumber(value: number): string {
-  return string.format("%.2f", value);
+function FormatNumber(value: number, prefix?: string): string {
+  return string.format("%.2f", value) + (prefix || "");
 }
 function ComputeRangeDomain(data: {
   [key: string]: { [key: number]: number };
@@ -87,6 +89,8 @@ function TagsAndGridLines(props: {
   RangeMin: number;
   RangeMax: number;
   Range: number;
+  XPrefix?: string;
+  YPrefix?: string;
 }) {
   const px = usePx();
 
@@ -102,7 +106,7 @@ function TagsAndGridLines(props: {
         return (
           <>
             <textlabel
-              Text={FormatNumber(value)}
+              Text={FormatNumber(value, props.XPrefix)}
               Size={new UDim2(LABEL_THICKNESS, 0, LABEL_THICKNESS, 0)}
               Position={
                 new UDim2(
@@ -146,7 +150,7 @@ function TagsAndGridLines(props: {
         return (
           <>
             <textlabel
-              Text={FormatNumber(value)}
+              Text={FormatNumber(value, props.YPrefix)}
               Size={new UDim2(LABEL_THICKNESS, 0, LABEL_THICKNESS, 0)}
               Position={
                 new UDim2(
@@ -476,6 +480,8 @@ export default function ReactGraph(props: GraphProps) {
           DomainMin={DomainMin}
           DomainMax={DomainMax}
           Domain={Domain}
+          XPrefix={props.XPrefix}
+          YPrefix={props.YPrefix}
         />
       </frame>
     </frame>
