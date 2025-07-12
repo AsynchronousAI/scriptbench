@@ -15,7 +15,7 @@ const SIDEBAR_WIDTH = 0.2;
 
 export function App() {
   const [currentBenchmark, setCurrentBenchmark] = useState("");
-  const [benchmarks, setBenchmarks] = useState(["a"]);
+  const [benchmarks, setBenchmarks] = useState(["RandomData"]);
   const [data, setData] = useState<
     { [key: string]: { [key: number]: number } } | undefined
   >(undefined);
@@ -160,12 +160,13 @@ export function App() {
         BackgroundTransparency={1}
       >
         <textlabel
-          Text={currentBenchmark || "No bench selected"}
-          Position={new UDim2(0.03, 0, 0, 0)}
-          Size={new UDim2(0.3, 0, 0.05, 0)}
+          Text={`<b>${currentBenchmark || "No bench selected"}</b> ${currentBenchmark && currentBenchmark + ""}`}
+          RichText
+          Position={new UDim2(0.03, 0, 0.01, 0)}
+          Size={new UDim2(0.5, 0, 0.05, 0)}
           BackgroundTransparency={1}
           TextScaled
-          Font={Enum.Font.BuilderSansBold}
+          Font={Enum.Font.BuilderSans}
           TextXAlignment={"Left"}
           TextColor3={COLORS.FocusText}
           ZIndex={2}
