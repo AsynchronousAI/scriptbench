@@ -4,16 +4,8 @@ import { COLORS } from "colors";
 import { usePx } from "hooks/usePx";
 
 /** Types */
-export interface Theme {
-  Name?: string;
-  Background?: Color3;
-  LightBackground?: Color3;
-  Text?: Color3;
-}
 export interface GraphProps {
-  Resolution: number;
   Data: { [key: string]: { [key: number]: number } };
-  Theme?: Theme;
   HighlightedX?: { [key: string]: number };
 }
 interface DomainRange {
@@ -444,10 +436,11 @@ export default function ReactGraph(props: GraphProps) {
 
   return (
     <frame
-      Size={new UDim2(1, 0, 1, 0)}
+      Size={new UDim2(0.975, 0, 0.975, 0)}
       BackgroundColor3={COLORS.Background}
       Position={new UDim2(0.5, 0, 0.5, 0)}
       AnchorPoint={new Vector2(0.5, 0.5)}
+      BorderSizePixel={0}
     >
       <frame
         Size={new UDim2(1 - LABEL_THICKNESS * 2, 0, 1 - LABEL_THICKNESS * 2, 0)}
@@ -455,13 +448,6 @@ export default function ReactGraph(props: GraphProps) {
         Position={new UDim2(0.5, 0, 0.5, 0)}
         AnchorPoint={new Vector2(0.5, 0.5)}
       >
-        <Lines
-          Data={props.Data}
-          DomainMax={DomainMax}
-          DomainMin={DomainMin}
-          RangeMax={RangeMax}
-          RangeMin={RangeMin}
-        />
         {props.HighlightedX && (
           <HighlightedX
             HighlightedX={props.HighlightedX}
@@ -469,6 +455,13 @@ export default function ReactGraph(props: GraphProps) {
             DomainMin={DomainMin}
           />
         )}
+        <Lines
+          Data={props.Data}
+          DomainMax={DomainMax}
+          DomainMin={DomainMin}
+          RangeMax={RangeMax}
+          RangeMin={RangeMin}
+        />
         <Points
           Data={props.Data}
           DomainMax={DomainMax}

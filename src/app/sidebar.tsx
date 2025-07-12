@@ -1,5 +1,11 @@
+import { String } from "@rbxts/luau-polyfill";
 import React, { useEffect, useState } from "@rbxts/react";
-import { Background, Button, MainButton } from "@rbxts/studiocomponents-react2";
+import {
+  Background,
+  Button,
+  MainButton,
+  TextInput,
+} from "@rbxts/studiocomponents-react2";
 import { COLORS } from "colors";
 
 export interface SidebarProps {
@@ -16,32 +22,53 @@ const GraphIcon = {
 };
 export default function Sidebar(props: SidebarProps) {
   const [currentlySelected, setCurrentlySelected] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     if (props.OnSelection) props.OnSelection(currentlySelected);
   }, [currentlySelected]);
 
   return (
-    <frame Size={new UDim2(1, 0, 1, 0)} BackgroundColor3={COLORS.Background}>
+    <frame
+      Size={new UDim2(1, 0, 1, 0)}
+      BorderColor3={COLORS.Border}
+      BackgroundColor3={COLORS.Background}
+    >
       <uilistlayout
         FillDirection={"Vertical"}
         HorizontalAlignment={"Center"}
-        VerticalAlignment={"Center"}
-        Padding={new UDim(0.05, 0)}
+        VerticalAlignment={"Top"}
+        Padding={new UDim(0.025, 0)}
+        SortOrder={"LayoutOrder"}
+      />
+
+      <TextInput
+        LayoutOrder={-1}
+        PlaceholderText="Filter"
+        Text={searchTerm}
+        Size={new UDim2(1, 0, 0.05, 0)}
+        AnchorPoint={new Vector2(0.5, 0)}
+        OnChanged={(t) => {
+          setSearchTerm(t);
+        }}
       />
 
       {props.Benchmarks.map((name, index) => {
+        if (!String.includes(name.lower(), searchTerm.lower())) return <></>;
+
         return currentlySelected === name ? (
           <MainButton
+            LayoutOrder={index}
             Text={name}
             Icon={GraphIcon}
-            Size={new UDim2(0.2, 0, 0.075, 0)}
+            Size={new UDim2(1, 0, 0.05, 0)}
           />
         ) : (
           <Button
+            LayoutOrder={index}
             Text={name}
             Icon={GraphIcon}
-            Size={new UDim2(0.2, 0, 0.075, 0)}
+            Size={new UDim2(1, 0, 0.05, 0)}
             OnActivated={() => {
               setCurrentlySelected(name);
             }}
