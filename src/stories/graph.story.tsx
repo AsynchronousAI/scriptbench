@@ -39,7 +39,6 @@ const story = {
             10: 2,
           },
         }}
-        BaselineZero={false}
         HighlightedX={{
           a: 6,
           b: 9,

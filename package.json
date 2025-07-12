@@ -16,6 +16,8 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "@rbxts/luau-polyfill": "^1.1.3",
+    "@rbxts/pretty-react-hooks": "^0.6.4",
     "@rbxts/react": "^17.2.3",
     "@rbxts/react-roblox": "^17.2.3",
     "@rbxts/services": "^1.5.5",
