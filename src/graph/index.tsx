@@ -1,5 +1,5 @@
 import { Object } from "@rbxts/luau-polyfill";
-import React, { ReactNode, useBinding } from "@rbxts/react";
+import React, { useBinding } from "@rbxts/react";
 import { COLORS } from "colors";
 import { usePx } from "hooks/usePx";
 
@@ -21,6 +21,8 @@ export interface GraphProps {
 const LABEL_THICKNESS = 0.075;
 const DOMAIN_LABELS = 5;
 const RANGE_LABELS = 5;
+const LINE_WIDTH = 5;
+const DOT_SIZE = 5;
 
 /** Computations */
 function AsPosition(Min: number, Max: number, Value: number, IsRange = false) {
@@ -66,7 +68,6 @@ function ComputeRangeDomain(data: {
     Range: rangeMax - rangeMin,
   };
 }
-
 function InIncrements(Min: number, Max: number, Range: number, Amount: number) {
   let increment = Range / Amount;
   let increments = [];
@@ -78,11 +79,11 @@ function InIncrements(Min: number, Max: number, Range: number, Amount: number) {
 function GetKeyColor(name: string, isDark: boolean = true) {
   let seed = 0;
   for (let i = 0; i < name.size(); i++) {
-    seed += name.byte(i + 1)[0];
+    seed += name.byte(i + 1) as unknown as number;
   }
   const rng = new Random(seed);
   const hue = rng.NextInteger(0, 50) / 50;
-  return Color3.fromHSV(hue, isDark ? 0.9 : 1, isDark ? 0.84 : 0.8);
+  return Color3.fromHSV(hue, isDark ? 0.63 : 1, isDark ? 0.84 : 0.8);
 }
 
 /** React Components */
@@ -235,7 +236,7 @@ function Points(props: {
             <>
               {/* The point itself */}
               <frame
-                Size={new UDim2(0, px(7), 0, px(7))}
+                Size={new UDim2(0, px(DOT_SIZE), 0, px(DOT_SIZE))}
                 BackgroundColor3={color}
                 BorderSizePixel={0}
                 Event={{
@@ -315,7 +316,7 @@ function HighlightedX(props: {
           )
         }
         AnchorPoint={new Vector2(0, 0.5)}
-        Size={new UDim2(0, px(5), 1, 0)}
+        Size={new UDim2(0, px(LINE_WIDTH), 1, 0)}
         BackgroundColor3={color}
         BackgroundTransparency={0.5}
       />,
@@ -324,24 +325,164 @@ function HighlightedX(props: {
   return highlights;
 }
 
+function Line(props: {
+  /* line attr */
+  StartX: number;
+  StartY: number;
+  EndX: number;
+  EndY: number;
+  Color: Color3;
+
+  /* graph attr */
+  DomainMin: number;
+  DomainMax: number;
+  RangeMin: number;
+  RangeMax: number;
+}) {
+  const px = usePx();
+
+  print(AsPosition(props.RangeMin, props.RangeMax, props.EndY));
+  return (
+    <>
+      {/* Travel across X */}
+      <frame
+        BorderSizePixel={0}
+        BackgroundColor3={props.Color}
+        Size={
+          new UDim2(
+            AsPosition(props.DomainMin, props.DomainMax, props.EndX) -
+              AsPosition(props.DomainMin, props.DomainMax, props.StartX),
+            px(DOT_SIZE),
+            0,
+            px(LINE_WIDTH),
+          )
+        }
+        Position={
+          new UDim2(
+            AsPosition(props.DomainMin, props.DomainMax, props.StartX) +
+              LABEL_THICKNESS,
+            0,
+            AsPosition(props.RangeMin, props.RangeMax, props.StartY, true),
+            0,
+          )
+        }
+      />
+
+      {/* Travel across Y */}
+      <frame
+        BorderSizePixel={0}
+        BackgroundColor3={props.Color}
+        Size={
+          new UDim2(
+            0,
+            px(LINE_WIDTH),
+            AsPosition(props.RangeMin, props.RangeMax, props.EndY) -
+              AsPosition(props.RangeMin, props.RangeMax, props.StartY),
+            0,
+          )
+        }
+        Position={
+          new UDim2(
+            AsPosition(props.DomainMin, props.DomainMax, props.EndX) +
+              LABEL_THICKNESS,
+            0,
+            AsPosition(props.RangeMin, props.RangeMax, props.EndY, true),
+            0,
+          )
+        }
+      />
+
+      {/* Gradient */}
+      <frame
+        BorderSizePixel={0}
+        BackgroundColor3={props.Color}
+        Size={
+          new UDim2(
+            AsPosition(props.DomainMin, props.DomainMax, props.EndX) -
+              AsPosition(props.DomainMin, props.DomainMax, props.StartX),
+            0,
+            AsPosition(props.RangeMin, props.RangeMax, props.EndY),
+            0,
+          )
+        }
+        Position={
+          new UDim2(
+            AsPosition(props.DomainMin, props.DomainMax, props.EndX) +
+              LABEL_THICKNESS,
+            0,
+            AsPosition(props.RangeMin, props.RangeMax, props.EndY, true),
+            0,
+          )
+        }
+      >
+        <uigradient
+          Rotation={90}
+          Transparency={
+            new NumberSequence([
+              new NumberSequenceKeypoint(
+                0,
+                1 - AsPosition(props.RangeMin, props.RangeMax, props.EndY) / 3,
+              ),
+              new NumberSequenceKeypoint(1, 1),
+            ])
+          }
+        />
+      </frame>
+    </>
+  );
+}
+
+function Lines(props: {
+  Data: { [key: string]: { [key: number]: number } };
+  DomainMin: number;
+  DomainMax: number;
+  RangeMin: number;
+  RangeMax: number;
+}) {
+  let lines = [];
+  for (const [key, points] of pairs(props.Data)) {
+    const color = GetKeyColor(key as string);
+
+    for (const [x, y] of pairs(points)) {
+      /* Get the next point */
+      let nextX = math.huge;
+      for (const [thisX] of pairs(points)) {
+        if (thisX < nextX && thisX > x) {
+          nextX = thisX;
+        }
+      }
+      const nextY = points[x + 1];
+
+      if (nextX === math.huge) {
+        continue;
+      }
+
+      lines.push(
+        <Line
+          StartX={x}
+          StartY={y}
+          EndX={nextX}
+          EndY={nextY}
+          Color={color}
+          DomainMax={props.DomainMax}
+          DomainMin={props.DomainMin}
+          RangeMax={props.RangeMax}
+          RangeMin={props.RangeMin}
+        />,
+      );
+    }
+  }
+  return lines;
+}
+
 /* Main */
 export default function ReactGraph(props: GraphProps) {
   let { Domain, DomainMin, DomainMax, Range, RangeMin, RangeMax } =
     ComputeRangeDomain(props.Data);
-  const px = usePx();
 
   return (
     <frame Size={new UDim2(1, 0, 1, 0)} BackgroundColor3={COLORS.Background}>
-      <AxisBorders />
-      <TagsAndGridLines
-        RangeMin={RangeMin}
-        RangeMax={RangeMax}
-        Range={Range}
-        DomainMin={DomainMin}
-        DomainMax={DomainMax}
-        Domain={Domain}
-      />
-      <Points
+      <Lines
         Data={props.Data}
         DomainMax={DomainMax}
         DomainMin={DomainMin}
@@ -355,6 +496,22 @@ export default function ReactGraph(props: GraphProps) {
           DomainMin={DomainMin}
         />
       )}
+      <Points
+        Data={props.Data}
+        DomainMax={DomainMax}
+        DomainMin={DomainMin}
+        RangeMax={RangeMax}
+        RangeMin={RangeMin}
+      />
+      <AxisBorders />
+      <TagsAndGridLines
+        RangeMin={RangeMin}
+        RangeMax={RangeMax}
+        Range={Range}
+        DomainMin={DomainMin}
+        DomainMax={DomainMax}
+        Domain={Domain}
+      />
     </frame>
   );
 }
