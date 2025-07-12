@@ -5,4 +5,5 @@ export const COLORS = {
   Text: Color3.fromRGB(150, 150, 150),
   DarkText: Color3.fromRGB(35, 35, 35),
   Selected: Color3.fromRGB(123, 175, 255),
+  FocusText: Color3.fromRGB(200, 200, 200),
 };
