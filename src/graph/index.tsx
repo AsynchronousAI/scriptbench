@@ -16,6 +16,14 @@ export interface GraphProps {
   Theme?: Theme;
   HighlightedX?: { [key: string]: number };
 }
+interface DomainRange {
+  DomainMin: number;
+  DomainMax: number;
+  RangeMin: number;
+  RangeMax: number;
+  Range: number;
+  Domain: number;
+}
 
 /** Configurations */
 const LABEL_THICKNESS = 0.075;
@@ -37,14 +45,7 @@ function FormatNumber(value: number): string {
 }
 function ComputeRangeDomain(data: {
   [key: string]: { [key: number]: number };
-}): {
-  DomainMin: number;
-  DomainMax: number;
-  RangeMin: number;
-  RangeMax: number;
-  Range: number;
-  Domain: number;
-} {
+}): DomainRange {
   let domainMin = math.huge;
   let domainMax = -math.huge;
   let rangeMin = math.huge;
