@@ -76,41 +76,17 @@ function InIncrements(Min: number, Max: number, Range: number, Amount: number) {
   }
   return increments;
 }
-function GetKeyColor(name: string, isDark: boolean = true) {
+function GetKeyColor(name: string, isDark: boolean = true): [Color3, number] {
   let seed = 0;
   for (let i = 0; i < name.size(); i++) {
     seed += name.byte(i + 1) as unknown as number;
   }
   const rng = new Random(seed);
   const hue = rng.NextInteger(0, 50) / 50;
-  return Color3.fromHSV(hue, isDark ? 0.63 : 1, isDark ? 0.84 : 0.8);
+  return [Color3.fromHSV(hue, isDark ? 0.63 : 1, isDark ? 0.84 : 0.8), seed];
 }
 
 /** React Components */
-function AxisBorders() {
-  return (
-    <>
-      <frame /* Y */
-        Size={new UDim2(LABEL_THICKNESS, 0, 1, 0)}
-        Position={new UDim2(0, 0, -LABEL_THICKNESS, 0)}
-        BackgroundColor3={COLORS.LightBackground}
-        BorderColor3={COLORS.Border}
-      />
-      <frame /* X */
-        Size={new UDim2(1 - LABEL_THICKNESS, -1, LABEL_THICKNESS, 0)}
-        Position={new UDim2(LABEL_THICKNESS, 1, 1 - LABEL_THICKNESS, 0)}
-        BackgroundColor3={COLORS.LightBackground}
-        BorderColor3={COLORS.Border}
-      />
-      <frame /* Center */
-        Size={new UDim2(LABEL_THICKNESS, 1, LABEL_THICKNESS, 1)}
-        Position={new UDim2(0, 0, 1 - LABEL_THICKNESS, 0)}
-        BackgroundColor3={COLORS.LightBackground}
-        BorderSizePixel={0}
-      />
-    </>
-  );
-}
 function TagsAndGridLines(props: {
   DomainMin: number;
   DomainMax: number;
@@ -129,7 +105,9 @@ function TagsAndGridLines(props: {
         props.DomainMax,
         props.Domain,
         DOMAIN_LABELS,
-      ).map((value) => {
+      ).map((value, index) => {
+        const FirstOffset = index === 0 ? LABEL_THICKNESS / 3 : 0;
+
         return (
           <>
             <textlabel
@@ -137,10 +115,11 @@ function TagsAndGridLines(props: {
               Size={new UDim2(LABEL_THICKNESS, 0, LABEL_THICKNESS, 0)}
               Position={
                 new UDim2(
-                  AsPosition(props.DomainMin, props.DomainMax, value) +
-                    LABEL_THICKNESS / 2,
+                  AsPosition(props.DomainMin, props.DomainMax, value) -
+                    LABEL_THICKNESS / 2 +
+                    FirstOffset,
                   0,
-                  1 - LABEL_THICKNESS,
+                  1,
                   0,
                 )
               }
@@ -154,10 +133,9 @@ function TagsAndGridLines(props: {
               Size={new UDim2(0, 1, 1, 0)}
               Position={
                 new UDim2(
-                  AsPosition(props.DomainMin, props.DomainMax, value) +
-                    LABEL_THICKNESS,
+                  AsPosition(props.DomainMin, props.DomainMax, value),
                   0,
-                  -LABEL_THICKNESS,
+                  0,
                   0,
                 )
               }
@@ -182,9 +160,10 @@ function TagsAndGridLines(props: {
               Size={new UDim2(LABEL_THICKNESS, 0, LABEL_THICKNESS, 0)}
               Position={
                 new UDim2(
+                  -LABEL_THICKNESS,
                   0,
-                  0,
-                  AsPosition(props.RangeMin, props.RangeMax, value, true),
+                  AsPosition(props.RangeMin, props.RangeMax, value, true) -
+                    LABEL_THICKNESS / 2,
                   0,
                 )
               }
@@ -198,10 +177,9 @@ function TagsAndGridLines(props: {
               Size={new UDim2(1, 0, 0, 1)}
               Position={
                 new UDim2(
-                  LABEL_THICKNESS,
                   0,
-                  AsPosition(props.RangeMin, props.RangeMax, value, true) +
-                    LABEL_THICKNESS / 2,
+                  0,
+                  AsPosition(props.RangeMin, props.RangeMax, value, true),
                   0,
                 )
               }
@@ -228,7 +206,7 @@ function Points(props: {
     <>
       {Object.keys(props.Data).map((name) => {
         const data = props.Data[name];
-        const color = GetKeyColor(name as string);
+        const [color] = GetKeyColor(name as string);
 
         let result = [];
 
@@ -247,8 +225,7 @@ function Points(props: {
                 }}
                 Position={
                   new UDim2(
-                    AsPosition(props.DomainMin, props.DomainMax, xV) +
-                      LABEL_THICKNESS,
+                    AsPosition(props.DomainMin, props.DomainMax, xV),
                     0,
                     AsPosition(props.RangeMin, props.RangeMax, yV, true),
                     0,
@@ -304,16 +281,15 @@ function HighlightedX(props: {
 
   let highlights = [];
   for (const [key, value] of pairs(props.HighlightedX)) {
-    const color = GetKeyColor(key as string);
+    const [color] = GetKeyColor(key as string);
 
     highlights.push(
       <frame
         Position={
           new UDim2(
-            AsPosition(props.DomainMin, props.DomainMax, value) +
-              LABEL_THICKNESS / 2,
+            AsPosition(props.DomainMin, props.DomainMax, value),
             0,
-            0.5 - LABEL_THICKNESS,
+            0.5,
             0,
           )
         }
@@ -334,6 +310,7 @@ function Line(props: {
   EndX: number;
   EndY: number;
   Color: Color3;
+  ZIndex: number;
 
   /* graph attr */
   DomainMin: number;
@@ -343,13 +320,13 @@ function Line(props: {
 }) {
   const px = usePx();
 
-  print(AsPosition(props.RangeMin, props.RangeMax, props.EndY));
   return (
     <>
       {/* Travel across X */}
       <frame
         BorderSizePixel={0}
         BackgroundColor3={props.Color}
+        ZIndex={props.ZIndex}
         Size={
           new UDim2(
             AsPosition(props.DomainMin, props.DomainMax, props.EndX) -
@@ -361,8 +338,7 @@ function Line(props: {
         }
         Position={
           new UDim2(
-            AsPosition(props.DomainMin, props.DomainMax, props.StartX) +
-              LABEL_THICKNESS,
+            AsPosition(props.DomainMin, props.DomainMax, props.StartX),
             0,
             AsPosition(props.RangeMin, props.RangeMax, props.StartY, true),
             0,
@@ -374,6 +350,7 @@ function Line(props: {
       <frame
         BorderSizePixel={0}
         BackgroundColor3={props.Color}
+        ZIndex={props.ZIndex}
         Size={
           new UDim2(
             0,
@@ -385,8 +362,7 @@ function Line(props: {
         }
         Position={
           new UDim2(
-            AsPosition(props.DomainMin, props.DomainMax, props.EndX) +
-              LABEL_THICKNESS,
+            AsPosition(props.DomainMin, props.DomainMax, props.EndX),
             0,
             AsPosition(props.RangeMin, props.RangeMax, props.EndY, true),
             0,
@@ -398,6 +374,7 @@ function Line(props: {
       <frame
         BorderSizePixel={0}
         BackgroundColor3={props.Color}
+        ZIndex={props.ZIndex}
         Size={
           new UDim2(
             AsPosition(props.DomainMin, props.DomainMax, props.EndX) -
@@ -409,8 +386,7 @@ function Line(props: {
         }
         Position={
           new UDim2(
-            AsPosition(props.DomainMin, props.DomainMax, props.EndX) +
-              LABEL_THICKNESS,
+            AsPosition(props.DomainMin, props.DomainMax, props.EndX),
             0,
             AsPosition(props.RangeMin, props.RangeMax, props.EndY, true),
             0,
@@ -443,7 +419,7 @@ function Lines(props: {
 }) {
   let lines = [];
   for (const [key, points] of pairs(props.Data)) {
-    const color = GetKeyColor(key as string);
+    const [color, seed] = GetKeyColor(key as string);
 
     for (const [x, y] of pairs(points)) {
       /* Get the next point */
@@ -470,6 +446,7 @@ function Lines(props: {
           DomainMin={props.DomainMin}
           RangeMax={props.RangeMax}
           RangeMin={props.RangeMin}
+          ZIndex={seed}
         />,
       );
     }
@@ -483,7 +460,12 @@ export default function ReactGraph(props: GraphProps) {
     ComputeRangeDomain(props.Data);
 
   return (
-    <frame Size={new UDim2(1, 0, 1, 0)} BackgroundColor3={COLORS.Background}>
+    <frame
+      Size={new UDim2(0.7, 0, 0.7, 0)}
+      BackgroundColor3={COLORS.Background}
+      Position={new UDim2(0.5, 0, 0.5, 0)}
+      AnchorPoint={new Vector2(0.5, 0.5)}
+    >
       <Lines
         Data={props.Data}
         DomainMax={DomainMax}
@@ -505,7 +487,6 @@ export default function ReactGraph(props: GraphProps) {
         RangeMax={RangeMax}
         RangeMin={RangeMin}
       />
-      <AxisBorders />
       <TagsAndGridLines
         RangeMin={RangeMin}
         RangeMax={RangeMax}
