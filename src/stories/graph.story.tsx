@@ -321,10 +321,6 @@ const story = {
             100: 9,
           },
         }}
-        HighlightedX={{
-          a: 6,
-          b: 9,
-        }}
         //{...props}
       />
     );

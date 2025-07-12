@@ -163,6 +163,7 @@ function TagsAndGridLines(props: {
               }
               BackgroundColor3={COLORS.Border}
               BorderSizePixel={0}
+              ZIndex={-1}
             />
           </>
         );
@@ -206,6 +207,7 @@ function TagsAndGridLines(props: {
               }
               BackgroundColor3={COLORS.Border}
               BorderSizePixel={0}
+              ZIndex={-1}
             />
           </>
         );
