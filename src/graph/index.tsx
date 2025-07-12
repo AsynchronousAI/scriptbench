@@ -106,8 +106,6 @@ function TagsAndGridLines(props: {
         props.Domain,
         DOMAIN_LABELS,
       ).map((value, index) => {
-        const FirstOffset = index === 0 ? LABEL_THICKNESS / 3 : 0;
-
         return (
           <>
             <textlabel
@@ -116,8 +114,7 @@ function TagsAndGridLines(props: {
               Position={
                 new UDim2(
                   AsPosition(props.DomainMin, props.DomainMax, value) -
-                    LABEL_THICKNESS / 2 +
-                    FirstOffset,
+                    LABEL_THICKNESS / 2,
                   0,
                   1,
                   0,
@@ -446,40 +443,47 @@ export default function ReactGraph(props: GraphProps) {
 
   return (
     <frame
-      Size={new UDim2(0.7, 0, 0.7, 0)}
+      Size={new UDim2(1, 0, 1, 0)}
       BackgroundColor3={COLORS.Background}
       Position={new UDim2(0.5, 0, 0.5, 0)}
       AnchorPoint={new Vector2(0.5, 0.5)}
     >
-      <Lines
-        Data={props.Data}
-        DomainMax={DomainMax}
-        DomainMin={DomainMin}
-        RangeMax={RangeMax}
-        RangeMin={RangeMin}
-      />
-      {props.HighlightedX && (
-        <HighlightedX
-          HighlightedX={props.HighlightedX}
+      <frame
+        Size={new UDim2(1 - LABEL_THICKNESS * 2, 0, 1 - LABEL_THICKNESS * 2, 0)}
+        BackgroundTransparency={1}
+        Position={new UDim2(0.5, 0, 0.5, 0)}
+        AnchorPoint={new Vector2(0.5, 0.5)}
+      >
+        <Lines
+          Data={props.Data}
           DomainMax={DomainMax}
           DomainMin={DomainMin}
+          RangeMax={RangeMax}
+          RangeMin={RangeMin}
         />
-      )}
-      <Points
-        Data={props.Data}
-        DomainMax={DomainMax}
-        DomainMin={DomainMin}
-        RangeMax={RangeMax}
-        RangeMin={RangeMin}
-      />
-      <TagsAndGridLines
-        RangeMin={RangeMin}
-        RangeMax={RangeMax}
-        Range={Range}
-        DomainMin={DomainMin}
-        DomainMax={DomainMax}
-        Domain={Domain}
-      />
+        {props.HighlightedX && (
+          <HighlightedX
+            HighlightedX={props.HighlightedX}
+            DomainMax={DomainMax}
+            DomainMin={DomainMin}
+          />
+        )}
+        <Points
+          Data={props.Data}
+          DomainMax={DomainMax}
+          DomainMin={DomainMin}
+          RangeMax={RangeMax}
+          RangeMin={RangeMin}
+        />
+        <TagsAndGridLines
+          RangeMin={RangeMin}
+          RangeMax={RangeMax}
+          Range={Range}
+          DomainMin={DomainMin}
+          DomainMax={DomainMax}
+          Domain={Domain}
+        />
+      </frame>
     </frame>
   );
 }

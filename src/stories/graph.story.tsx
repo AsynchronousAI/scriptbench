@@ -129,7 +129,7 @@ const story = {
         HighlightedX={{
           apple: 7.8,
           banana: 27,
-          carrot: 14,
+          carrot: 16.5,
         }}
         //{...props}
       />
