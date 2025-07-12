@@ -235,7 +235,7 @@ function Points(props: {
             <>
               {/* The point itself */}
               <frame
-                Size={new UDim2(0, px(5), 0, px(5))}
+                Size={new UDim2(0, px(7), 0, px(7))}
                 BackgroundColor3={color}
                 BorderSizePixel={0}
                 Event={{
@@ -292,6 +292,37 @@ function Points(props: {
     </>
   );
 }
+function HighlightedX(props: {
+  HighlightedX: { [key: string]: number };
+  DomainMin: number;
+  DomainMax: number;
+}) {
+  const px = usePx();
+
+  let highlights = [];
+  for (const [key, value] of pairs(props.HighlightedX)) {
+    const color = GetKeyColor(key as string);
+
+    highlights.push(
+      <frame
+        Position={
+          new UDim2(
+            AsPosition(props.DomainMin, props.DomainMax, value) +
+              LABEL_THICKNESS / 2,
+            0,
+            0.5 - LABEL_THICKNESS,
+            0,
+          )
+        }
+        AnchorPoint={new Vector2(0, 0.5)}
+        Size={new UDim2(0, px(5), 1, 0)}
+        BackgroundColor3={color}
+        BackgroundTransparency={0.5}
+      />,
+    );
+  }
+  return highlights;
+}
 
 /* Main */
 export default function ReactGraph(props: GraphProps) {
@@ -317,6 +348,13 @@ export default function ReactGraph(props: GraphProps) {
         RangeMax={RangeMax}
         RangeMin={RangeMin}
       />
+      {props.HighlightedX && (
+        <HighlightedX
+          HighlightedX={props.HighlightedX}
+          DomainMax={DomainMax}
+          DomainMin={DomainMin}
+        />
+      )}
     </frame>
   );
 }
