@@ -1,9 +1,15 @@
 --[[
 -- Example Benchmarker.
+--
+-- This example demonstrates filling a table with a given value and compares
+-- starting with a prefilled table, or an empty one.
 ]]
 
-local SIZE = 1000
+local SIZE = 5000 -- not influenced by the benchmark, should be constant.
+
 return {
+    Name = "Table Fill",
+
     Parameters = function()
         --[[
         -- This defines a single argument to be fed to
