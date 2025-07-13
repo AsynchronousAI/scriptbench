@@ -12,6 +12,7 @@ import Results, { Result } from "./results";
 import BenchmarkAll, {
   ComputeResults,
   GetBenchmarkableModules,
+  GetBenchmarkName,
 } from "benchmark";
 
 const SIDEBAR_WIDTH = 0.15;
@@ -32,14 +33,22 @@ export function App() {
   const [highlightedX, setHighlightedX] = useState<{ [key: string]: number }>(
     {},
   );
+  const [errorMessage, setErrorMessage] = useState<string | undefined>(
+    undefined,
+  );
 
   const startBenchmark = () => {
     setProgress(0);
 
-    const result = BenchmarkAll(currentBenchmark!, calls, (count, status) => {
-      setProgress(math.map(count, 0, calls, 0, 100));
-      setProgressStatus(status);
-    });
+    const result = BenchmarkAll(
+      currentBenchmark!,
+      calls,
+      (count, status) => {
+        setProgress(math.map(count, 0, calls, 0, 100));
+        setProgressStatus(status);
+      },
+      setErrorMessage,
+    );
 
     print(result);
     setData(result as unknown as GraphData);
@@ -72,16 +81,24 @@ export function App() {
       <uilistlayout FillDirection={"Horizontal"} />
       <DropShadowFrame Size={new UDim2(SIDEBAR_WIDTH, 5, 1, 0)} ZIndex={2}>
         <Sidebar
-          Benchmarks={benchmarks.map((benchmark) => benchmark.Name)}
-          OnSelection={(name) =>
+          Benchmarks={benchmarks.map((benchmark) =>
+            GetBenchmarkName(benchmark),
+          )}
+          OnSelection={(name) => {
             setCurrentBenchmark(
-              benchmarks.find((benchmark) => benchmark.Name === name),
-            )
-          }
+              benchmarks.find(
+                (benchmark) => GetBenchmarkName(benchmark) === name,
+              ),
+            );
+            setData(undefined);
+            setProgress(0);
+            setErrorMessage(undefined);
+          }}
           OnRefresh={() => {
             setBenchmarks(GetBenchmarkableModules());
             setData(undefined);
             setProgress(0);
+            setErrorMessage(undefined);
           }}
         />
       </DropShadowFrame>
@@ -91,7 +108,7 @@ export function App() {
         BackgroundTransparency={1}
       >
         <textlabel
-          Text={`<b>${currentBenchmark || "No bench selected"}</b>   ${currentBenchmark ? currentBenchmark.Name : ""}`}
+          Text={`<b>${GetBenchmarkName(currentBenchmark)}</b>   ${currentBenchmark?.Name ?? ""}`}
           RichText
           Position={new UDim2(0.03, 0, 0.01, 0)}
           Size={new UDim2(0.5, 0, 0.035, 0)}
@@ -103,7 +120,21 @@ export function App() {
           ZIndex={2}
         />
 
-        {data /* Data exists, show it! */ ? (
+        {errorMessage ? (
+          <textlabel
+            Text={`Error: ${errorMessage}`}
+            RichText
+            Position={new UDim2(0.5, 0, 0.5, 0)}
+            Size={new UDim2(0.5, 0, 0.035, 0)}
+            BackgroundTransparency={1}
+            AnchorPoint={new Vector2(0.5, 0.5)}
+            TextScaled
+            Font={Enum.Font.BuilderSans}
+            TextXAlignment={"Left"}
+            TextColor3={COLORS.ErrorText}
+            ZIndex={2}
+          />
+        ) : data /* Data exists, show it! */ ? (
           <frame Size={new UDim2(1, 0, 1, 0)} BackgroundTransparency={1}>
             <frame
               Size={new UDim2(RESULTS_WIDTH, 0, 0.95, 0)}

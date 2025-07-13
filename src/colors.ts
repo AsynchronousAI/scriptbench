@@ -11,4 +11,5 @@ export const COLORS = {
   DarkText: c(Enum.StudioStyleGuideColor.MainText),
   Selected: c(Enum.StudioStyleGuideColor.LinkText),
   FocusText: c(Enum.StudioStyleGuideColor.MainText),
+  ErrorText: c(Enum.StudioStyleGuideColor.ErrorText),
 };

@@ -1,13 +1,19 @@
-import { Array, Object, String } from "@rbxts/luau-polyfill";
+import { Object, String } from "@rbxts/luau-polyfill";
 import { Result } from "app/results";
 import { GetKeyColor, GraphData } from "graph";
 
 const REQUIRED_PREFIX = ".bench";
 const YIELD = 250;
 
+class Profiler {
+  Begin() {}
+  End() {}
+}
+
+/* Utility functions */
 interface FormattedBenchmarkScript<T> {
   ParameterGenerator: () => T;
-  Functions: { [name: string]: (profiler: undefined, arg: T) => void };
+  Functions: { [name: string]: (profiler: Profiler, arg: T) => void };
 }
 
 function ComputeStarts(data: { [key: number]: number }) {
@@ -51,8 +57,64 @@ function ComputeStarts(data: { [key: number]: number }) {
 function ToMicroseconds(seconds: number) {
   return math.floor(seconds * 1000 * 1000);
 }
+function FilterMap(
+  map: Map<number, number>,
+  threshold: number,
+): Map<number, number> {
+  const result = new Map<number, number>();
 
+  for (const [key, value] of Object.entries(map)) {
+    if (value > threshold) {
+      result.set(key, value);
+    }
+  }
+
+  return result;
+}
+function Benchmark(
+  requiredModule: FormattedBenchmarkScript<unknown>,
+  use: string,
+  calls: number,
+
+  setCount: (count: number) => void,
+) {
+  /* benchmark a single case in a module */
+  let recordedTimes = new Map<number, number>(); /* time taken to calls map */
+
+  for (let count = 0; count <= calls; count++) {
+    const parameter = requiredModule.ParameterGenerator();
+
+    /* benchmark! */
+    const profiler = new Profiler();
+    const start = tick();
+    requiredModule.Functions[use](profiler, parameter);
+    const end_ = tick();
+
+    const elapsedTime = ToMicroseconds(end_ - start);
+
+    /* record */
+    const current = recordedTimes.get(elapsedTime) ?? 0;
+    recordedTimes.set(elapsedTime, current + 1);
+
+    if (count % YIELD === 0) task.wait();
+    setCount(count);
+  }
+
+  return FilterMap(recordedTimes, 5);
+}
+
+/* Exported functions */
+export function GetBenchmarkName(module?: ModuleScript) {
+  if (!module) return "No bench selected";
+
+  const required = require(module) as { Name?: string };
+  if (required.Name) return required.Name;
+
+  return module.Name.sub(1, module.Name.size() - REQUIRED_PREFIX.size());
+}
 export function ComputeResults(data: GraphData): Result[] {
+  if (!data) return [];
+
   let results: Result[] = [];
 
   for (const [name] of pairs(data)) {
@@ -73,20 +135,6 @@ export function ComputeResults(data: GraphData): Result[] {
   }
   return results;
 }
-function FilterMap(
-  map: Map<number, number>,
-  threshold: number,
-): Map<number, number> {
-  const result = new Map<number, number>();
-
-  for (const [key, value] of Object.entries(map)) {
-    if (value > threshold) {
-      result.set(key, value);
-    }
-  }
-
-  return result;
-}
 
 export function GetBenchmarkableModules() {
   let validModules = [];
@@ -100,64 +148,50 @@ export function GetBenchmarkableModules() {
 
   return validModules;
 }
-
-function Benchmark(
-  requiredModule: FormattedBenchmarkScript<unknown>,
-  use: string,
-  calls: number,
-
-  setCount: (count: number) => void,
-) {
-  /* benchmark a single case in a module */
-  let recordedTimes = new Map<number, number>(); /* time taken to calls map */
-
-  for (let count = 0; count <= calls; count++) {
-    const parameter = requiredModule.ParameterGenerator();
-
-    /* benchmark! */
-    const start = tick();
-    requiredModule.Functions[use](undefined, parameter);
-    const end_ = tick();
-
-    const elapsedTime = ToMicroseconds(end_ - start);
-
-    /* record */
-    const current = recordedTimes.get(elapsedTime) ?? 0;
-    recordedTimes.set(elapsedTime, current + 1);
-
-    if (count % YIELD === 0) task.wait();
-    setCount(count);
-  }
-
-  return FilterMap(recordedTimes, 5);
-}
 export default function BenchmarkAll(
   module: ModuleScript,
   calls: number,
   setCount?: (count: number, status: string) => void,
+  onError?: (error: string) => void,
 ) {
   /* benchmark all cases of a module */
   const totalResults = new Map<string, Map<number, number>>();
   const requiredModule = require(module) as FormattedBenchmarkScript<unknown>;
 
   // First, run all benchmarks and store the results
-  let index = 0;
-  const functions = Object.keys(requiredModule.Functions);
-  for (const benchmarkName of functions) {
-    const results = Benchmark(
-      requiredModule,
-      benchmarkName as string,
-      calls,
-      (v) => {
-        setCount?.(
-          (index * calls + v) / functions.size(),
-          `${benchmarkName} (${v})`,
+  xpcall(
+    () => {
+      let index = 0;
+      const functions = Object.keys(requiredModule.Functions);
+      for (const benchmarkName of functions) {
+        const results = Benchmark(
+          requiredModule,
+          benchmarkName as string,
+          calls,
+          (v) => {
+            setCount?.(
+              (index * calls + v) / functions.size(),
+              `${benchmarkName} (${v})`,
+            );
+          },
         );
-      },
-    );
-    totalResults.set(benchmarkName as string, results);
+        totalResults.set(benchmarkName as string, results);
 
-    index++;
+        index++;
+      }
+    },
+    (errorMessage) => onError?.(errorMessage as string),
+  );
+
+  // Run some post processing to check if the data is valid
+  /// Do all tests have more than 2 items?
+  for (const [name, results] of totalResults) {
+    if (results.size() < 2) {
+      onError?.(
+        `Benchmark '${name}' was not able to return satisfactory results`,
+      );
+      return;
+    }
   }
 
   return totalResults;
