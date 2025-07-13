@@ -188,14 +188,28 @@ export default function BenchmarkAll(
     (errorMessage) => onError?.(errorMessage as string),
   );
 
-  // Run some post processing to check if the data is valid
-  /// Do all tests have more than 2 items?
+  /* Post processing */
+  /** Do all tests contain good amount of items? */
   for (const [name, results] of totalResults) {
-    if (results.size() < 2) {
+    if (results.size() < 5) {
       onError?.(
         `Benchmark '${name}' was not able to return satisfactory results`,
       );
       return;
+    }
+  }
+
+  /** Make sure all data has matching indexs, and if one does not have data make it 0 */
+  let minimumX = math.huge;
+  for (const [name, results] of totalResults) {
+    for (const [x, y] of results) {
+      minimumX = math.min(minimumX, x);
+    }
+  }
+
+  for (const [name, results] of totalResults) {
+    for (let i = minimumX; i <= math.max(...Object.keys(results)); i++) {
+      if (!results.has(i)) results.set(i, 0);
     }
   }
 

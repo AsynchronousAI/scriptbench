@@ -24,7 +24,7 @@ interface DomainRange {
 const LABEL_THICKNESS = 0.075;
 const DOMAIN_LABELS = 5;
 const RANGE_LABELS = 5;
-const LINE_WIDTH = 5;
+const LINE_WIDTH = 3;
 const DOT_SIZE = 5;
 const LABEL_TEXT_SIZE = 16;
 
@@ -40,9 +40,12 @@ function AsPosition(Min: number, Max: number, Value: number, IsRange = false) {
 export function FormatNumber(value: number, prefix?: string): string {
   return string.format("%.2f", value) + (prefix || "");
 }
-function ComputeRangeDomain(data: {
-  [key: string]: { [key: number]: number };
-}): DomainRange {
+function ComputeRangeDomain(
+  data: {
+    [key: string]: { [key: number]: number };
+  },
+  baseline: number = 0 /* set to math.huge to disable */,
+): DomainRange {
   let domainMin = math.huge;
   let domainMax = -math.huge;
   let rangeMin = math.huge;
@@ -60,7 +63,7 @@ function ComputeRangeDomain(data: {
   return {
     DomainMin: domainMin,
     DomainMax: domainMax,
-    RangeMin: /*rangeMin*/ 0,
+    RangeMin: math.min(rangeMin, baseline),
     RangeMax: rangeMax,
     Domain: domainMax - domainMin,
     Range: rangeMax - rangeMin,
@@ -341,7 +344,7 @@ function Line(props: {
           new UDim2(
             AsPosition(props.DomainMin, props.DomainMax, props.EndX) -
               AsPosition(props.DomainMin, props.DomainMax, props.StartX),
-            px(DOT_SIZE),
+            px(LINE_WIDTH),
             0,
             px(LINE_WIDTH),
           )
