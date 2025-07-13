@@ -1,5 +1,5 @@
 import React, { useState } from "@rbxts/react";
-import Graph from "graph";
+import Graph, { GraphData } from "graph";
 import Sidebar from "./sidebar";
 import {
   DropShadowFrame,
@@ -10,18 +10,16 @@ import {
 } from "@rbxts/studiocomponents-react2";
 import { COLORS } from "colors";
 import { usePx } from "hooks/usePx";
+import Results from "./results";
+import { ComputeResults } from "benchmark";
 
-const SIDEBAR_WIDTH = 0.2;
+const SIDEBAR_WIDTH = 0.12;
 
 export function App() {
   const [currentBenchmark, setCurrentBenchmark] = useState("");
   const [benchmarks, setBenchmarks] = useState(["RandomData"]);
-  const [data, setData] = useState<
-    { [key: string]: { [key: number]: number } } | undefined
-  >(undefined);
+  const [data, setData] = useState<GraphData | undefined>(undefined);
   const [progress, setProgress] = useState<number | undefined>(undefined);
-
-  const px = usePx();
 
   const startBenchmark = (benchmark: string) => {
     for (let i = 0; i <= 100; i++) {
@@ -30,7 +28,7 @@ export function App() {
     }
 
     setData({
-      apple: {
+      "t[i]": {
         1: 19,
         2: 19,
         3: 20,
@@ -67,7 +65,7 @@ export function App() {
         34: 10,
         35: 11,
       },
-      banana: {
+      "t[i+1]": {
         1: 3,
         2: 2,
         3: 1,
@@ -104,8 +102,45 @@ export function App() {
         34: 4,
         35: 3,
       },
-      carrot: {
+      "table.insert": {
         1: 0,
+        2: 1,
+        3: 2,
+        4: 4,
+        5: 2,
+        6: 1,
+        7: 1,
+        8: 2,
+        9: 3,
+        10: 9,
+        11: 10,
+        12: 11,
+        13: 13,
+        14: 14,
+        15: 13,
+        16: 24,
+        17: 13,
+        18: 13,
+        19: 12,
+        20: 12,
+        21: 16,
+        22: 13,
+        23: 14,
+        24: 11,
+        25: 11,
+        26: 12,
+        27: 12,
+        28: 11,
+        29: 10,
+        30: 11,
+        31: 10,
+        32: 10,
+        33: 10,
+        34: 9,
+        35: 12,
+      },
+      "t[i-1]": {
+        1: 1,
         2: 1,
         3: 2,
         4: 4,
@@ -151,7 +186,7 @@ export function App() {
       BorderMode={"Inset"}
     >
       <uilistlayout FillDirection={"Horizontal"} />
-      <DropShadowFrame Size={new UDim2(SIDEBAR_WIDTH, 5, 1, 0)}>
+      <DropShadowFrame Size={new UDim2(SIDEBAR_WIDTH, 5, 1, 0)} ZIndex={2}>
         <Sidebar Benchmarks={benchmarks} OnSelection={setCurrentBenchmark} />
       </DropShadowFrame>
 
@@ -173,7 +208,22 @@ export function App() {
         />
 
         {data /* Data exists, show it! */ ? (
-          <Graph Data={data} XPrefix="µs" />
+          <frame Size={new UDim2(1, 0, 1, 0)} BackgroundTransparency={1}>
+            <frame
+              Size={new UDim2(SIDEBAR_WIDTH, 0, 0.95, 0)}
+              Position={new UDim2(0, 0, 0.05, 0)}
+              BackgroundTransparency={1}
+            >
+              <Results Results={ComputeResults(data)} />
+            </frame>
+            <frame
+              Size={new UDim2(1 - SIDEBAR_WIDTH, 0, 1, 0)}
+              BackgroundTransparency={1}
+              Position={new UDim2(SIDEBAR_WIDTH, 0, 0, 0)}
+            >
+              <Graph Data={data} XPrefix="µs" />
+            </frame>
+          </frame>
         ) : progress /* Currently runnning benchmark */ ? (
           <ProgressBar
             Value={progress}

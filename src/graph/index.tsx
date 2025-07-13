@@ -4,8 +4,9 @@ import { COLORS } from "colors";
 import { usePx } from "hooks/usePx";
 
 /** Types */
+export type GraphData = { [key: string]: { [key: number]: number } };
 export interface GraphProps {
-  Data: { [key: string]: { [key: number]: number } };
+  Data: GraphData;
   HighlightedX?: { [key: string]: number };
   XPrefix?: string;
   YPrefix?: string;
@@ -72,7 +73,10 @@ function InIncrements(Min: number, Max: number, Range: number, Amount: number) {
   }
   return increments;
 }
-function GetKeyColor(name: string, isDark: boolean = true): [Color3, number] {
+export function GetKeyColor(
+  name: string,
+  isDark: boolean = true,
+): [Color3, number] {
   let seed = 0;
   for (let i = 0; i < name.size(); i++) {
     seed += name.byte(i + 1) as unknown as number;
@@ -191,7 +195,7 @@ function TagsAndGridLines(props: {
   );
 }
 function Points(props: {
-  Data: { [key: string]: { [key: number]: number } };
+  Data: GraphData;
   RangeMin: number;
   RangeMax: number;
   DomainMin: number;
@@ -394,7 +398,7 @@ function Line(props: {
   );
 }
 function Lines(props: {
-  Data: { [key: string]: { [key: number]: number } };
+  Data: GraphData;
   DomainMin: number;
   DomainMax: number;
   RangeMin: number;

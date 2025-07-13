@@ -4,7 +4,7 @@ import { FormatNumber } from "graph";
 import { usePx } from "hooks/usePx";
 import React, { useState } from "react";
 
-interface Result {
+export interface Result {
   Name: string;
   Color: Color3;
   NumberData: Array<[string, number]>;
@@ -19,7 +19,7 @@ export default function Results(props: ResultsProps) {
       {props.Results.map((result, index) => {
         const [open, setOpen] = useState(true);
         const px = usePx();
-        const size = px(45);
+        const size = px(35);
 
         return (
           <frame
