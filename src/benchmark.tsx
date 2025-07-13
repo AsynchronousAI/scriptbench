@@ -10,6 +10,12 @@ interface FormattedBenchmarkScript<T> {
   Parameters: () => T;
   Functions: { [name: string]: (arg: T) => void };
   Name: string;
+
+  /* Before + After functions */
+  BeforeAll?: () => void;
+  BeforeEach?: () => void;
+  AfterEach?: () => void;
+  AfterAll?: () => void;
 }
 
 function ComputeStarts(data: { [key: number]: number }) {
@@ -81,9 +87,11 @@ function Benchmark(
     const parameter = requiredModule.Parameters();
 
     /* benchmark! */
+    requiredModule.BeforeEach?.();
     const start = tick();
     requiredModule.Functions[use](parameter);
     const end_ = tick();
+    requiredModule.AfterEach?.();
 
     const elapsedTime = ToMicroseconds(end_ - start);
 
@@ -158,6 +166,7 @@ export default function BenchmarkAll(
     () => {
       let index = 0;
       const functions = Object.keys(requiredModule.Functions);
+      requiredModule.BeforeAll?.();
       for (const benchmarkName of functions) {
         const results = Benchmark(
           requiredModule,
@@ -174,6 +183,7 @@ export default function BenchmarkAll(
 
         index++;
       }
+      requiredModule.AfterAll?.();
     },
     (errorMessage) => onError?.(errorMessage as string),
   );

@@ -18,6 +18,13 @@ return {
         return math.random(1,100)
     end,
 
+    -- These optional functions also exist, and can be used to set up and tear down the environment without
+    -- interfering with the benchmark results.
+    BeforeAll = function() end,
+    AfterAll = function() end,
+    BeforeEach = function() end,
+    AfterEach = function() end,
+
     Functions = {
         ["table.create"] = function(value)
             local tb = table.create(SIZE)
