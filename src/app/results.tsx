@@ -115,7 +115,7 @@ export default function Results(props: ResultsProps) {
                     />
                   </textlabel>
                   <textlabel
-                    Text={FormatNumber(val)}
+                    Text={`${FormatNumber(val)} µs`}
                     Font={Enum.Font.Code}
                     TextColor3={COLORS.FocusText}
                     TextScaled
