@@ -10,7 +10,7 @@ import { COLORS } from "colors";
 
 export interface SidebarProps {
   Benchmarks: string[];
-
+  OnRefresh?: () => void;
   OnSelection?: (benchmarkName: string) => void;
 }
 
@@ -20,6 +20,7 @@ const GraphIcon = {
   UseThemeColor: true,
   Alignment: Enum.HorizontalAlignment.Left,
 };
+const REFRESH_BUTTON_SIZE = 0.15;
 export default function Sidebar(props: SidebarProps) {
   const [currentlySelected, setCurrentlySelected] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -42,16 +43,26 @@ export default function Sidebar(props: SidebarProps) {
         SortOrder={"LayoutOrder"}
       />
 
-      <TextInput
-        LayoutOrder={-1}
-        PlaceholderText="Filter"
-        Text={searchTerm}
-        Size={new UDim2(1, 0, 0.05, 0)}
-        AnchorPoint={new Vector2(0.5, 0)}
-        OnChanged={(t) => {
-          setSearchTerm(t);
-        }}
-      />
+      <frame Size={new UDim2(1, 0, 0.05, 0)}>
+        <TextInput
+          Size={new UDim2(1 - REFRESH_BUTTON_SIZE, 0, 1, 0)}
+          PlaceholderText="Filter"
+          Text={searchTerm}
+          OnChanged={(t) => {
+            setSearchTerm(t);
+          }}
+        />
+        <Button
+          Position={new UDim2(1 - REFRESH_BUTTON_SIZE, 0, 0, 0)}
+          Size={new UDim2(REFRESH_BUTTON_SIZE, 0, 1, 0)}
+          Icon={{
+            Image: "rbxassetid://11541290790",
+            Color: COLORS.Text,
+            Size: new Vector2(12, 12),
+          }}
+          OnActivated={props.OnRefresh}
+        />
+      </frame>
 
       {props.Benchmarks.map((name, index) => {
         if (!String.includes(name.lower(), searchTerm.lower())) return <></>;

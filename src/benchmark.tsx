@@ -1,4 +1,4 @@
-import { Object } from "@rbxts/luau-polyfill";
+import { Object, String } from "@rbxts/luau-polyfill";
 import { Result } from "app/results";
 import { GetKeyColor, GraphData } from "graph";
 
@@ -7,7 +7,7 @@ const requiredPrefix = ".bench";
 
 interface FormattedBenchmarkScript<T> {
   ParameterGenerator: () => T;
-  Functions: { [name: string]: (arg: T) => void };
+  Functions: { [name: string]: (profiler: undefined, arg: T) => void };
 }
 
 function ComputeStarts(data: { [key: number]: number }) {
@@ -47,6 +47,10 @@ function ComputeStarts(data: { [key: number]: number }) {
   };
 }
 
+function ToMicroseconds(seconds: number) {
+  return math.floor(seconds * 1000 * 1000);
+}
+
 export function ComputeResults(data: GraphData): Result[] {
   let results: Result[] = [];
 
@@ -72,10 +76,7 @@ export function GetBenchmarkableModules() {
   let validModules = [];
   for (const module of game.GetDescendants()) {
     if (!module.IsA("ModuleScript")) continue;
-    if (
-      module.Name.sub(module.Name.size() - requiredPrefix.size()) !==
-      requiredPrefix
-    )
+    if (!String.endsWith(module.Name, requiredPrefix))
       continue; /* does not match required suffix */
 
     validModules.push(module);
@@ -83,40 +84,64 @@ export function GetBenchmarkableModules() {
 
   return validModules;
 }
+
 function Benchmark(
   requiredModule: FormattedBenchmarkScript<unknown>,
   use: string,
   calls: number,
+
+  setCount: (count: number) => void,
 ) {
   /* benchmark a single case in a module */
   let recordedTimes = new Map<number, number>(); /* time taken to calls map */
 
-  for (let count = 0; count++; count <= calls) {
+  for (let count = 0; count <= calls; count++) {
     const parameter = requiredModule.ParameterGenerator();
 
     /* benchmark! */
     const start = tick();
-    requiredModule.Functions[use](parameter);
+    requiredModule.Functions[use](undefined, parameter);
     const end_ = tick();
 
-    const elapsedTime =
-      math.floor((end_ - start) * 10 ** precision) / 10 ** precision;
+    const elapsedTime = ToMicroseconds(end_ - start);
 
     /* record */
     const current = recordedTimes.get(elapsedTime) ?? 0;
     recordedTimes.set(elapsedTime, current + 1);
+
+    if (count % 100 === 0) task.wait();
+    setCount(count);
   }
 
   return recordedTimes;
 }
-export default function BenchmarkAll(module: ModuleScript, calls: number) {
+export default function BenchmarkAll(
+  module: ModuleScript,
+  calls: number,
+  setCount?: (count: number, status: string) => void,
+) {
   /* benchmark all cases of a module */
-  let totalResults = new Map<string, Map<number, number>>();
+  const totalResults = new Map<string, Map<number, number>>();
   const requiredModule = require(module) as FormattedBenchmarkScript<unknown>;
 
-  for (const [benchmarkName] of pairs(requiredModule.Functions)) {
-    const results = Benchmark(requiredModule, benchmarkName as string, calls);
-    totalResults.set(module.Name, results);
+  // First, run all benchmarks and store the results
+  let index = 0;
+  const functions = Object.keys(requiredModule.Functions);
+  for (const benchmarkName of functions) {
+    const results = Benchmark(
+      requiredModule,
+      benchmarkName as string,
+      calls,
+      (v) => {
+        setCount?.(
+          (index * calls + v) / functions.size(),
+          `${benchmarkName} (${v})`,
+        );
+      },
+    );
+    totalResults.set(benchmarkName as string, results);
+
+    index++;
   }
 
   return totalResults;

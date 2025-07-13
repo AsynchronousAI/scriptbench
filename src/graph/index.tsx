@@ -307,6 +307,11 @@ function Line(props: {
 }) {
   const px = usePx();
 
+  props.StartX ??= 0;
+  props.StartY ??= 0;
+  props.EndX ??= 0;
+  props.EndY ??= 0;
+
   return (
     <>
       {/* Travel across X */}
