@@ -1,5 +1,10 @@
 import { Object } from "@rbxts/luau-polyfill";
-import React, { useBinding } from "@rbxts/react";
+import React, {
+  InstanceEvent,
+  RefObject,
+  useRef,
+  useState,
+} from "@rbxts/react";
 import { COLORS } from "colors";
 import { usePx } from "hooks/usePx";
 
@@ -24,17 +29,30 @@ interface DomainRange {
 const LABEL_THICKNESS = 0.075;
 const DOMAIN_LABELS = 5;
 const RANGE_LABELS = 5;
-const LINE_WIDTH = 3;
-const DOT_SIZE = 5;
+const LINE_WIDTH = 3.5;
 const LABEL_TEXT_SIZE = 16;
 
 /** Computations */
 function AsPosition(Min: number, Max: number, Value: number, IsRange = false) {
-  const value = (Value - Min) / (Max - Min);
+  const value = math.map(Value, Min, Max, 0, 1);
 
   if (IsRange) {
     return 1 - value;
   }
+  return value;
+}
+function FromPosition(
+  Min: number,
+  Max: number,
+  Value: number,
+  IsRange = false,
+) {
+  if (IsRange) {
+    Value = 1 - Value;
+  }
+
+  const value = math.map(Value, 0, 1, Min, Max);
+
   return value;
 }
 export function FormatNumber(value: number, prefix?: string): string {
@@ -198,7 +216,6 @@ function TagsAndGridLines(props: {
     </>
   );
 }
-
 function HighlightedX(props: {
   HighlightedX: { [key: string]: number };
   DomainMin: number;
@@ -229,93 +246,16 @@ function HighlightedX(props: {
   }
   return highlights;
 }
-
-function Points(props: {
-  Data: { [key: string]: { [key: number]: number } };
-  RangeMin: number;
-  RangeMax: number;
-  DomainMin: number;
-  DomainMax: number;
-}) {
-  const px = usePx();
-
-  return (
-    <>
-      {Object.keys(props.Data).map((name) => {
-        const data = props.Data[name];
-        const [color] = GetKeyColor(name as string);
-
-        let result = [];
-
-        for (const [xV, yV] of pairs(data)) {
-          const [isHovering, setIsHovering] = useBinding(false);
-          result.push(
-            <>
-              {/* The point itself */}
-              <frame
-                Size={new UDim2(0, px(DOT_SIZE), 0, px(DOT_SIZE))}
-                BackgroundColor3={color}
-                BorderSizePixel={0}
-                Event={{
-                  MouseEnter: () => setIsHovering(true),
-                  MouseLeave: () => setIsHovering(false),
-                }}
-                Position={
-                  new UDim2(
-                    AsPosition(props.DomainMin, props.DomainMax, xV),
-                    0,
-                    AsPosition(props.RangeMin, props.RangeMax, yV, true),
-                    0,
-                  )
-                }
-              >
-                <uiaspectratioconstraint />
-                <uicorner CornerRadius={new UDim(1, 0)} />
-              </frame>
-
-              {/* Label, appears when hovering */}
-              <frame
-                Visible={isHovering}
-                Size={new UDim2(0.1, 0, 0.1, 0)}
-                BackgroundColor3={COLORS.LightBackground}
-                BorderColor3={COLORS.Border}
-                Position={
-                  new UDim2(
-                    AsPosition(props.DomainMin, props.DomainMax, xV),
-                    10,
-                    AsPosition(props.RangeMin, props.RangeMax, yV, true),
-                    10,
-                  )
-                }
-              >
-                <uipadding
-                  PaddingTop={new UDim(0.3, 0)}
-                  PaddingBottom={new UDim(0.3, 0)}
-                />
-                <textlabel
-                  Size={new UDim2(1, 0, 1, 0)}
-                  BackgroundTransparency={1}
-                  TextColor3={COLORS.FocusText}
-                  TextScaled
-                  Text={`(${xV}, ${yV})`}
-                />
-              </frame>
-            </>,
-          );
-        }
-        return result;
-      })}
-    </>
-  );
-}
-
 function Line(props: {
+  Container?: RefObject<Frame>;
+
   /* line attr */
   StartX: number;
   StartY: number;
   EndX: number;
   EndY: number;
   Color: Color3;
+  Name: string;
   ZIndex: number;
 
   /* graph attr */
@@ -325,19 +265,70 @@ function Line(props: {
   RangeMax: number;
 }) {
   const px = usePx();
+  const [x, setX] = useState(0);
+  const [y, setY] = useState(0);
+  const [showLabel, setShowLabel] = useState(false);
 
   props.StartX ??= 0;
   props.StartY ??= 0;
   props.EndX ??= 0;
   props.EndY ??= 0;
 
+  const Events = {
+    MouseEnter: () => {
+      setShowLabel(true);
+    },
+    MouseLeave: () => {
+      setShowLabel(false);
+    },
+    MouseMoved: (_: Instance, mouseX: number, mouseY: number) => {
+      const container = props.Container?.current;
+      if (!container) return;
+
+      const guiX = container.AbsolutePosition.X;
+      const guiY = container.AbsolutePosition.Y;
+      const guiSizeX = container.AbsoluteSize.X;
+      const guiSizeY = container.AbsoluteSize.Y;
+
+      setX((mouseX - guiX) / guiSizeX);
+      setY((mouseY - guiY) / guiSizeY);
+    },
+  } as unknown as InstanceEvent<Frame>;
+
   return (
     <>
+      {/* Label */}
+      <frame
+        Visible={showLabel}
+        Size={new UDim2(0.2, 0, 0.1, 0)}
+        BackgroundColor3={COLORS.LightBackground}
+        BorderColor3={COLORS.Border}
+        Position={new UDim2(x, 0, y, 0)}
+        ZIndex={props.ZIndex + 1}
+      >
+        <uipadding
+          PaddingTop={new UDim(0.3, 0)}
+          PaddingBottom={new UDim(0.3, 0)}
+        />
+        <textlabel
+          Font={Enum.Font.Code}
+          Size={new UDim2(1, 0, 1, 0)}
+          BackgroundTransparency={1}
+          TextColor3={COLORS.FocusText}
+          TextSize={px(17)}
+          RichText
+          Text={`<b><font color="#${props.Color.ToHex()}">${props.Name}</font></b>
+${FormatNumber(FromPosition(props.DomainMin, props.DomainMax, x))}µs
+${math.floor(FromPosition(props.RangeMin, props.RangeMax, y, true))} Calls`}
+        />
+      </frame>
+
       {/* Travel across X */}
       <frame
         BorderSizePixel={0}
         BackgroundColor3={props.Color}
         ZIndex={props.ZIndex}
+        Event={Events}
         Size={
           new UDim2(
             AsPosition(props.DomainMin, props.DomainMax, props.EndX) -
@@ -362,6 +353,7 @@ function Line(props: {
         BorderSizePixel={0}
         BackgroundColor3={props.Color}
         ZIndex={props.ZIndex}
+        Event={Events}
         Size={
           new UDim2(
             0,
@@ -427,6 +419,7 @@ function Lines(props: {
   DomainMax: number;
   RangeMin: number;
   RangeMax: number;
+  Container?: RefObject<Frame>;
 }) {
   let lines = [];
   for (const [key, points] of pairs(props.Data)) {
@@ -448,7 +441,9 @@ function Lines(props: {
 
       lines.push(
         <Line
+          Name={key as string}
           StartX={x}
+          Container={props.Container}
           StartY={y}
           EndX={nextX}
           EndY={nextY}
@@ -470,6 +465,8 @@ export default function ReactGraph(props: GraphProps) {
   let { Domain, DomainMin, DomainMax, Range, RangeMin, RangeMax } =
     ComputeRangeDomain(props.Data);
 
+  const containerRef = useRef<Frame>(undefined);
+
   return (
     <frame
       Size={new UDim2(0.975, 0, 0.975, 0)}
@@ -483,6 +480,7 @@ export default function ReactGraph(props: GraphProps) {
         BackgroundTransparency={1}
         Position={new UDim2(0.5, 0, 0.5, 0)}
         AnchorPoint={new Vector2(0.5, 0.5)}
+        ref={containerRef}
       >
         {props.HighlightedX && (
           <HighlightedX
@@ -491,21 +489,13 @@ export default function ReactGraph(props: GraphProps) {
             DomainMin={DomainMin}
           />
         )}
-
         <Lines
           Data={props.Data}
           DomainMax={DomainMax}
           DomainMin={DomainMin}
           RangeMax={RangeMax}
           RangeMin={RangeMin}
-        />
-
-        <Points
-          Data={props.Data}
-          DomainMax={DomainMax}
-          DomainMin={DomainMin}
-          RangeMax={RangeMax}
-          RangeMin={RangeMin}
+          Container={containerRef}
         />
         <TagsAndGridLines
           RangeMin={RangeMin}
