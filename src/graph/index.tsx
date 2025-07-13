@@ -331,8 +331,6 @@ function Line(props: {
   props.EndX ??= 0;
   props.EndY ??= 0;
 
-  print(`(${props.StartX}, ${props.StartY}) -> (${props.EndX}, ${props.EndY})`);
-
   return (
     <>
       {/* Travel across X */}

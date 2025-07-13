@@ -57,7 +57,6 @@ export function App() {
       setErrorMessage,
     );
 
-    print(result);
     setData(result as unknown as GraphData);
     setResults(ComputeResults(result as unknown as GraphData));
   };
