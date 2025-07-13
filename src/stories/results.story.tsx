@@ -14,6 +14,7 @@ const story = {
       <Results
         Results={[
           {
+            Order: 1,
             Color: new Color3(1, 0, 0),
             Name: "t[i]",
             NumberData: [
@@ -23,6 +24,7 @@ const story = {
             ],
           },
           {
+            Order: 2,
             Color: new Color3(0, 1, 0),
             Name: "t[#i+1]",
             NumberData: [
@@ -33,6 +35,7 @@ const story = {
           },
 
           {
+            Order: 3,
             Color: new Color3(0, 0, 1),
             Name: "table.insert",
             NumberData: [

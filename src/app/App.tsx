@@ -5,10 +5,7 @@ import {
   DropShadowFrame,
   MainButton,
   ProgressBar,
-  Slider,
-  TextInput,
   NumericInput,
-  Label,
 } from "@rbxts/studiocomponents-react2";
 import { COLORS } from "colors";
 import Results, { Result } from "./results";

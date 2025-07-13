@@ -8,6 +8,7 @@ export interface Result {
   Name: string;
   Color: Color3;
   NumberData: Array<[string, number]>;
+  Order: number;
 }
 export interface ResultsProps {
   Results: Result[];
@@ -26,6 +27,7 @@ export default function Results(props: ResultsProps) {
             Size={new UDim2(1, 0, 0, 0)}
             AutomaticSize={"Y"}
             BackgroundColor3={COLORS.LightBackground}
+            LayoutOrder={result.Order}
           >
             <uilistlayout
               FillDirection={"Vertical"}

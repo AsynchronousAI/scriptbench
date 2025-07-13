@@ -58,6 +58,7 @@ export function ComputeResults(data: GraphData): Result[] {
   for (const [name] of pairs(data)) {
     const stats = ComputeStarts(data[name]);
     results.push({
+      Order: stats.average50,
       Name: name as string,
       Color: GetKeyColor(name as string)[0],
       NumberData: [
