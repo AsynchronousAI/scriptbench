@@ -5,15 +5,11 @@ import { GetKeyColor, GraphData } from "graph";
 const REQUIRED_PREFIX = ".bench";
 const YIELD = 250;
 
-class Profiler {
-  Begin() {}
-  End() {}
-}
-
 /* Utility functions */
 interface FormattedBenchmarkScript<T> {
-  ParameterGenerator: () => T;
-  Functions: { [name: string]: (profiler: Profiler, arg: T) => void };
+  Parameters: () => T;
+  Functions: { [name: string]: (arg: T) => void };
+  Name: string;
 }
 
 function ComputeStarts(data: { [key: number]: number }) {
@@ -82,12 +78,11 @@ function Benchmark(
   let recordedTimes = new Map<number, number>(); /* time taken to calls map */
 
   for (let count = 0; count <= calls; count++) {
-    const parameter = requiredModule.ParameterGenerator();
+    const parameter = requiredModule.Parameters();
 
     /* benchmark! */
-    const profiler = new Profiler();
     const start = tick();
-    requiredModule.Functions[use](profiler, parameter);
+    requiredModule.Functions[use](parameter);
     const end_ = tick();
 
     const elapsedTime = ToMicroseconds(end_ - start);
@@ -107,7 +102,7 @@ function Benchmark(
 export function GetBenchmarkName(module?: ModuleScript) {
   if (!module) return "No bench selected";
 
-  const required = require(module) as { Name?: string };
+  const required = require(module) as FormattedBenchmarkScript<unknown>;
   if (required.Name) return required.Name;
 
   return module.Name.sub(1, module.Name.size() - REQUIRED_PREFIX.size());
