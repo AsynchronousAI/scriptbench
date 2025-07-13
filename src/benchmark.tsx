@@ -2,7 +2,6 @@ import { Array, Object, String } from "@rbxts/luau-polyfill";
 import { Result } from "app/results";
 import { GetKeyColor, GraphData } from "graph";
 
-const THRESHOLD_PERCENT = 25;
 const REQUIRED_PREFIX = ".bench";
 const YIELD = 250;
 
@@ -11,38 +10,17 @@ interface FormattedBenchmarkScript<T> {
   Functions: { [name: string]: (profiler: undefined, arg: T) => void };
 }
 
-function TrimData(data: Map<number, number>): Map<number, number> {
-  const keys = Object.keys(data);
-
-  for (let i = 1; i < keys.size(); i++) {
-    const previousX = keys[i - 1];
-    const previousY = data.get(previousX) || 0;
-    const currentX = keys[i];
-    const currentY = data.get(currentX) || 0;
-
-    if (currentY < previousY * (THRESHOLD_PERCENT / 100)) {
-      const trimmedMap = new Map<number, number>();
-      for (let j = 0; j < i; j++) {
-        trimmedMap.set(keys[j], data.get(keys[j]) || 0);
-      }
-      return trimmedMap;
-    }
-  }
-
-  // If no point meets the condition, return the entire Map
-  return data;
-}
-
 function ComputeStarts(data: { [key: number]: number }) {
-  const values = Object.values(data);
-  if (values.size() === 0) {
+  const keys = Object.keys(data); // Get keys and convert them to numbers
+  if (keys.size() === 0) {
     throw "Data is empty.";
   }
 
-  const sorted = [...values].sort();
+  const sortedKeys = [...keys].sort(); // Sort the keys in ascending order
 
-  const size = sorted.size();
-  const average = values.reduce((sum: number, v: number) => sum + v, 0) / size;
+  const size = sortedKeys.size();
+  const average =
+    sortedKeys.reduce((sum: number, key: number) => sum + key, 0) / size;
 
   const getPercentileAverage = (startPercent: number, endPercent: number) => {
     const startIndex = math.floor(size * startPercent);
@@ -51,14 +29,14 @@ function ComputeStarts(data: { [key: number]: number }) {
     let sum = 0;
     let count = 0;
     for (let i = startIndex; i < endIndex && i < size; i++) {
-      sum += sorted[i];
+      sum += sortedKeys[i];
       count += 1;
     }
     return count > 0 ? sum / count : 0;
   };
 
-  const min = sorted[0];
-  const max = sorted[sorted.size() - 1];
+  const min = sortedKeys[0];
+  const max = sortedKeys[sortedKeys.size() - 1];
 
   return {
     average,
@@ -93,6 +71,20 @@ export function ComputeResults(data: GraphData): Result[] {
     });
   }
   return results;
+}
+function FilterMap(
+  map: Map<number, number>,
+  threshold: number,
+): Map<number, number> {
+  const result = new Map<number, number>();
+
+  for (const [key, value] of Object.entries(map)) {
+    if (value > threshold) {
+      result.set(key, value);
+    }
+  }
+
+  return result;
 }
 
 export function GetBenchmarkableModules() {
@@ -136,7 +128,7 @@ function Benchmark(
     setCount(count);
   }
 
-  return TrimData(recordedTimes);
+  return FilterMap(recordedTimes, 5);
 }
 export default function BenchmarkAll(
   module: ModuleScript,

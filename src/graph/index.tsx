@@ -194,8 +194,9 @@ function TagsAndGridLines(props: {
     </>
   );
 }
+
 function Points(props: {
-  Data: GraphData;
+  Data: { [key: string]: { [key: number]: number } };
   RangeMin: number;
   RangeMax: number;
   DomainMin: number;
@@ -212,23 +213,59 @@ function Points(props: {
         let result = [];
 
         for (const [xV, yV] of pairs(data)) {
+          const [isHovering, setIsHovering] = useBinding(false);
           result.push(
-            <frame
-              Size={new UDim2(0, px(DOT_SIZE), 0, px(DOT_SIZE))}
-              BackgroundColor3={color}
-              BorderSizePixel={0}
-              Position={
-                new UDim2(
-                  AsPosition(props.DomainMin, props.DomainMax, xV),
-                  0,
-                  AsPosition(props.RangeMin, props.RangeMax, yV, true),
-                  0,
-                )
-              }
-            >
-              <uiaspectratioconstraint />
-              <uicorner CornerRadius={new UDim(1, 0)} />
-            </frame>,
+            <>
+              {/* The point itself */}
+              <frame
+                Size={new UDim2(0, px(DOT_SIZE), 0, px(DOT_SIZE))}
+                BackgroundColor3={color}
+                BorderSizePixel={0}
+                Event={{
+                  MouseEnter: () => setIsHovering(true),
+                  MouseLeave: () => setIsHovering(false),
+                }}
+                Position={
+                  new UDim2(
+                    AsPosition(props.DomainMin, props.DomainMax, xV),
+                    0,
+                    AsPosition(props.RangeMin, props.RangeMax, yV, true),
+                    0,
+                  )
+                }
+              >
+                <uiaspectratioconstraint />
+                <uicorner CornerRadius={new UDim(1, 0)} />
+              </frame>
+
+              {/* Label, appears when hovering */}
+              <frame
+                Visible={isHovering}
+                Size={new UDim2(0.1, 0, 0.1, 0)}
+                BackgroundColor3={COLORS.LightBackground}
+                BorderColor3={COLORS.Border}
+                Position={
+                  new UDim2(
+                    AsPosition(props.DomainMin, props.DomainMax, xV),
+                    10,
+                    AsPosition(props.RangeMin, props.RangeMax, yV, true),
+                    10,
+                  )
+                }
+              >
+                <uipadding
+                  PaddingTop={new UDim(0.3, 0)}
+                  PaddingBottom={new UDim(0.3, 0)}
+                />
+                <textlabel
+                  Size={new UDim2(1, 0, 1, 0)}
+                  BackgroundTransparency={1}
+                  TextColor3={COLORS.FocusText}
+                  TextScaled
+                  Text={`(${xV}, ${yV})`}
+                />
+              </frame>
+            </>,
           );
         }
         return result;
@@ -265,30 +302,6 @@ function HighlightedX(props: {
     );
   }
   return highlights;
-}
-function Label(props: { Position: UDim2; Coords: Vector2 }) {
-  return (
-    <frame
-      Visible={true}
-      Size={new UDim2(0.1, 0, 0.1, 0)}
-      BackgroundColor3={COLORS.LightBackground}
-      BorderColor3={COLORS.Border}
-      Position={props.Position}
-    >
-      <uipadding
-        PaddingTop={new UDim(0.3, 0)}
-        PaddingBottom={new UDim(0.3, 0)}
-      />
-      <textlabel
-        Font={Enum.Font.Code}
-        Size={new UDim2(1, 0, 1, 0)}
-        BackgroundTransparency={1}
-        TextColor3={COLORS.FocusText}
-        TextScaled
-        Text={`(${props.Coords.X}, ${props.Coords.Y})`}
-      />
-    </frame>
-  );
 }
 function Line(props: {
   /* line attr */
