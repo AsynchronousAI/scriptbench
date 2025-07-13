@@ -14,6 +14,7 @@ import BenchmarkAll, {
   GetBenchmarkableModules,
   GetBenchmarkName,
 } from "benchmark";
+import { Workspace } from "@rbxts/services";
 
 const SIDEBAR_WIDTH = 0.15;
 const RESULTS_WIDTH = 0.2;
@@ -100,6 +101,17 @@ export function App() {
             setProgress(0);
             setErrorMessage(undefined);
           }}
+          OnNew={() => {
+            const Selection = game.FindFirstChildOfClass("Selection")!;
+            const clonedTemplate = script.Parent?.Parent!.FindFirstChild(
+              "tests",
+            )
+              ?.FindFirstChild("Template.bench")!
+              .Clone()!; /* not at all pretty */
+
+            clonedTemplate.Parent = Selection.Get()[0] || Workspace;
+            Selection.Set([clonedTemplate]);
+          }}
         />
       </DropShadowFrame>
 
@@ -114,7 +126,7 @@ export function App() {
           Size={new UDim2(0.5, 0, 0.035, 0)}
           BackgroundTransparency={1}
           TextScaled
-          Font={Enum.Font.BuilderSans}
+          Font={Enum.Font.Code}
           TextXAlignment={"Left"}
           TextColor3={COLORS.FocusText}
           ZIndex={2}
@@ -125,11 +137,11 @@ export function App() {
             Text={`Error: ${errorMessage}`}
             RichText
             Position={new UDim2(0.5, 0, 0.5, 0)}
-            Size={new UDim2(0.5, 0, 0.035, 0)}
+            Size={new UDim2(0.75, 0, 0.05, 0)}
             BackgroundTransparency={1}
             AnchorPoint={new Vector2(0.5, 0.5)}
             TextScaled
-            Font={Enum.Font.BuilderSans}
+            Font={Enum.Font.Code}
             TextXAlignment={"Left"}
             TextColor3={COLORS.ErrorText}
             ZIndex={2}
