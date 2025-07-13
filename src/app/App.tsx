@@ -42,10 +42,10 @@ export function App() {
   const startBenchmark = () => {
     setProgress(0);
 
-    if (calls < MIN_CALLS) {
+    /*if (calls < MIN_CALLS) {
       setErrorMessage(`Minimum calls is ${MIN_CALLS}`);
       return;
-    }
+    }*/
 
     const result = BenchmarkAll(
       currentBenchmark!,

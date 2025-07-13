@@ -60,7 +60,7 @@ function ComputeRangeDomain(data: {
   return {
     DomainMin: domainMin,
     DomainMax: domainMax,
-    RangeMin: rangeMin,
+    RangeMin: /*rangeMin*/ 0,
     RangeMax: rangeMax,
     Domain: domainMax - domainMin,
     Range: rangeMax - rangeMin,
@@ -323,9 +323,10 @@ function Line(props: {
 }) {
   const px = usePx();
 
-  if (!props.StartX || !props.StartY || !props.EndX || !props.EndY) {
-    return <></>;
-  }
+  props.StartX ??= 0;
+  props.StartY ??= 0;
+  props.EndX ??= 0;
+  props.EndY ??= 0;
 
   print(`(${props.StartX}, ${props.StartY}) -> (${props.EndX}, ${props.EndY})`);
 
