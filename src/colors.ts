@@ -1,9 +1,14 @@
+const Theme = (settings().Studio as unknown as { Theme: StudioTheme }).Theme;
+function c(color: Enum.StudioStyleGuideColor) {
+  return Theme.GetColor(color);
+}
+
 export const COLORS = {
-  Background: Color3.fromHex("#212121"),
-  LightBackground: Color3.fromHex("#1E1E1F"),
-  Border: Color3.fromHex("#333333"),
-  Text: Color3.fromRGB(150, 150, 150),
-  DarkText: Color3.fromRGB(35, 35, 35),
-  Selected: Color3.fromRGB(123, 175, 255),
-  FocusText: Color3.fromRGB(200, 200, 200),
+  Background: c(Enum.StudioStyleGuideColor.ScrollBarBackground),
+  LightBackground: c(Enum.StudioStyleGuideColor.MainBackground),
+  Border: c(Enum.StudioStyleGuideColor.Border),
+  Text: c(Enum.StudioStyleGuideColor.SubText),
+  DarkText: c(Enum.StudioStyleGuideColor.MainText),
+  Selected: c(Enum.StudioStyleGuideColor.LinkText),
+  FocusText: c(Enum.StudioStyleGuideColor.MainText),
 };

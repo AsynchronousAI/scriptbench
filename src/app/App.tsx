@@ -160,10 +160,10 @@ export function App() {
         BackgroundTransparency={1}
       >
         <textlabel
-          Text={`<b>${currentBenchmark || "No bench selected"}</b> ${currentBenchmark && currentBenchmark + ""}`}
+          Text={`<b>${currentBenchmark || "No bench selected"}</b>   ${currentBenchmark && currentBenchmark + ""}`}
           RichText
           Position={new UDim2(0.03, 0, 0.01, 0)}
-          Size={new UDim2(0.5, 0, 0.05, 0)}
+          Size={new UDim2(0.5, 0, 0.035, 0)}
           BackgroundTransparency={1}
           TextScaled
           Font={Enum.Font.BuilderSans}

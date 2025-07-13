@@ -25,6 +25,7 @@ const DOMAIN_LABELS = 5;
 const RANGE_LABELS = 5;
 const LINE_WIDTH = 5;
 const DOT_SIZE = 5;
+const LABEL_TEXT_SIZE = 16;
 
 /** Computations */
 function AsPosition(Min: number, Max: number, Value: number, IsRange = false) {
@@ -34,7 +35,7 @@ function AsPosition(Min: number, Max: number, Value: number, IsRange = false) {
   }
   return value;
 }
-function FormatNumber(value: number, prefix?: string): string {
+export function FormatNumber(value: number, prefix?: string): string {
   return string.format("%.2f", value) + (prefix || "");
 }
 function ComputeRangeDomain(data: {
@@ -106,6 +107,7 @@ function TagsAndGridLines(props: {
         return (
           <>
             <textlabel
+              Font={Enum.Font.Code}
               Text={FormatNumber(value, props.XPrefix)}
               Size={new UDim2(LABEL_THICKNESS, 0, LABEL_THICKNESS, 0)}
               Position={
@@ -119,7 +121,7 @@ function TagsAndGridLines(props: {
               }
               BackgroundTransparency={1}
               TextColor3={COLORS.Text}
-              TextSize={px(10)}
+              TextSize={px(LABEL_TEXT_SIZE)}
               TextXAlignment="Center"
               TextYAlignment="Center"
             />
@@ -150,6 +152,7 @@ function TagsAndGridLines(props: {
         return (
           <>
             <textlabel
+              Font={Enum.Font.Code}
               Text={FormatNumber(value, props.YPrefix)}
               Size={new UDim2(LABEL_THICKNESS, 0, LABEL_THICKNESS, 0)}
               Position={
@@ -163,7 +166,7 @@ function TagsAndGridLines(props: {
               }
               BackgroundTransparency={1}
               TextColor3={COLORS.Text}
-              TextSize={px(10)}
+              TextSize={px(LABEL_TEXT_SIZE)}
               TextXAlignment="Center"
               TextYAlignment="Center"
             />
@@ -273,6 +276,7 @@ function Label(props: { Position: UDim2; Coords: Vector2 }) {
         PaddingBottom={new UDim(0.3, 0)}
       />
       <textlabel
+        Font={Enum.Font.Code}
         Size={new UDim2(1, 0, 1, 0)}
         BackgroundTransparency={1}
         TextColor3={COLORS.FocusText}
