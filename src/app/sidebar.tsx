@@ -60,7 +60,10 @@ export default function Sidebar(props: SidebarProps) {
             Color: COLORS.Text,
             Size: new Vector2(12, 12),
           }}
-          OnActivated={props.OnRefresh}
+          OnActivated={() => {
+            props.OnRefresh?.();
+            setCurrentlySelected("");
+          }}
         />
       </frame>
 

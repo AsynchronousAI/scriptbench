@@ -472,6 +472,7 @@ export default function ReactGraph(props: GraphProps) {
             DomainMin={DomainMin}
           />
         )}
+
         <Lines
           Data={props.Data}
           DomainMax={DomainMax}
@@ -479,6 +480,7 @@ export default function ReactGraph(props: GraphProps) {
           RangeMax={RangeMax}
           RangeMin={RangeMin}
         />
+
         <Points
           Data={props.Data}
           DomainMax={DomainMax}

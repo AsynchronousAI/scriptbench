@@ -1,13 +1,36 @@
-import { Object, String } from "@rbxts/luau-polyfill";
+import { Array, Object, String } from "@rbxts/luau-polyfill";
 import { Result } from "app/results";
 import { GetKeyColor, GraphData } from "graph";
 
-const precision = 5; /* 5 digits of precision compared to a second */
-const requiredPrefix = ".bench";
+const THRESHOLD_PERCENT = 25;
+const REQUIRED_PREFIX = ".bench";
+const YIELD = 250;
 
 interface FormattedBenchmarkScript<T> {
   ParameterGenerator: () => T;
   Functions: { [name: string]: (profiler: undefined, arg: T) => void };
+}
+
+function TrimData(data: Map<number, number>): Map<number, number> {
+  const keys = Object.keys(data);
+
+  for (let i = 1; i < keys.size(); i++) {
+    const previousX = keys[i - 1];
+    const previousY = data.get(previousX) || 0;
+    const currentX = keys[i];
+    const currentY = data.get(currentX) || 0;
+
+    if (currentY < previousY * (THRESHOLD_PERCENT / 100)) {
+      const trimmedMap = new Map<number, number>();
+      for (let j = 0; j < i; j++) {
+        trimmedMap.set(keys[j], data.get(keys[j]) || 0);
+      }
+      return trimmedMap;
+    }
+  }
+
+  // If no point meets the condition, return the entire Map
+  return data;
 }
 
 function ComputeStarts(data: { [key: number]: number }) {
@@ -76,7 +99,7 @@ export function GetBenchmarkableModules() {
   let validModules = [];
   for (const module of game.GetDescendants()) {
     if (!module.IsA("ModuleScript")) continue;
-    if (!String.endsWith(module.Name, requiredPrefix))
+    if (!String.endsWith(module.Name, REQUIRED_PREFIX))
       continue; /* does not match required suffix */
 
     validModules.push(module);
@@ -109,11 +132,11 @@ function Benchmark(
     const current = recordedTimes.get(elapsedTime) ?? 0;
     recordedTimes.set(elapsedTime, current + 1);
 
-    if (count % 100 === 0) task.wait();
+    if (count % YIELD === 0) task.wait();
     setCount(count);
   }
 
-  return recordedTimes;
+  return TrimData(recordedTimes);
 }
 export default function BenchmarkAll(
   module: ModuleScript,

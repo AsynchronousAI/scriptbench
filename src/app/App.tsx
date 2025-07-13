@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "@rbxts/react";
+import React, { useEffect, useMemo, useState } from "@rbxts/react";
 import Graph, { GraphData } from "graph";
 import Sidebar from "./sidebar";
 import {
@@ -11,7 +11,7 @@ import {
   Label,
 } from "@rbxts/studiocomponents-react2";
 import { COLORS } from "colors";
-import Results from "./results";
+import Results, { Result } from "./results";
 import BenchmarkAll, {
   ComputeResults,
   GetBenchmarkableModules,
@@ -27,9 +27,13 @@ export function App() {
   const [benchmarks, setBenchmarks] = useState<ModuleScript[]>([]);
   const [data, setData] = useState<GraphData | undefined>(undefined);
   const [progress, setProgress] = useState<number | undefined>(undefined);
-  const [calls, setCalls] = useState<number>(5000);
+  const [calls, setCalls] = useState<number>(10_000);
   const [progressStatus, setProgressStatus] = useState<string | undefined>(
     undefined,
+  );
+  const [results, setResults] = useState<Result[] | undefined>(undefined);
+  const [highlightedX, setHighlightedX] = useState<{ [key: string]: number }>(
+    {},
   );
 
   const startBenchmark = () => {
@@ -42,11 +46,25 @@ export function App() {
 
     print(result);
     setData(result as unknown as GraphData);
+    setResults(ComputeResults(result as unknown as GraphData));
   };
 
   useMemo(() => {
     setBenchmarks(GetBenchmarkableModules());
   }, []);
+
+  useEffect(() => {
+    if (!results) return;
+
+    let highlightedXs: { [key: string]: number } = {};
+    for (const [key, value] of pairs(results)) {
+      highlightedXs[value.Name] = value.NumberData.find(
+        (data) => data[0] === "50%",
+      )![1] as number;
+    }
+
+    setHighlightedX(highlightedXs);
+  }, [results]);
 
   return (
     <frame
@@ -65,6 +83,8 @@ export function App() {
           }
           OnRefresh={() => {
             setBenchmarks(GetBenchmarkableModules());
+            setData(undefined);
+            setProgress(0);
           }}
         />
       </DropShadowFrame>
@@ -93,14 +113,14 @@ export function App() {
               Position={new UDim2(0, 0, 0.05, 0)}
               BackgroundTransparency={1}
             >
-              <Results Results={ComputeResults(data)} />
+              <Results Results={results!} />
             </frame>
             <frame
               Size={new UDim2(1 - RESULTS_WIDTH, 0, 1, 0)}
               BackgroundTransparency={1}
               Position={new UDim2(RESULTS_WIDTH, 0, 0, 0)}
             >
-              <Graph Data={data} XPrefix="µs" />
+              <Graph Data={data} XPrefix="µs" HighlightedX={highlightedX} />
             </frame>
           </frame>
         ) : progress /* Currently runnning benchmark */ ? (
