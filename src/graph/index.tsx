@@ -31,6 +31,7 @@ const LABEL_TEXT_SIZE = 16;
 /** Computations */
 function AsPosition(Min: number, Max: number, Value: number, IsRange = false) {
   const value = (Value - Min) / (Max - Min);
+
   if (IsRange) {
     return 1 - value;
   }
@@ -195,6 +196,37 @@ function TagsAndGridLines(props: {
   );
 }
 
+function HighlightedX(props: {
+  HighlightedX: { [key: string]: number };
+  DomainMin: number;
+  DomainMax: number;
+}) {
+  const px = usePx();
+
+  let highlights = [];
+  for (const [key, value] of pairs(props.HighlightedX)) {
+    const [color] = GetKeyColor(key as string);
+
+    highlights.push(
+      <frame
+        Position={
+          new UDim2(
+            AsPosition(props.DomainMin, props.DomainMax, value),
+            0,
+            0.5,
+            0,
+          )
+        }
+        AnchorPoint={new Vector2(0, 0.5)}
+        Size={new UDim2(0, px(LINE_WIDTH), 1, 0)}
+        BackgroundColor3={color}
+        BackgroundTransparency={0.5}
+      />,
+    );
+  }
+  return highlights;
+}
+
 function Points(props: {
   Data: { [key: string]: { [key: number]: number } };
   RangeMin: number;
@@ -273,36 +305,7 @@ function Points(props: {
     </>
   );
 }
-function HighlightedX(props: {
-  HighlightedX: { [key: string]: number };
-  DomainMin: number;
-  DomainMax: number;
-}) {
-  const px = usePx();
 
-  let highlights = [];
-  for (const [key, value] of pairs(props.HighlightedX)) {
-    const [color] = GetKeyColor(key as string);
-
-    highlights.push(
-      <frame
-        Position={
-          new UDim2(
-            AsPosition(props.DomainMin, props.DomainMax, value),
-            0,
-            0.5,
-            0,
-          )
-        }
-        AnchorPoint={new Vector2(0, 0.5)}
-        Size={new UDim2(0, px(LINE_WIDTH), 1, 0)}
-        BackgroundColor3={color}
-        BackgroundTransparency={0.5}
-      />,
-    );
-  }
-  return highlights;
-}
 function Line(props: {
   /* line attr */
   StartX: number;
@@ -320,10 +323,11 @@ function Line(props: {
 }) {
   const px = usePx();
 
-  props.StartX ??= 0;
-  props.StartY ??= 0;
-  props.EndX ??= 0;
-  props.EndY ??= 0;
+  if (!props.StartX || !props.StartY || !props.EndX || !props.EndY) {
+    return <></>;
+  }
+
+  print(`(${props.StartX}, ${props.StartY}) -> (${props.EndX}, ${props.EndY})`);
 
   return (
     <>

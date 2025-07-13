@@ -18,6 +18,7 @@ import { Workspace } from "@rbxts/services";
 
 const SIDEBAR_WIDTH = 0.15;
 const RESULTS_WIDTH = 0.2;
+const MIN_CALLS = 1000; /* I highly reccomend you **NOT** to reduce this */
 
 export function App() {
   const [currentBenchmark, setCurrentBenchmark] = useState<
@@ -40,6 +41,11 @@ export function App() {
 
   const startBenchmark = () => {
     setProgress(0);
+
+    if (calls < MIN_CALLS) {
+      setErrorMessage(`Minimum calls is ${MIN_CALLS}`);
+      return;
+    }
 
     const result = BenchmarkAll(
       currentBenchmark!,
