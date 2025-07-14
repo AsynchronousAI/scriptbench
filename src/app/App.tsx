@@ -133,9 +133,9 @@ export function App() {
           RichText
           Position={new UDim2(0.03, 0, 0.01, 0)}
           Size={new UDim2(0.5, 0, 0.035, 0)}
-          BackgroundTransparency={1}
           TextScaled
           Font={Enum.Font.Code}
+          BackgroundTransparency={1}
           TextXAlignment={"Left"}
           TextColor3={COLORS.FocusText}
           ZIndex={2}
@@ -206,7 +206,7 @@ export function App() {
             />
             <NumericInput
               Position={new UDim2(0.5, 0, 0.575, 0)}
-              Size={new UDim2(0.2, 0, 0.025, 0)}
+              Size={new UDim2(0.2, 0, 0.05, 0)}
               AnchorPoint={new Vector2(0.5, 0.5)}
               Value={calls}
               OnValidChanged={setCalls}

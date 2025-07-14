@@ -10,7 +10,7 @@ local SIZE = 5000 -- not influenced by the benchmark, should be constant.
 return {
     Name = "Table Fill",
 
-    Parameters = function()
+    Parameter = function()
         --[[
         -- This defines a single argument to be fed to
         -- each of the benchmark functions.
@@ -26,17 +26,28 @@ return {
     AfterEach = function() end,
 
     Functions = {
-        ["table.create"] = function(value)
+        ["table.create"] = function(lib, value)
+            lib.profilebegin("Create")
             local tb = table.create(SIZE)
+            lib.profileend()
+
+
+            lib.profilebegin("Fill")
             for i = 1, SIZE do
                 tb[i] = value
             end
+            lib.profileend()
         end,
-        ["Empty Table"] = function(value)
+        ["Empty Table"] = function(lib, value)
+            lib.profilebegin("Create")
             local tb = {}
+            lib.profileend()
+
+            lib.profilebegin("Fill")
             for i = 1, SIZE do
                 tb[i] = value
             end
+            lib.profileend()
         end,
     }
 }

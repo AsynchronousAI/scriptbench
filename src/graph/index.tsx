@@ -53,7 +53,7 @@ function FromPosition(
 
   const value = math.map(Value, 0, 1, Min, Max);
 
-  return value;
+  return math.max(value, 0);
 }
 export function FormatNumber(value: number, prefix?: string): string {
   return string.format("%.2f", value) + (prefix || "");
@@ -316,6 +316,7 @@ function Line(props: {
           BackgroundTransparency={1}
           TextColor3={COLORS.FocusText}
           TextSize={px(17)}
+          ZIndex={props.ZIndex + 2}
           RichText
           Text={`<b><font color="#${props.Color.ToHex()}">${props.Name}</font></b>
 ${FormatNumber(FromPosition(props.DomainMin, props.DomainMax, x))}µs

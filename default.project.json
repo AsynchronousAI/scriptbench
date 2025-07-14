@@ -1,14 +1,21 @@
 {
   "name": "scriptbench",
   "tree": {
-    "$path": "out",
+    "$className": "DataModel",
 
-    "include": {
-      "$path": "include",
-      "node_modules": {
-        "$className": "Folder",
-        "@rbxts": {
-          "$path": "node_modules/@rbxts"
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "Scriptbench": {
+        "$path": "out",
+
+        "include": {
+          "$path": "include",
+          "node_modules": {
+            "$className": "Folder",
+            "@rbxts": {
+              "$path": "node_modules/@rbxts"
+            }
+          }
         }
       }
     }

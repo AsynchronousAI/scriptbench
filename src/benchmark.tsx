@@ -6,10 +6,16 @@ import { GetKeyColor, GraphData } from "graph";
 const REQUIRED_PREFIX = ".bench";
 const YIELD = 250;
 
+/* Library which is provided to the benchmark functions */
+const BenchmarkLibrary = {
+  profilebegin: (name: string) => {},
+  profileend: () => {},
+};
+
 /* Utility functions */
 interface FormattedBenchmarkScript<T> {
-  Parameters: () => T;
-  Functions: { [name: string]: (arg: T) => void };
+  Parameter: () => T;
+  Functions: { [name: string]: (lib: typeof BenchmarkLibrary, arg: T) => void };
   Name: string;
 
   /* Before + After functions */
@@ -56,7 +62,6 @@ function ComputeStarts(data: { [key: number]: number }) {
     max,
   };
 }
-
 function ToMicroseconds(seconds: number) {
   return math.floor(seconds * 1000 * 1000);
 }
@@ -85,12 +90,12 @@ function Benchmark(
   let recordedTimes = new Map<number, number>(); /* time taken to calls map */
 
   for (let count = 0; count <= calls; count++) {
-    const parameter = requiredModule.Parameters();
+    const parameter = requiredModule.Parameter();
 
     /* benchmark! */
     requiredModule.BeforeEach?.();
     const start = tick();
-    requiredModule.Functions[use](parameter);
+    requiredModule.Functions[use](BenchmarkLibrary, parameter);
     const end_ = tick();
     requiredModule.AfterEach?.();
 
@@ -139,7 +144,6 @@ export function ComputeResults(data: GraphData): Result[] {
   }
   return results;
 }
-
 export function GetBenchmarkableModules() {
   let validModules = [];
   for (const module of game.GetDescendants()) {
@@ -165,9 +169,12 @@ export default function BenchmarkAll(
   // First, run all benchmarks and store the results
   xpcall(
     () => {
-      let index = 0;
       const functions = Object.keys(requiredModule.Functions);
+
+      let index = 0;
+
       requiredModule.BeforeAll?.();
+
       for (const benchmarkName of functions) {
         const results = Benchmark(
           requiredModule,
@@ -180,10 +187,11 @@ export default function BenchmarkAll(
             );
           },
         );
-        totalResults.set(benchmarkName as string, results);
 
+        totalResults.set(benchmarkName as string, results);
         index++;
       }
+
       requiredModule.AfterAll?.();
     },
     (errorMessage) => onError?.(errorMessage as string),
