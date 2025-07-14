@@ -13,7 +13,7 @@ const PADDING = 0.25; /* in scale */
 
 const gradient = (color: Color3) =>
   new ColorSequence([
-    new ColorSequenceKeypoint(0, LightenColor(color, 0.035)),
+    new ColorSequenceKeypoint(0, LightenColor(color, 0.025)),
     new ColorSequenceKeypoint(1, color),
   ]);
 
