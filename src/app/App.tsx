@@ -51,7 +51,7 @@ export function App() {
       return;
     }*/
 
-    const result = BenchmarkAll(
+    const [result, profileLogs] = BenchmarkAll(
       currentBenchmark!,
       calls,
       (count, status) => {

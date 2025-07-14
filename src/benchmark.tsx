@@ -3,16 +3,12 @@ import { MicroProfilerData } from "app/microprofiler";
 import { Result } from "app/results";
 import { GetKeyColor, GraphData } from "graph";
 
+/* Constants */
 const REQUIRED_PREFIX = ".bench";
 const YIELD = 250;
 
-/* Library which is provided to the benchmark functions */
-const BenchmarkLibrary = {
-  profilebegin: (name: string) => {},
-  profileend: () => {},
-};
-
-/* Utility functions */
+/* Types */
+export type BenchmarkResults = Map<string, Map<number, number>>;
 interface FormattedBenchmarkScript<T> {
   Parameter: () => T;
   Functions: { [name: string]: (lib: typeof BenchmarkLibrary, arg: T) => void };
@@ -24,43 +20,126 @@ interface FormattedBenchmarkScript<T> {
   AfterEach?: () => void;
   AfterAll?: () => void;
 }
+export type ProfileLog = {
+  time: number;
+  name: string | false;
+}[]; /* false represents end */
+interface Stats<T> {
+  average: T;
+  average50: T;
+  average90: T;
+  average10: T;
+  min: T;
+  max: T;
+}
 
-function ComputeStarts(data: { [key: number]: number }) {
-  const keys = Object.keys(data); // Get keys and convert them to numbers
-  if (keys.size() === 0) {
-    throw "Data is empty.";
+/* Library which is provided to the benchmark functions */
+let globalProfileLog: ProfileLog[] = [];
+const addNewProfileLogEntry = (name: string | false) => {
+  const time = tick();
+  const latestEntry = globalProfileLog[globalProfileLog.size() - 1];
+
+  if (!latestEntry) {
+    globalProfileLog.push([
+      {
+        time,
+        name,
+      },
+    ]);
+  } else {
+    latestEntry.push({
+      time,
+      name,
+    });
   }
+};
 
-  const sortedKeys = [...keys].sort(); // Sort the keys in ascending order
+const BenchmarkLibrary = {
+  profilebegin: (name: string) => addNewProfileLogEntry(name),
+  profileend: () => addNewProfileLogEntry(false),
+};
 
+/* Utility functions */
+function getPercentileAverage(
+  sortedKeys: number[],
+  startPercent: number,
+  endPercent: number,
+): number {
   const size = sortedKeys.size();
+  const startIndex = math.floor(size * startPercent);
+  const endIndex = math.floor(size * endPercent);
+
+  let sum = 0;
+  let count = 0;
+  for (let i = startIndex; i < endIndex && i < size; i++) {
+    sum += sortedKeys[i];
+    count += 1;
+  }
+  return count > 0 ? sum / count : 0;
+}
+
+function ComputeStats(data: number[]): Stats<number> {
+  const sorted = [...data].sort((a, b) => a < b);
+
+  const size = sorted.size();
   const average =
-    sortedKeys.reduce((sum: number, key: number) => sum + key, 0) / size;
+    sorted.reduce((sum: number, key: number) => sum + key, 0) / size;
 
-  const getPercentileAverage = (startPercent: number, endPercent: number) => {
-    const startIndex = math.floor(size * startPercent);
-    const endIndex = math.floor(size * endPercent);
-
-    let sum = 0;
-    let count = 0;
-    for (let i = startIndex; i < endIndex && i < size; i++) {
-      sum += sortedKeys[i];
-      count += 1;
-    }
-    return count > 0 ? sum / count : 0;
-  };
-
-  const min = sortedKeys[0];
-  const max = sortedKeys[sortedKeys.size() - 1];
+  const min = sorted[0];
+  const max = sorted[sorted.size() - 1];
 
   return {
     average,
-    average10: getPercentileAverage(0, 0.1), // Lowest 10%
-    average50: getPercentileAverage(0.25, 0.75), // Middle 50%
-    average90: getPercentileAverage(0, 0.9), // Highest 90%
+    average10: getPercentileAverage(sorted, 0, 0.1),
+    average50: getPercentileAverage(sorted, 0.25, 0.75),
+    average90: getPercentileAverage(sorted, 0, 0.9),
     min,
     max,
   };
+}
+function ProfileLogStats(profileLogs: ProfileLog[]): Stats<ProfileLog> {
+  let profileLogStats: Stats<ProfileLog> = {
+    average: [],
+    average10: [],
+    average50: [],
+    average90: [],
+    min: [],
+    max: [],
+  };
+
+  /* Make each of the stats time be elapsed */
+  for (const profileLog of profileLogs) {
+    for (const [index, entry] of pairs(profileLog)) {
+      const nextTime = profileLog[index]?.time ?? 0;
+      entry.time = math.max(0, ToMicroseconds(nextTime - entry.time));
+    }
+  }
+
+  /* use ComputeStats */
+  /** Format data for ComputeStats */
+  let computeStatsData: { [index: number]: number[] } = {};
+  let namesFromIndex: { [index: number]: string | false } = {};
+  for (const profileLog of profileLogs) {
+    for (const [index, entry] of pairs(profileLog)) {
+      computeStatsData[index] ??= [];
+      computeStatsData[index].push(entry.time);
+
+      namesFromIndex[index] = entry.name;
+    }
+  }
+
+  /** Run through ComputeStats */
+  for (const [key, values] of pairs(computeStatsData)) {
+    const stats = ComputeStats(values);
+    for (const [statName, statResult] of pairs(stats)) {
+      profileLogStats[statName].push({
+        name: namesFromIndex[key],
+        time: statResult,
+      });
+    }
+  }
+
+  return profileLogStats;
 }
 function ToMicroseconds(seconds: number) {
   return math.floor(seconds * 1000 * 1000);
@@ -85,14 +164,17 @@ function Benchmark(
   calls: number,
 
   setCount: (count: number) => void,
-) {
+): [Map<number, number>, Stats<ProfileLog>] {
   /* benchmark a single case in a module */
   let recordedTimes = new Map<number, number>(); /* time taken to calls map */
 
+  table.clear(globalProfileLog);
   for (let count = 0; count <= calls; count++) {
     const parameter = requiredModule.Parameter();
 
     /* benchmark! */
+    globalProfileLog.push([]); /* start on a new entry */
+
     requiredModule.BeforeEach?.();
     const start = tick();
     requiredModule.Functions[use](BenchmarkLibrary, parameter);
@@ -109,7 +191,7 @@ function Benchmark(
     setCount(count);
   }
 
-  return FilterMap(recordedTimes, 5);
+  return [FilterMap(recordedTimes, 5), ProfileLogStats(globalProfileLog)];
 }
 
 /* Exported functions */
@@ -127,7 +209,7 @@ export function ComputeResults(data: GraphData): Result[] {
   let results: Result[] = [];
 
   for (const [name] of pairs(data)) {
-    const stats = ComputeStarts(data[name]);
+    const stats = ComputeStats(Object.keys(data[name]));
     results.push({
       Order: stats.average50,
       Name: name as string,
@@ -161,9 +243,11 @@ export default function BenchmarkAll(
   calls: number,
   setCount?: (count: number, status: string) => void,
   onError?: (error: string) => void,
-) {
+): [BenchmarkResults, Map<string, Stats<ProfileLog>>] | [] {
   /* benchmark all cases of a module */
   const totalResults = new Map<string, Map<number, number>>();
+  const totalProfileLogs = new Map<string, Stats<ProfileLog>>();
+
   const requiredModule = require(module) as FormattedBenchmarkScript<unknown>;
 
   // First, run all benchmarks and store the results
@@ -176,7 +260,7 @@ export default function BenchmarkAll(
       requiredModule.BeforeAll?.();
 
       for (const benchmarkName of functions) {
-        const results = Benchmark(
+        const [results, profileLog] = Benchmark(
           requiredModule,
           benchmarkName as string,
           calls,
@@ -189,6 +273,8 @@ export default function BenchmarkAll(
         );
 
         totalResults.set(benchmarkName as string, results);
+        totalProfileLogs.set(benchmarkName as string, profileLog);
+
         index++;
       }
 
@@ -204,7 +290,7 @@ export default function BenchmarkAll(
       onError?.(
         `Benchmark '${name}' was not able to return satisfactory results`,
       );
-      return;
+      return [];
     }
   }
 
@@ -222,7 +308,7 @@ export default function BenchmarkAll(
     }
   }
 
-  return totalResults;
+  return [totalResults, totalProfileLogs];
 }
 export function ToMicroprofilerData(results: Result[]): MicroProfilerData {
   const data: MicroProfilerData = {};
