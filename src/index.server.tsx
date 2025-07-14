@@ -5,8 +5,8 @@ import App from "app/App";
 const toolbar = plugin.CreateToolbar("Scriptbench");
 const toggle = toolbar.CreateButton(
   "Scriptbench",
-  "rbxassetid://105442920358687",
   "Benchmarker with graphs, tables, and a microprofiler!",
+  "rbxassetid://105442920358687",
 );
 
 function main() {
@@ -20,6 +20,7 @@ function main() {
     300,
   );
   const widget = plugin.CreateDockWidgetPluginGui("scriptbench", widgetInfo);
+  (widget as unknown as { Title: string }).Title = "Scriptbench";
   widget.Name = "Scriptbench";
 
   const root = createRoot(new Instance("Folder"));

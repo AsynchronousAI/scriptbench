@@ -38,6 +38,8 @@ function MicroProfilerProcesses(props: {
   let color = props.color;
 
   return usingProcesses.map(({ time, name }, index) => {
+    const zindex = index + 2;
+
     const thisPosition = position;
     position += time / props.maxTime;
 
@@ -47,26 +49,30 @@ function MicroProfilerProcesses(props: {
 
     return (
       <frame
-        ZIndex={index}
+        ZIndex={zindex}
         BorderColor3={COLORS.Border}
         BackgroundColor3={new Color3(1, 1, 1)}
         Size={new UDim2(time / props.maxTime, 0, (1 - PADDING) * 0.5, 0)}
         Position={new UDim2(thisPosition, 0, (1 - PADDING) * 0.5, 0)}
       >
-        <textlabel
-          Text={`<b>${name as string}</b> ${FormatNumber(time)}µs`}
-          RichText
-          TextColor3={COLORS.DarkText}
-          TextTransparency={0.2}
-          Font={"Code"}
-          TextScaled
-          TextXAlignment={Enum.TextXAlignment.Left}
-          TextYAlignment={Enum.TextYAlignment.Center}
-          BackgroundTransparency={1}
-          Size={new UDim2(1, -px(20), 0.75, 0)}
-          Position={new UDim2(0.5, 0, 0.5, 0)}
-          AnchorPoint={new Vector2(0.5, 0.5)}
-        />
+        {time / props.maxTime >
+          0.2 /* do not show if the frame is too small */ && (
+          <textlabel
+            Text={`<b>${name as string}</b> ${FormatNumber(time)}µs`}
+            RichText
+            TextColor3={COLORS.DarkText}
+            TextTransparency={0.2}
+            Font={"Code"}
+            TextScaled
+            TextXAlignment={Enum.TextXAlignment.Left}
+            TextYAlignment={Enum.TextYAlignment.Center}
+            BackgroundTransparency={1}
+            Size={new UDim2(1, -px(20), 0.75, 0)}
+            Position={new UDim2(0.5, 0, 0.5, 0)}
+            AnchorPoint={new Vector2(0.5, 0.5)}
+            ZIndex={zindex + 1}
+          />
+        )}
         <uigradient Color={gradient(color)} />
       </frame>
     );
@@ -116,6 +122,7 @@ export default function MicroProfiler(props: MicroProfilerProps) {
                 RichText
                 TextColor3={COLORS.DarkText}
                 TextTransparency={0.2}
+                ZIndex={3}
                 Font={"Code"}
                 TextScaled
                 TextXAlignment={Enum.TextXAlignment.Left}
