@@ -13,6 +13,8 @@ import BenchmarkAll, {
   ComputeResults,
   GetBenchmarkableModules,
   GetBenchmarkName,
+  ProfileLog,
+  Stats,
   ToMicroprofilerData,
 } from "benchmark";
 import { Workspace } from "@rbxts/services";
@@ -42,6 +44,8 @@ export function App() {
   const [errorMessage, setErrorMessage] = useState<string | undefined>(
     undefined,
   );
+  const [profileLogs, setProfileLogs] =
+    useState<Map<string, Stats<ProfileLog>>>();
 
   const startBenchmark = () => {
     setProgress(0);
@@ -61,6 +65,7 @@ export function App() {
       setErrorMessage,
     );
 
+    setProfileLogs(profileLogs);
     setData(result as unknown as GraphData);
     setResults(ComputeResults(result as unknown as GraphData));
   };
@@ -180,7 +185,10 @@ export function App() {
                 new UDim2(RESULTS_WIDTH, 0, 1 - MICROPROFILER_HEIGHT, 0)
               }
             >
-              <MicroProfiler Results={ToMicroprofilerData(results!)} />
+              <MicroProfiler
+                Results={ToMicroprofilerData(results!)}
+                MicroProfiler={profileLogs}
+              />
             </frame>
           </frame>
         ) : progress /* Currently runnning benchmark */ ? (

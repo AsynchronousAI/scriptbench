@@ -24,7 +24,7 @@ export type ProfileLog = {
   time: number;
   name: string | false;
 }[]; /* false represents end */
-interface Stats<T> {
+export interface Stats<T> {
   Avg: T;
   "50%": T;
   "90%": T;

@@ -22,6 +22,25 @@ const story = {
           "Sample G": 23,
           "Sample H": 34,
         }}
+        MicroProfiler={
+          new Map([
+            /* hand writing this is pain :( */
+            [
+              "Sample E",
+              {
+                Avg: [],
+                "50%": [
+                  { time: 16, name: "Main" },
+                  { time: 16, name: "SecondMain" },
+                ],
+                "90%": [],
+                "10%": [],
+                Min: [],
+                Max: [],
+              },
+            ],
+          ])
+        }
       />
     );
     return component;

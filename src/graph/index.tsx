@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from "@rbxts/react";
-import { COLORS } from "colors";
+import { COLORS, Theme } from "colors";
 import { usePx } from "hooks/usePx";
 
 /** Types */
@@ -95,10 +95,9 @@ function InIncrements(Min: number, Max: number, Range: number, Amount: number) {
   }
   return increments;
 }
-export function GetKeyColor(
-  name: string,
-  isDark: boolean = true,
-): [Color3, number] {
+export function GetKeyColor(name: string): [Color3, number] {
+  const isDark = Theme.Name === "Dark";
+
   let seed = 0;
   for (let i = 0; i < name.size(); i++) {
     seed += name.byte(i + 1) as unknown as number;

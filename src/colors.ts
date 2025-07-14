@@ -1,4 +1,6 @@
-const Theme = (settings().Studio as unknown as { Theme: StudioTheme }).Theme;
+export const Theme = (settings().Studio as unknown as { Theme: StudioTheme })
+  .Theme;
+
 function c(color: Enum.StudioStyleGuideColor) {
   return Theme.GetColor(color);
 }
@@ -13,13 +15,11 @@ export const COLORS = {
   FocusText: c(Enum.StudioStyleGuideColor.MainText),
   ErrorText: c(Enum.StudioStyleGuideColor.ErrorText),
 };
+export function LightenColor(color: Color3, amount: number = 0.035): Color3 {
+  const [h, s, v] = color.ToHSV();
 
-export function ShouldUseBlackText(backgroundColor: Color3): boolean {
-  const r = backgroundColor.R * 255;
-  const g = backgroundColor.G * 255;
-  const b = backgroundColor.B * 255;
+  const newV = math.clamp(v + amount, 0, 1);
+  const newS = math.clamp(s - amount * 2.5, 0, 1);
 
-  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-
-  return luminance > 128;
+  return Color3.fromHSV(h, newS, newV);
 }

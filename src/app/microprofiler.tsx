@@ -1,16 +1,76 @@
 import { Object } from "@rbxts/luau-polyfill";
 import React from "@rbxts/react";
 import { ScrollFrame } from "@rbxts/studiocomponents-react2";
-import { COLORS, ShouldUseBlackText } from "colors";
+import { ProfileLog, Stats } from "benchmark";
+import { COLORS, LightenColor } from "colors";
 import { FormatNumber, GetKeyColor } from "graph";
 import { usePx } from "hooks/usePx";
 
+/* Constants  */
+const HEIGHT = 45;
+const PADDING = 0.25; /* in scale */
+
+const gradient = (color: Color3) =>
+  new ColorSequence([
+    new ColorSequenceKeypoint(0, color),
+    new ColorSequenceKeypoint(1, color),
+  ]);
+
+/* Types */
 export type MicroProfilerData = { [key: string]: number };
 export interface MicroProfilerProps {
   Results: MicroProfilerData;
+  MicroProfiler?: Map<string, Stats<ProfileLog>>;
 }
-const HEIGHT = 45;
-const PADDING = 0.25; /* in scale */
+
+/* Export */
+function MicroProfilerProcesses(props: {
+  processes: Stats<ProfileLog>;
+  maxTime: number;
+  time: number;
+  color: Color3;
+}) {
+  const usingProcesses = props.processes["50%"];
+  const px = usePx();
+
+  let position = 0;
+  let color = props.color;
+
+  return usingProcesses.map(({ time, name }, index) => {
+    const thisPosition = position;
+    position += time / props.maxTime;
+
+    color = LightenColor(color);
+
+    if (name === false) name = "Untracked";
+
+    return (
+      <frame
+        ZIndex={index}
+        BorderColor3={COLORS.Border}
+        BackgroundColor3={color}
+        Size={new UDim2(time / props.maxTime, 0, (1 - PADDING) * 0.5, 0)}
+        Position={new UDim2(thisPosition, 0, (1 - PADDING) * 0.5, 0)}
+      >
+        <textlabel
+          Text={`<b>${name as string}</b> ${FormatNumber(time)}µs`}
+          RichText
+          TextColor3={COLORS.DarkText}
+          TextTransparency={0.2}
+          Font={"Code"}
+          TextScaled
+          TextXAlignment={Enum.TextXAlignment.Left}
+          TextYAlignment={Enum.TextYAlignment.Center}
+          BackgroundTransparency={1}
+          Size={new UDim2(1, -px(20), 0.75, 0)}
+          Position={new UDim2(0.5, 0, 0.5, 0)}
+          AnchorPoint={new Vector2(0.5, 0.5)}
+        />
+        <uigradient Color={gradient(color)} />
+      </frame>
+    );
+  });
+}
 export default function MicroProfiler(props: MicroProfilerProps) {
   const px = usePx();
   const maxTime =
@@ -21,17 +81,34 @@ export default function MicroProfiler(props: MicroProfilerProps) {
     <ScrollFrame ScrollingDirection={Enum.ScrollingDirection.XY}>
       {Object.entries(props.Results).map(([name, time]) => {
         const color = GetKeyColor(name as string)[0];
+        const microprofiler = props.MicroProfiler?.get(name as string);
 
         return (
           <frame /* No idea on how to add padding for ScrollBar, so just stack frames :> */
             BackgroundTransparency={1}
-            Size={new UDim2(time / maxTime, 0, 0, px(HEIGHT))}
-            LayoutOrder={time}
+            Size={
+              new UDim2(
+                time / maxTime,
+                0,
+                0,
+                px(HEIGHT) * (microprofiler ? 2 : 1),
+              )
+            }
+            LayoutOrder={maxTime - time}
           >
+            {/* Main frame */}
             <frame
+              ZIndex={2}
               BorderColor3={COLORS.Border}
               BackgroundColor3={color}
-              Size={new UDim2(time / maxTime, 0, 1 - PADDING, 0)}
+              Size={
+                new UDim2(
+                  time / maxTime,
+                  0,
+                  (1 - PADDING) * (microprofiler ? 0.5 : 1),
+                  0,
+                )
+              }
             >
               <textlabel
                 Text={`<b>${name as string}</b> ${FormatNumber(time)}µs`}
@@ -47,15 +124,18 @@ export default function MicroProfiler(props: MicroProfilerProps) {
                 Position={new UDim2(0.5, 0, 0.5, 0)}
                 AnchorPoint={new Vector2(0.5, 0.5)}
               />
-              <uigradient
-                Color={
-                  new ColorSequence([
-                    new ColorSequenceKeypoint(0, new Color3(1, 1, 1)),
-                    new ColorSequenceKeypoint(1, new Color3(0.85, 0.85, 0.85)),
-                  ])
-                }
-              />
+              <uigradient Color={gradient(color)} />
             </frame>
+
+            {/* MicroProfiler frame */}
+            {microprofiler && (
+              <MicroProfilerProcesses
+                processes={microprofiler}
+                maxTime={maxTime}
+                time={time}
+                color={color}
+              />
+            )}
           </frame>
         );
       })}
