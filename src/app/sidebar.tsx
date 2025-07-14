@@ -44,13 +44,6 @@ export default function Sidebar(props: SidebarProps) {
     >
       <ScrollFrame Size={new UDim2(1, 0, 1, -px(ITEM_SIZE) * BOTTOM_BUTTONS_N)}>
         {/* Top to Bottom */}
-        <uilistlayout
-          FillDirection={"Vertical"}
-          HorizontalAlignment={"Center"}
-          VerticalAlignment={"Top"}
-          Padding={new UDim(0.025, 0)}
-          SortOrder={"LayoutOrder"}
-        />
         <TextInput
           Size={new UDim2(1, 0, 0, px(ITEM_SIZE))}
           PlaceholderText="Filter"
@@ -92,7 +85,7 @@ export default function Sidebar(props: SidebarProps) {
           FillDirection={"Vertical"}
           HorizontalAlignment={"Center"}
           VerticalAlignment={"Bottom"}
-          Padding={new UDim(0.025, 0)}
+          Padding={new UDim(0.1, 0)}
           SortOrder={"LayoutOrder"}
         />
         <Button

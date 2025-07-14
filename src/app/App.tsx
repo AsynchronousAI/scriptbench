@@ -13,11 +13,15 @@ import BenchmarkAll, {
   ComputeResults,
   GetBenchmarkableModules,
   GetBenchmarkName,
+  ToMicroprofilerData,
 } from "benchmark";
 import { Workspace } from "@rbxts/services";
+import MicroProfiler from "./microprofiler";
+import { Object } from "@rbxts/luau-polyfill";
 
 const SIDEBAR_WIDTH = 0.15;
 const RESULTS_WIDTH = 0.2;
+const MICROPROFILER_HEIGHT = 0.2;
 const MIN_CALLS = 1000; /* I highly reccomend you **NOT** to reduce this */
 
 export function App() {
@@ -161,11 +165,22 @@ export function App() {
               <Results Results={results!} />
             </frame>
             <frame
-              Size={new UDim2(1 - RESULTS_WIDTH, 0, 1, 0)}
+              Size={
+                new UDim2(1 - RESULTS_WIDTH, 0, 1 - MICROPROFILER_HEIGHT, 0)
+              }
               BackgroundTransparency={1}
               Position={new UDim2(RESULTS_WIDTH, 0, 0, 0)}
             >
               <Graph Data={data} XPrefix="µs" HighlightedX={highlightedX} />
+            </frame>
+            <frame
+              Size={new UDim2(1 - RESULTS_WIDTH, 0, MICROPROFILER_HEIGHT, 0)}
+              BackgroundTransparency={1}
+              Position={
+                new UDim2(RESULTS_WIDTH, 0, 1 - MICROPROFILER_HEIGHT, 0)
+              }
+            >
+              <MicroProfiler Results={ToMicroprofilerData(results!)} />
             </frame>
           </frame>
         ) : progress /* Currently runnning benchmark */ ? (

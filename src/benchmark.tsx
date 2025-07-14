@@ -1,4 +1,5 @@
 import { Object, String } from "@rbxts/luau-polyfill";
+import { MicroProfilerData } from "app/microprofiler";
 import { Result } from "app/results";
 import { GetKeyColor, GraphData } from "graph";
 
@@ -214,4 +215,14 @@ export default function BenchmarkAll(
   }
 
   return totalResults;
+}
+export function ToMicroprofilerData(results: Result[]): MicroProfilerData {
+  const data: MicroProfilerData = {};
+  for (const [index, result] of pairs(results)) {
+    const lookingFor = result.NumberData.filter(
+      (value) => value[0] === "50%",
+    )[0][1];
+    data[result.Name] = lookingFor;
+  }
+  return data;
 }
