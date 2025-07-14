@@ -6,7 +6,7 @@ import { GetKeyColor, GraphData } from "graph";
 
 /* Constants */
 const REQUIRED_PREFIX = ".bench";
-const YIELD = 250;
+const YIELD = 500;
 
 /* Types */
 export type BenchmarkResults = Map<string, Map<number, number>>;
