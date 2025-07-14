@@ -39,9 +39,15 @@ export default function Sidebar(props: SidebarProps) {
   return (
     <frame
       Size={new UDim2(1, 0, 1, 0)}
-      BorderColor3={COLORS.Border}
-      BackgroundColor3={COLORS.Background}
+      BorderSizePixel={0}
+      BackgroundTransparency={1}
     >
+      <uipadding
+        PaddingTop={new UDim(0, px(10))}
+        PaddingBottom={new UDim(0, px(10))}
+        PaddingLeft={new UDim(0, px(10))}
+        PaddingRight={new UDim(0, px(10))}
+      />
       <ScrollFrame Size={new UDim2(1, 0, 1, -px(ITEM_SIZE) * BOTTOM_BUTTONS_N)}>
         {/* Top to Bottom */}
         <TextInput

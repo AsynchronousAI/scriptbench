@@ -15,11 +15,11 @@ export const COLORS = {
   FocusText: c(Enum.StudioStyleGuideColor.MainText),
   ErrorText: c(Enum.StudioStyleGuideColor.ErrorText),
 };
-export function LightenColor(color: Color3, amount: number = 0.035): Color3 {
+export function LightenColor(color: Color3, amount: number = 0.015): Color3 {
   const [h, s, v] = color.ToHSV();
 
   const newV = math.clamp(v + amount, 0, 1);
-  const newS = math.clamp(s - amount * 2.5, 0, 1);
+  const newS = math.clamp(s - amount * 2, 0, 1);
 
   return Color3.fromHSV(h, newS, newV);
 }

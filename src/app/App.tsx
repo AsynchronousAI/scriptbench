@@ -140,7 +140,7 @@ export function App() {
           Position={new UDim2(0.03, 0, 0.01, 0)}
           Size={new UDim2(0.5, 0, 0.035, 0)}
           TextScaled
-          Font={Enum.Font.Code}
+          Font={Enum.Font.BuilderSans}
           BackgroundTransparency={1}
           TextXAlignment={"Left"}
           TextColor3={COLORS.FocusText}

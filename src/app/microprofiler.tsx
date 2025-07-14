@@ -13,7 +13,7 @@ const PADDING = 0.25; /* in scale */
 
 const gradient = (color: Color3) =>
   new ColorSequence([
-    new ColorSequenceKeypoint(0, color),
+    new ColorSequenceKeypoint(0, LightenColor(color, 0.035)),
     new ColorSequenceKeypoint(1, color),
   ]);
 
@@ -49,7 +49,7 @@ function MicroProfilerProcesses(props: {
       <frame
         ZIndex={index}
         BorderColor3={COLORS.Border}
-        BackgroundColor3={color}
+        BackgroundColor3={new Color3(1, 1, 1)}
         Size={new UDim2(time / props.maxTime, 0, (1 - PADDING) * 0.5, 0)}
         Position={new UDim2(thisPosition, 0, (1 - PADDING) * 0.5, 0)}
       >
@@ -101,7 +101,7 @@ export default function MicroProfiler(props: MicroProfilerProps) {
             <frame
               ZIndex={2}
               BorderColor3={COLORS.Border}
-              BackgroundColor3={color}
+              BackgroundColor3={new Color3(1, 1, 1)}
               Size={
                 new UDim2(
                   time / maxTime,
