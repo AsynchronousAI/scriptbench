@@ -1,22 +1,14 @@
 {
-  "name": "robloxts-benchmarker",
+  "name": "scriptbench",
   "tree": {
-    "$className": "DataModel",
+    "$path": "out",
 
-    "ReplicatedStorage": {
-      "$className": "ReplicatedStorage",
-
-      "Plugin": {
-        "$path": "out",
-
-        "include": {
-          "$path": "include",
-          "node_modules": {
-            "$className": "Folder",
-            "@rbxts": {
-              "$path": "node_modules/@rbxts"
-            }
-          }
+    "include": {
+      "$path": "include",
+      "node_modules": {
+        "$className": "Folder",
+        "@rbxts": {
+          "$path": "node_modules/@rbxts"
         }
       }
     }

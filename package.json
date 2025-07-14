@@ -1,13 +1,14 @@
 {
-  "name": "plugin-template",
+  "name": "scriptbench",
   "version": "1.0.0",
   "scripts": {
-    "serve": "concurrently \"rbxtsc -w\" \"rojo serve\""
+    "dev": "rbxtsc && concurrently \"rbxtsc -w\" \"rojo serve game\"",
+    "build": "rbxtsc && rojo build --output Scriptbench.rbxmx"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "author": "AsynchronousAI",
+  "license": "MIT",
+  "description": "Roblox plugin to compare your scripts with graphs, tables, and a microprofiler!",
   "devDependencies": {
     "@rbxts/compiler-types": "3.0.0-types.0",
     "@rbxts/types": "^1.0.861",
