@@ -3,3 +3,7 @@
 /include
 *.tsbuildinfo
 Scriptbench.rbxmx
+default.project.json
+project-lock.json
+bun.lockb
+*.DS_Store
