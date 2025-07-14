@@ -28,11 +28,11 @@ const story = {
             [
               "Sample E",
               {
-                Avg: [],
-                "50%": [
+                Avg: [
                   { time: 16, name: "Main" },
                   { time: 16, name: "SecondMain" },
                 ],
+                "50%": [],
                 "90%": [],
                 "10%": [],
                 Min: [],

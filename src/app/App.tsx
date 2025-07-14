@@ -20,6 +20,7 @@ import BenchmarkAll, {
 import { Workspace } from "@rbxts/services";
 import MicroProfiler from "./microprofiler";
 import { Object } from "@rbxts/luau-polyfill";
+import { Configuration } from "configurations";
 
 const SIDEBAR_WIDTH = 0.15;
 const RESULTS_WIDTH = 0.2;
@@ -80,7 +81,7 @@ export function App() {
     let highlightedXs: { [key: string]: number } = {};
     for (const [key, value] of pairs(results)) {
       highlightedXs[value.Name] = value.NumberData.find(
-        (data) => data[0] === "50%",
+        (data) => data[0] === Configuration.PrioritizedStat,
       )![1] as number;
     }
 

@@ -1,6 +1,7 @@
 import { Object, String } from "@rbxts/luau-polyfill";
 import { MicroProfilerData } from "app/microprofiler";
 import { Result } from "app/results";
+import { Configuration } from "configurations";
 import { GetKeyColor, GraphData } from "graph";
 
 /* Constants */
@@ -211,7 +212,7 @@ export function ComputeResults(data: GraphData): Result[] {
   for (const [name] of pairs(data)) {
     const stats = ComputeStats(Object.keys(data[name]));
     results.push({
-      Order: stats["50%"],
+      Order: stats[Configuration.PrioritizedStat],
       Name: name as string,
       Color: GetKeyColor(name as string)[0],
       NumberData: Object.entries(stats).map(([key, value]) => [key, value]),
@@ -307,7 +308,7 @@ export function ToMicroprofilerData(results: Result[]): MicroProfilerData {
   const data: MicroProfilerData = {};
   for (const [index, result] of pairs(results)) {
     const lookingFor = result.NumberData.filter(
-      (value) => value[0] === "50%",
+      (value) => value[0] === Configuration.PrioritizedStat,
     )[0][1];
     data[result.Name] = lookingFor;
   }

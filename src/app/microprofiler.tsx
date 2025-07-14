@@ -3,6 +3,7 @@ import React from "@rbxts/react";
 import { ScrollFrame } from "@rbxts/studiocomponents-react2";
 import { ProfileLog, Stats } from "benchmark";
 import { COLORS, LightenColor } from "colors";
+import { Configuration } from "configurations";
 import { FormatNumber, GetKeyColor } from "graph";
 import { usePx } from "hooks/usePx";
 
@@ -30,7 +31,7 @@ function MicroProfilerProcesses(props: {
   time: number;
   color: Color3;
 }) {
-  const usingProcesses = props.processes["50%"];
+  const usingProcesses = props.processes[Configuration.PrioritizedStat];
   const px = usePx();
 
   let position = 0;
