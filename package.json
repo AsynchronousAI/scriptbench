@@ -2,9 +2,9 @@
   "name": "scriptbench",
   "version": "1.0.0",
   "scripts": {
-    "dev": "rbxtsc && concurrently \"rbxtsc -w\" \"rojo serve\"",
-    "build": "rbxtsc && rojo build ./build --output Scriptbench.rbxm",
-    "plugin": "rbxtsc && rojo build ./build --plugin Scriptbench.rbxm"
+    "dev": "cp serve.project.json default.project.json && rbxtsc && concurrently \"rbxtsc -w\" \"rojo serve\"",
+    "build": "cp build.project.json default.project.json && rbxtsc && rojo build --output Scriptbench.rbxm",
+    "plugin": "cp build.project.json default.project.json && rbxtsc && rojo build --plugin Scriptbench.rbxm"
   },
   "keywords": [],
   "author": "AsynchronousAI",
