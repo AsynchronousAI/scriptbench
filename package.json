@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "rbxtsc && concurrently \"rbxtsc -w\" \"rojo serve game\"",
-    "build": "rbxtsc && rojo build --output Scriptbench.rbxmx"
+    "build": "rbxtsc && rojo build --output Scriptbench.rbxmx",
+    "plugin": "rbxtsc && rojo build --plugin Scriptbench.rbxmx"
   },
   "keywords": [],
   "author": "AsynchronousAI",
