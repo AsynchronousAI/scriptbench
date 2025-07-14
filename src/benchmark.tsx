@@ -25,12 +25,12 @@ export type ProfileLog = {
   name: string | false;
 }[]; /* false represents end */
 interface Stats<T> {
-  average: T;
-  average50: T;
-  average90: T;
-  average10: T;
-  min: T;
-  max: T;
+  Avg: T;
+  "50%": T;
+  "90%": T;
+  "10%": T;
+  Min: T;
+  Max: T;
 }
 
 /* Library which is provided to the benchmark functions */
@@ -89,22 +89,22 @@ function ComputeStats(data: number[]): Stats<number> {
   const max = sorted[sorted.size() - 1];
 
   return {
-    average,
-    average10: getPercentileAverage(sorted, 0, 0.1),
-    average50: getPercentileAverage(sorted, 0.25, 0.75),
-    average90: getPercentileAverage(sorted, 0, 0.9),
-    min,
-    max,
+    Avg: average,
+    "10%": getPercentileAverage(sorted, 0, 0.1),
+    "50%": getPercentileAverage(sorted, 0.25, 0.75),
+    "90%": getPercentileAverage(sorted, 0, 0.9),
+    Max: max,
+    Min: min,
   };
 }
 function ProfileLogStats(profileLogs: ProfileLog[]): Stats<ProfileLog> {
   let profileLogStats: Stats<ProfileLog> = {
-    average: [],
-    average10: [],
-    average50: [],
-    average90: [],
-    min: [],
-    max: [],
+    Avg: [],
+    "10%": [],
+    "50%": [],
+    "90%": [],
+    Min: [],
+    Max: [],
   };
 
   /* Make each of the stats time be elapsed */
@@ -211,17 +211,10 @@ export function ComputeResults(data: GraphData): Result[] {
   for (const [name] of pairs(data)) {
     const stats = ComputeStats(Object.keys(data[name]));
     results.push({
-      Order: stats.average50,
+      Order: stats["50%"],
       Name: name as string,
       Color: GetKeyColor(name as string)[0],
-      NumberData: [
-        ["Avg", stats.average],
-        ["10%", stats.average10],
-        ["50%", stats.average50],
-        ["90%", stats.average90],
-        ["Min", stats.min],
-        ["Max", stats.max],
-      ],
+      NumberData: Object.entries(stats).map(([key, value]) => [key, value]),
     });
   }
   return results;
