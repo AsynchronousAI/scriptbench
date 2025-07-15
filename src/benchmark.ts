@@ -176,7 +176,7 @@ function Benchmark(
     /* benchmark! */
     globalProfileLog.push([]); /* start on a new entry */
 
-    const usingFunction = requiredModule.Functions[use]
+    const usingFunction = requiredModule.Functions[use];
 
     requiredModule.BeforeEach?.();
     const start = os.clock();
@@ -201,7 +201,7 @@ function Benchmark(
 export function GetBenchmarkName(module?: ModuleScript) {
   if (!module) return "No bench selected";
 
-  const required = require(module) as FormattedBenchmarkScript<unknown>;
+  const required = require(module.Clone()) as FormattedBenchmarkScript<unknown>;
   if (required.Name) return required.Name;
 
   return module.Name.sub(1, module.Name.size() - REQUIRED_PREFIX.size());
@@ -244,7 +244,9 @@ export default function BenchmarkAll(
   const totalResults = new Map<string, Map<number, number>>();
   const totalProfileLogs = new Map<string, Stats<ProfileLog>>();
 
-  const requiredModule = require(module) as FormattedBenchmarkScript<unknown>;
+  const requiredModule = require(
+    module.Clone(),
+  ) as FormattedBenchmarkScript<unknown>;
 
   // First, run all benchmarks and store the results
   xpcall(
