@@ -176,10 +176,12 @@ function Benchmark(
     /* benchmark! */
     globalProfileLog.push([]); /* start on a new entry */
 
+    const usingFunction = requiredModule.Functions[use]
+
     requiredModule.BeforeEach?.();
-    const start = tick();
-    requiredModule.Functions[use](BenchmarkLibrary, parameter);
-    const end_ = tick();
+    const start = os.clock();
+    usingFunction(BenchmarkLibrary, parameter);
+    const end_ = os.clock();
     requiredModule.AfterEach?.();
 
     const elapsedTime = ToMicroseconds(end_ - start);
