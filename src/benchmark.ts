@@ -37,7 +37,7 @@ export interface Stats<T> {
 /* Library which is provided to the benchmark functions */
 let globalProfileLog: ProfileLog[] = [];
 const addNewProfileLogEntry = (name: string | false) => {
-  const time = tick();
+  const time = os.clock();
   const latestEntry = globalProfileLog[globalProfileLog.size() - 1];
 
   if (!latestEntry) {
