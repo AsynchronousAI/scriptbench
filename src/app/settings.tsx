@@ -55,7 +55,10 @@ function SettingsSubTitle(props: { Text: string }) {
 }
 
 /* Main UI */
-export default function Settings() {
+export default function Settings(props: {
+  GetSetting?: (x: string) => void;
+  SetSetting?: (x: string, y: string) => void;
+}) {
   const [colorPreviewText, setColorPreviewText] = useState("");
   const [settings, setSettings] = useState(DefaultSettings);
 
@@ -63,23 +66,30 @@ export default function Settings() {
     key: keyof typeof DefaultSettings,
     value: (typeof DefaultSettings)[keyof typeof DefaultSettings],
   ) => {
-    setSettings({ ...settings, [key]: value });
+    setSettings((settings) => {
+      return { ...settings, [key]: value };
+    });
   };
-
-  /*
-  useEffect(() => {
-    // Set the settings from plugin database
-    for (const key of Object.keys(DefaultSettings)) {
-      const savedValue = plugin.GetSetting(key) as string | undefined;
+  const resetSettings = () => {
+    for (const [key, defaultValue] of pairs(DefaultSettings)) {
+      const savedValue = props.GetSetting?.(key) as string | undefined;
       const decodedValue = savedValue && HttpService.JSONDecode(savedValue);
 
+      print(key, defaultValue);
+      setSettingsItem(key, defaultValue);
+      /*
       if (decodedValue)
         setSettingsItem(
-          key as keyof typeof DefaultSettings,
+          key,
           decodedValue as (typeof DefaultSettings)[keyof typeof DefaultSettings],
         );
+      else {
+        setSettingsItem(key, defaultValue);
+      } */
     }
-  }); */
+  };
+
+  useEffect(resetSettings, []);
 
   return (
     <frame
@@ -160,7 +170,11 @@ export default function Settings() {
           Padding={new UDim(0.025, 0)}
         />
         <MainButton Text="Save" Size={new UDim2(0.1, 0, 1, 0)} />
-        <Button Text="Cancel" Size={new UDim2(0.1, 0, 1, 0)} />
+        <Button
+          Text="Cancel"
+          Size={new UDim2(0.1, 0, 1, 0)}
+          OnActivated={resetSettings}
+        />
       </frame>
     </frame>
   );

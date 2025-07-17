@@ -28,7 +28,10 @@ const RESULTS_WIDTH = 0.2;
 const MICROPROFILER_HEIGHT = 0.2;
 const MIN_CALLS = 1000; /* I highly reccomend you **NOT** to reduce this */
 
-export function App() {
+export function App(props: {
+  GetSetting?: (x: string) => void;
+  SetSetting?: (x: string, y: string) => void;
+}) {
   /** States */
   const [currentBenchmark, setCurrentBenchmark] = useState<
     ModuleScript | undefined
@@ -166,7 +169,10 @@ export function App() {
 
         {/* Settings */}
         {settingsOpen ? (
-          <Settings />
+          <Settings
+            GetSetting={props.GetSetting}
+            SetSetting={props.SetSetting}
+          />
         ) : errorMessage /* Error */ ? (
           <textlabel
             Text={`Error: ${errorMessage}`}

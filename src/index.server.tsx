@@ -34,7 +34,10 @@ function main() {
   root.render(
     createPortal(
       <StrictMode>
-        <App />
+        <App
+          GetSetting={(x: string) => plugin.GetSetting(x)}
+          SetSetting={(x: string, y: string) => plugin.SetSetting(x, y)}
+        />
       </StrictMode>,
       widget,
     ),
