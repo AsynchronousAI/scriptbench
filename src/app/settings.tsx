@@ -26,6 +26,35 @@ export const DefaultSettings: {
   LineColorAlpha: 0,
 };
 
+function encode(value: Color3 | string | number): string {
+  if (typeIs(value, "Color3")) {
+    return HttpService.JSONEncode({
+      __type: "Color3",
+      R: value.R,
+      G: value.G,
+      B: value.B,
+    });
+  } else {
+    return HttpService.JSONEncode(value);
+  }
+}
+
+function decode(value: string): Color3 | string | number {
+  try {
+    const decoded = HttpService.JSONDecode(value) as
+      | string
+      | number
+      | { __type: string; R: number; G: number; B: number };
+    if (typeIs(decoded, "table") && decoded.__type === "Color3") {
+      return new Color3(decoded.R, decoded.G, decoded.B);
+    } else {
+      return decoded as string | number;
+    }
+  } catch {
+    return value; // If decoding fails, return the original value
+  }
+}
+
 /* Components */
 function SettingsTitle(props: { Text: string }) {
   return (
@@ -73,11 +102,8 @@ export default function Settings(props: {
   const resetSettings = () => {
     for (const [key, defaultValue] of pairs(DefaultSettings)) {
       const savedValue = props.GetSetting?.(key) as string | undefined;
-      const decodedValue = savedValue && HttpService.JSONDecode(savedValue);
+      const decodedValue = savedValue && decode(savedValue);
 
-      print(key, defaultValue);
-      setSettingsItem(key, defaultValue);
-      /*
       if (decodedValue)
         setSettingsItem(
           key,
@@ -85,8 +111,15 @@ export default function Settings(props: {
         );
       else {
         setSettingsItem(key, defaultValue);
-      } */
+      }
     }
+  };
+  const saveSettings = () => {
+    for (const [key, value] of pairs(settings)) {
+      const encodedValue = encode(value);
+      props.SetSetting?.(key, encodedValue);
+    }
+    resetSettings();
   };
 
   useEffect(resetSettings, []);
@@ -127,7 +160,7 @@ export default function Settings(props: {
       <ColorPicker
         Size={new UDim2(0.3, 0, 0.3, 0)}
         Color={settings.LineColor}
-        OnChange={(v: Color3) => setSettingsItem("LineColor", v)}
+        OnChanged={(v: Color3) => setSettingsItem("LineColor", v)}
       />
       <SettingsSubTitle Text="Tint amount:" />
       <NumericInput
@@ -169,7 +202,11 @@ export default function Settings(props: {
           HorizontalAlignment={"Center"}
           Padding={new UDim(0.025, 0)}
         />
-        <MainButton Text="Save" Size={new UDim2(0.1, 0, 1, 0)} />
+        <MainButton
+          Text="Save"
+          Size={new UDim2(0.1, 0, 1, 0)}
+          OnActivated={saveSettings}
+        />
         <Button
           Text="Cancel"
           Size={new UDim2(0.1, 0, 1, 0)}
