@@ -233,7 +233,6 @@ export function GetBenchmarkableModules() {
     if (!module.IsA("ModuleScript")) continue;
     if (!String.endsWith(module.Name, REQUIRED_PREFIX))
       continue; /* does not match required suffix */
-
     try {
       require(module);
     } catch (e) {

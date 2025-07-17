@@ -26,6 +26,9 @@ function main() {
   widget.Name = "Scriptbench";
 
   const root = createRoot(new Instance("Folder"));
+  (
+    toggle as unknown as { ClickableWhenViewportHidden: boolean }
+  ).ClickableWhenViewportHidden = true;
   toggle.Click.Connect(() => {
     widget.Enabled = !widget.Enabled;
     toggle.SetActive(widget.Enabled);
