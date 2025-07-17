@@ -11,6 +11,7 @@ import { COLORS } from "colors";
 import Results, { Result } from "./results";
 import BenchmarkAll, {
   ComputeResults,
+  FilterMap,
   GetBenchmarkableModules,
   GetBenchmarkName,
   ProfileLog,
@@ -26,7 +27,6 @@ import Settings from "./settings";
 const SIDEBAR_WIDTH = 0.15;
 const RESULTS_WIDTH = 0.2;
 const MICROPROFILER_HEIGHT = 0.2;
-const MIN_CALLS = 1000; /* I highly reccomend you **NOT** to reduce this */
 
 export function App(props: {
   GetSetting?: (x: string) => void;
@@ -39,7 +39,7 @@ export function App(props: {
   const [benchmarks, setBenchmarks] = useState<ModuleScript[]>([]);
   const [data, setData] = useState<GraphData | undefined>(undefined);
   const [progress, setProgress] = useState<number | undefined>(undefined);
-  const [calls, setCalls] = useState<number>(10_000);
+  const [calls, setCalls] = useState<number>(750);
   const [progressStatus, setProgressStatus] = useState<string | undefined>(
     undefined,
   );
@@ -58,11 +58,6 @@ export function App(props: {
   const startBenchmark = () => {
     setProgress(0);
 
-    /*if (calls < MIN_CALLS) {
-      setErrorMessage(`Minimum calls is ${MIN_CALLS}`);
-      return;
-    }*/
-
     const [result, profileLogs] = BenchmarkAll(
       currentBenchmark!,
       calls,
@@ -74,7 +69,7 @@ export function App(props: {
     );
 
     setProfileLogs(profileLogs);
-    setData(result as unknown as GraphData);
+    setData(FilterMap(result as unknown as GraphData, 1));
     setResults(ComputeResults(result as unknown as GraphData));
   };
   const closeCurrentPage = () => {

@@ -5,7 +5,7 @@
 -- starting with a prefilled table, or an empty one.
 ]]
 
-local SIZE = 25_000 -- not influenced by the benchmark, should be constant.
+local SIZE = 2500 -- not influenced by the benchmark, should be constant.
 
 return {
     Name = "Table Fill",

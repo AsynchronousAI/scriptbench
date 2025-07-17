@@ -145,20 +145,25 @@ function ProfileLogStats(profileLogs: ProfileLog[]): Stats<ProfileLog> {
 function ToMicroseconds(seconds: number) {
   return math.floor(seconds * 1000 * 1000);
 }
-function FilterMap(
-  map: Map<number, number>,
-  threshold: number,
-): Map<number, number> {
-  const result = new Map<number, number>();
+export function FilterMap(data: GraphData, threshold: number): GraphData {
+  const result: GraphData = {};
 
-  for (const [key, value] of Object.entries(map)) {
-    if (value > threshold) {
-      result.set(key, value);
+  for (const [key, inner] of Object.entries(data)) {
+    const filtered: { [key: number]: number } = {};
+    for (const [numKey, value] of Object.entries(inner)) {
+      const numericKey = tonumber(numKey)!;
+      if (value > threshold) {
+        filtered[numericKey] = value;
+      }
+    }
+    if (Object.keys(filtered).size() > 0) {
+      result[key] = filtered;
     }
   }
 
   return result;
 }
+
 function Benchmark(
   requiredModule: FormattedBenchmarkScript<unknown>,
   use: string,
@@ -194,7 +199,7 @@ function Benchmark(
     setCount(count);
   }
 
-  return [FilterMap(recordedTimes, 5), ProfileLogStats(globalProfileLog)];
+  return [recordedTimes, ProfileLogStats(globalProfileLog)];
 }
 
 /* Exported functions */

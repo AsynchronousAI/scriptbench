@@ -56,7 +56,7 @@ function MicroProfilerProcesses(props: {
         Position={new UDim2(thisPosition, 0, (1 - PADDING) * 0.5, 0)}
       >
         {time / props.maxTime >
-          0.2 /* do not show if the frame is too small */ && (
+          0 /* do not show if the frame is too small */ && (
           <textlabel
             Text={`<b>${name as string}</b> ${FormatNumber(time)}µs`}
             RichText

@@ -29,7 +29,7 @@ interface DomainRange {
 const LABEL_THICKNESS = 0.075;
 const DOMAIN_LABELS = 5;
 const RANGE_LABELS = 5;
-const LINE_WIDTH = 3.5;
+const LINE_WIDTH = 2.5;
 const LABEL_TEXT_SIZE = 16;
 
 /** Computations */
@@ -162,7 +162,7 @@ function TagsAndGridLines(props: {
               }
               BackgroundColor3={COLORS.Border}
               BorderSizePixel={0}
-              ZIndex={-1}
+              ZIndex={1}
             />
           </>
         );
@@ -207,7 +207,7 @@ function TagsAndGridLines(props: {
               }
               BackgroundColor3={COLORS.Border}
               BorderSizePixel={0}
-              ZIndex={-1}
+              ZIndex={1}
             />
           </>
         );
@@ -267,11 +267,6 @@ function Line(props: {
   const [x, setX] = useState(0);
   const [y, setY] = useState(0);
   const [showLabel, setShowLabel] = useState(false);
-
-  props.StartX ??= 0;
-  props.StartY ??= 0;
-  props.EndX ??= 0;
-  props.EndY ??= 0;
 
   const Events = {
     MouseEnter: () => {
@@ -420,23 +415,29 @@ function Lines(props: {
   RangeMax: number;
   Container?: RefObject<Frame>;
 }) {
+  const allXSet = new Set<number>();
+  for (const series of Object.values(props.Data)) {
+    for (const x of Object.keys(series)) {
+      allXSet.add(tonumber(x) as number);
+    }
+  }
+  const allX = [...allXSet];
+  allX.sort((a, b) => a < b);
+
   let lines = [];
   for (const [key, points] of pairs(props.Data)) {
     const [color, seed] = GetKeyColor(key as string);
 
-    for (const [x, y] of pairs(points)) {
-      /* Get the next point */
-      let nextX = math.huge;
-      for (const [thisX] of pairs(points)) {
-        if (thisX < nextX && thisX > x) {
-          nextX = thisX;
-        }
-      }
-      const nextY = points[x + 1];
+    let prevY: number | undefined = undefined;
+    for (let i = 0; i < allX.size(); i++) {
+      const x = allX[i];
+      const nextX = allX[i + 1];
+      if (nextX === undefined) continue;
 
-      if (nextX === math.huge) {
-        continue;
-      }
+      const y = (points[x] ? points[x] : prevY ? prevY : 0) as number;
+      const nextY = points[nextX] !== undefined ? points[nextX] : y;
+
+      prevY = y;
 
       lines.push(
         <Line
