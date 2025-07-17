@@ -294,22 +294,22 @@ function Line(props: {
       {/* Label */}
       <frame
         Visible={showLabel}
-        Size={new UDim2(0.2, 0, 0.1, 0)}
+        Size={new UDim2(0.15, 0, 0.15, 0)}
         BackgroundColor3={COLORS.LightBackground}
         BorderColor3={COLORS.Border}
         Position={new UDim2(x, 0, y, 0)}
         ZIndex={props.ZIndex + 1}
       >
         <uipadding
-          PaddingTop={new UDim(0.3, 0)}
-          PaddingBottom={new UDim(0.3, 0)}
+          PaddingTop={new UDim(0.1, 0)}
+          PaddingBottom={new UDim(0.1, 0)}
         />
         <textlabel
           Font={Enum.Font.Code}
           Size={new UDim2(1, 0, 1, 0)}
           BackgroundTransparency={1}
           TextColor3={COLORS.FocusText}
-          TextSize={px(17)}
+          TextScaled
           ZIndex={props.ZIndex + 2}
           RichText
           Text={`<b><font color="#${props.Color.ToHex()}">${props.Name}</font></b>

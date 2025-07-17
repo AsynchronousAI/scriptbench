@@ -39,7 +39,7 @@ export function App(props: {
   const [benchmarks, setBenchmarks] = useState<ModuleScript[]>([]);
   const [data, setData] = useState<GraphData | undefined>(undefined);
   const [progress, setProgress] = useState<number | undefined>(undefined);
-  const [calls, setCalls] = useState<number>(750);
+  const [calls, setCalls] = useState<number>(1250);
   const [progressStatus, setProgressStatus] = useState<string | undefined>(
     undefined,
   );
@@ -68,9 +68,20 @@ export function App(props: {
       setErrorMessage,
     );
 
+    const filteredResults = FilterMap(
+      result as unknown as GraphData,
+      calls / 250,
+    );
+
     setProfileLogs(profileLogs);
-    setData(FilterMap(result as unknown as GraphData, 1));
-    setResults(ComputeResults(result as unknown as GraphData));
+    setData(filteredResults);
+    setResults(
+      ComputeResults(
+        Configuration.ComputeStatsFiltered
+          ? filteredResults
+          : (result as unknown as GraphData),
+      ),
+    );
   };
   const closeCurrentPage = () => {
     setSettingsOpen(false);
