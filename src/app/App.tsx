@@ -21,6 +21,7 @@ import { Workspace } from "@rbxts/services";
 import MicroProfiler from "./microprofiler";
 import { Object } from "@rbxts/luau-polyfill";
 import { Configuration } from "configurations";
+import Settings from "./settings";
 
 const SIDEBAR_WIDTH = 0.15;
 const RESULTS_WIDTH = 0.2;
@@ -28,6 +29,7 @@ const MICROPROFILER_HEIGHT = 0.2;
 const MIN_CALLS = 1000; /* I highly reccomend you **NOT** to reduce this */
 
 export function App() {
+  /** States */
   const [currentBenchmark, setCurrentBenchmark] = useState<
     ModuleScript | undefined
   >(undefined);
@@ -47,7 +49,9 @@ export function App() {
   );
   const [profileLogs, setProfileLogs] =
     useState<Map<string, Stats<ProfileLog>>>();
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
+  /** Functions */
   const startBenchmark = () => {
     setProgress(0);
 
@@ -70,11 +74,17 @@ export function App() {
     setData(result as unknown as GraphData);
     setResults(ComputeResults(result as unknown as GraphData));
   };
+  const closeCurrentPage = () => {
+    setSettingsOpen(false);
+    setData(undefined);
+    setProgress(0);
+    setErrorMessage(undefined);
+  };
 
+  /** Events/Memos */
   useMemo(() => {
     setBenchmarks(GetBenchmarkableModules());
   }, []);
-
   useEffect(() => {
     if (!results) return;
 
@@ -88,6 +98,7 @@ export function App() {
     setHighlightedX(highlightedXs);
   }, [results]);
 
+  /** UI */
   return (
     <frame
       Size={new UDim2(1, 0, 1, 0)}
@@ -101,21 +112,22 @@ export function App() {
             GetBenchmarkName(benchmark),
           )}
           OnSelection={(name) => {
+            closeCurrentPage();
             setCurrentBenchmark(
               benchmarks.find(
                 (benchmark) => GetBenchmarkName(benchmark) === name,
               ),
             );
-            setData(undefined);
-            setProgress(0);
-            setErrorMessage(undefined);
           }}
           OnRefresh={() => {
+            closeCurrentPage();
             setBenchmarks(GetBenchmarkableModules());
-            setData(undefined);
-            setProgress(0);
-            setErrorMessage(undefined);
           }}
+          ToggleSettings={() => {
+            closeCurrentPage();
+            setSettingsOpen((x) => !x);
+          }}
+          SettingsOpen={settingsOpen}
           OnNew={() => {
             const Selection = game.FindFirstChildOfClass("Selection")!;
             const clonedTemplate = script.Parent?.Parent!.FindFirstChild(
@@ -134,8 +146,13 @@ export function App() {
         Size={new UDim2(1 - SIDEBAR_WIDTH, 0, 1, 0)}
         BackgroundTransparency={1}
       >
+        {/* Title */}
         <textlabel
-          Text={`<b>${GetBenchmarkName(currentBenchmark)}</b>   ${currentBenchmark?.Name ?? ""}`}
+          Text={
+            settingsOpen
+              ? "<b>Settings</b>"
+              : `<b>${GetBenchmarkName(currentBenchmark)}</b>   ${currentBenchmark?.Name ?? ""}`
+          }
           RichText
           Position={new UDim2(0.03, 0, 0.01, 0)}
           Size={new UDim2(0.5, 0, 0.035, 0)}
@@ -147,7 +164,10 @@ export function App() {
           ZIndex={2}
         />
 
-        {errorMessage ? (
+        {/* Settings */}
+        {settingsOpen ? (
+          <Settings />
+        ) : errorMessage /* Error */ ? (
           <textlabel
             Text={`Error: ${errorMessage}`}
             RichText

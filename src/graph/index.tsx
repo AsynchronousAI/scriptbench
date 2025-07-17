@@ -103,7 +103,7 @@ export function GetKeyColor(name: string): [Color3, number] {
     seed += name.byte(i + 1) as unknown as number;
   }
   const rng = new Random(seed);
-  const hue = rng.NextInteger(0, 50) / 50;
+  const hue = rng.NextInteger(0, 150) / 150;
   return [Color3.fromHSV(hue, isDark ? 0.63 : 1, isDark ? 0.84 : 0.8), seed];
 }
 
@@ -402,8 +402,7 @@ ${math.floor(FromPosition(props.RangeMin, props.RangeMax, y, true))} Calls`}
             new NumberSequence([
               new NumberSequenceKeypoint(
                 0,
-                1 -
-                  AsPosition(props.RangeMin, props.RangeMax, props.StartY) / 3,
+                1 - AsPosition(props.RangeMin, props.RangeMax, props.StartY),
               ),
               new NumberSequenceKeypoint(1, 1),
             ])

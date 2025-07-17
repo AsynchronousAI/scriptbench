@@ -1,6 +1,8 @@
 import React, { StrictMode } from "@rbxts/react";
 import { createPortal, createRoot } from "@rbxts/react-roblox";
+import { HttpService } from "@rbxts/services";
 import App from "app/App";
+import { DefaultSettings } from "app/settings";
 
 const toolbar = plugin.CreateToolbar("Scriptbench");
 const toggle = toolbar.CreateButton(

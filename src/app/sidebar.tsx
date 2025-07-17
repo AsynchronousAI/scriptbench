@@ -15,6 +15,8 @@ export interface SidebarProps {
   OnRefresh?: () => void;
   OnNew?: () => void;
   OnSelection?: (benchmarkName: string) => void;
+  ToggleSettings?: () => void;
+  SettingsOpen?: boolean;
 }
 
 const GraphIcon = {
@@ -25,7 +27,7 @@ const GraphIcon = {
 };
 
 const ITEM_SIZE = 48;
-const BOTTOM_BUTTONS_N = 2;
+const BOTTOM_BUTTONS_N = 3;
 
 export default function Sidebar(props: SidebarProps) {
   const [currentlySelected, setCurrentlySelected] = useState("");
@@ -94,8 +96,41 @@ export default function Sidebar(props: SidebarProps) {
           Padding={new UDim(0.1, 0)}
           SortOrder={"LayoutOrder"}
         />
+        {props.SettingsOpen ? (
+          <MainButton
+            LayoutOrder={props.Benchmarks.size() + 1}
+            Position={new UDim2(1, 0, 0, 0)}
+            Size={new UDim2(1, 0, 0, px(ITEM_SIZE))}
+            Text="Settings"
+            Icon={{
+              Image: "rbxassetid://183390139",
+              Color: COLORS.Text,
+              Size: new Vector2(14, 14),
+            }}
+            OnActivated={() => {
+              props.ToggleSettings?.();
+              setCurrentlySelected("");
+            }}
+          />
+        ) : (
+          <Button
+            LayoutOrder={props.Benchmarks.size() + 1}
+            Position={new UDim2(1, 0, 0, 0)}
+            Size={new UDim2(1, 0, 0, px(ITEM_SIZE))}
+            Text="Settings"
+            Icon={{
+              Image: "rbxassetid://183390139",
+              Color: COLORS.Text,
+              Size: new Vector2(14, 14),
+            }}
+            OnActivated={() => {
+              props.ToggleSettings?.();
+              setCurrentlySelected("");
+            }}
+          />
+        )}
         <Button
-          LayoutOrder={props.Benchmarks.size() + 1}
+          LayoutOrder={props.Benchmarks.size() + 2}
           Position={new UDim2(1, 0, 0, 0)}
           Size={new UDim2(1, 0, 0, px(ITEM_SIZE))}
           Text="Refresh"
@@ -110,7 +145,7 @@ export default function Sidebar(props: SidebarProps) {
           }}
         />
         <Button
-          LayoutOrder={props.Benchmarks.size() + 1}
+          LayoutOrder={props.Benchmarks.size() + 3}
           Position={new UDim2(1, 0, 0, 0)}
           Size={new UDim2(1, 0, 0, px(ITEM_SIZE))}
           Text="New Bench"
