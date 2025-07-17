@@ -234,6 +234,13 @@ export function GetBenchmarkableModules() {
     if (!String.endsWith(module.Name, REQUIRED_PREFIX))
       continue; /* does not match required suffix */
 
+    try {
+      require(module);
+    } catch (e) {
+      warn(`Module ${module.Name} failed to load:`, e);
+      continue; /* not a valid module */
+    }
+
     validModules.push(module);
   }
 
