@@ -1,6 +1,6 @@
 import React, { StrictMode } from "@rbxts/react";
 import { createPortal, createRoot } from "@rbxts/react-roblox";
-import { HttpService } from "@rbxts/services";
+import { HttpService, RunService } from "@rbxts/services";
 import App from "app/App";
 import { DefaultSettings } from "app/settings";
 
@@ -12,6 +12,8 @@ const toggle = toolbar.CreateButton(
 );
 
 function main() {
+  if (RunService.IsRunMode()) return;
+
   const widgetInfo = new DockWidgetPluginGuiInfo(
     Enum.InitialDockState.Float,
     false,
