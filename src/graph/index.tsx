@@ -95,16 +95,18 @@ function InIncrements(Min: number, Max: number, Range: number, Amount: number) {
   }
   return increments;
 }
-export function GetKeyColor(name: string): [Color3, number] {
-  const isDark = Theme.Name === "Dark";
-
+export function GetKeyColor(
+  name: string,
+  sat: number = 0.63,
+  value: number = 0.84,
+): [Color3, number] {
   let seed = 0;
   for (let i = 0; i < name.size(); i++) {
     seed += name.byte(i + 1) as unknown as number;
   }
   const rng = new Random(seed);
   const hue = rng.NextInteger(0, 150) / 150;
-  return [Color3.fromHSV(hue, isDark ? 0.63 : 1, isDark ? 0.84 : 0.8), seed];
+  return [Color3.fromHSV(hue, sat, value), seed];
 }
 
 /** React Components */

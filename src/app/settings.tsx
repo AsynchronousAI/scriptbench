@@ -17,49 +17,45 @@ import { GetKeyColor } from "graph";
 export const DefaultSettings: {
   PrioritizedStat: keyof Stats<unknown>;
   Batching: number;
-  LineColor: Color3;
-  LineColorAlpha: number;
+  LineSat: number;
+  LineVal: number;
 } = {
   PrioritizedStat: "Avg",
   Batching: 100,
-  LineColor: new Color3(1, 1, 1),
-  LineColorAlpha: 0,
+  LineSat: 63,
+  LineVal: 84,
 };
 
-function encode(value: Color3 | string | number): string {
-  if (typeIs(value, "Color3")) {
-    return HttpService.JSONEncode({
-      __type: "Color3",
-      R: value.R,
-      G: value.G,
-      B: value.B,
-    });
-  } else {
-    return HttpService.JSONEncode(value);
-  }
+/** Encode/Decode API */
+function encode(value: string | number): string {
+  return HttpService.JSONEncode(value);
 }
 
-function decode(value: string): Color3 | string | number {
+function decode(value: string): string | number {
   try {
-    const decoded = HttpService.JSONDecode(value) as
-      | string
-      | number
-      | { __type: string; R: number; G: number; B: number };
-    if (typeIs(decoded, "table") && decoded.__type === "Color3") {
-      return new Color3(decoded.R, decoded.G, decoded.B);
-    } else {
-      return decoded as string | number;
-    }
+    const decoded = HttpService.JSONDecode(value) as string | number;
+    return decoded as string | number;
   } catch {
     return value; // If decoding fails, return the original value
   }
+}
+
+/** Export a Get function for other components to access this data */
+export function GetSetting(key: string): string | number | undefined {
+  const savedValue = HttpService.GetAsync(
+    `https://example.com/settings/${key}`,
+  );
+  if (savedValue) {
+    return decode(savedValue);
+  }
+  return undefined; // Return undefined if no value is found
 }
 
 /* Components */
 function SettingsTitle(props: { Text: string }) {
   return (
     <textlabel
-      Size={new UDim2(1, 0, 0.035, 0)}
+      Size={new UDim2(1, 0, 0.0325, 0)}
       RichText
       Text={`<b>${props.Text}:</b>`}
       BackgroundTransparency={1}
@@ -88,7 +84,7 @@ export default function Settings(props: {
   GetSetting?: (x: string) => void;
   SetSetting?: (x: string, y: string) => void;
 }) {
-  const [colorPreviewText, setColorPreviewText] = useState("");
+  const [colorPreviewText, setColorPreviewText] = useState("Hello, World!");
   const [settings, setSettings] = useState(DefaultSettings);
 
   const setSettingsItem = (
@@ -156,37 +152,48 @@ export default function Settings(props: {
       />
 
       <SettingsTitle Text="Line Color" />
-      <SettingsSubTitle Text="Tint the colors used in lines & microprofiler." />
-      <ColorPicker
-        Size={new UDim2(0.3, 0, 0.3, 0)}
-        Color={settings.LineColor}
-        OnChanged={(v: Color3) => setSettingsItem("LineColor", v)}
-      />
-      <SettingsSubTitle Text="Tint amount:" />
+      <SettingsSubTitle Text="Saturation" />
       <NumericInput
-        Slider
+        Size={new UDim2(0.3, 0, 0.05, 0)}
+        Value={settings.LineSat}
+        OnValidChanged={(v: number) => setSettingsItem("LineSat", v)}
         Min={0}
-        Max={1}
-        Step={0.01}
-        Size={new UDim2(0.35, 0, 0.035, 0)}
-        Value={settings.LineColorAlpha}
-        OnValidChanged={(v: number) => setSettingsItem("LineColorAlpha", v)}
+        Max={100}
+        Step={1}
+        Slider
       />
+      <SettingsSubTitle Text="Value" />
+      <NumericInput
+        Size={new UDim2(0.3, 0, 0.05, 0)}
+        Value={settings.LineVal}
+        OnValidChanged={(v: number) => setSettingsItem("LineVal", v)}
+        Min={0}
+        Max={100}
+        Step={1}
+        Slider
+      />
+      <SettingsSubTitle Text="Test" />
 
       <TextInput
         Text={colorPreviewText}
-        Size={new UDim2(0.35, 0, 0.025, 0)}
+        Size={new UDim2(0.3, 0, 0.025, 0)}
         PlaceholderText="Try color from names"
         OnChanged={(v: string) => setColorPreviewText(v)}
       />
       <textlabel
         Text={`<b>${colorPreviewText}</b>`}
         RichText
-        TextColor3={GetKeyColor(colorPreviewText)[0]}
+        TextColor3={
+          GetKeyColor(
+            colorPreviewText,
+            settings.LineSat / 100,
+            settings.LineVal / 100,
+          )[0]
+        }
         Font="Code"
         TextScaled
         BackgroundTransparency={1}
-        Size={new UDim2(0.35, 0, 0.025, 0)}
+        Size={new UDim2(0.3, 0, 0.025, 0)}
       />
 
       {/* Bottom bar with Save + Cancel */}
