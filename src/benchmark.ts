@@ -2,7 +2,8 @@ import { Object, String } from "@rbxts/luau-polyfill";
 import { MicroProfilerData } from "app/microprofiler";
 import { Result } from "app/results";
 import { Configuration } from "configurations";
-import { GetKeyColor, GraphData } from "graph";
+import { GraphData } from "app/graph";
+import { GetKeyColor } from "app/graph/computation";
 
 /* Constants */
 const REQUIRED_PREFIX = ".bench";

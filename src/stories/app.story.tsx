@@ -1,6 +1,6 @@
 import React from "@rbxts/react";
 import ReactRoblox from "@rbxts/react-roblox";
-import App from "app/App";
+import App from "app";
 
 const controls = {};
 

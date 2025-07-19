@@ -4,8 +4,8 @@ import { ScrollFrame } from "@rbxts/studiocomponents-react2";
 import { ProfileLog, Stats } from "benchmark";
 import { COLORS, LightenColor } from "colors";
 import { Configuration } from "configurations";
-import { FormatNumber, GetKeyColor } from "graph";
 import { usePx } from "hooks/usePx";
+import { FormatNumber, GetKeyColor } from "./graph/computation";
 
 /* Constants  */
 const HEIGHT = 45;

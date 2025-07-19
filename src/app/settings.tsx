@@ -12,7 +12,7 @@ import {
 } from "@rbxts/studiocomponents-react2";
 import { Stats } from "benchmark";
 import { COLORS } from "colors";
-import { GetKeyColor } from "graph";
+import { GetKeyColor } from "./graph/computation";
 
 export const DefaultSettings: {
   PrioritizedStat: keyof Stats<unknown>;

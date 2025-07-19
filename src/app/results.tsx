@@ -1,8 +1,8 @@
 import { Button, ScrollFrame } from "@rbxts/studiocomponents-react2";
 import { COLORS } from "colors";
-import { FormatNumber } from "graph";
 import { usePx } from "hooks/usePx";
 import React, { useState } from "react";
+import { FormatNumber } from "./graph/computation";
 
 export interface Result {
   Name: string;

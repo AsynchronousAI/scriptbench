@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "@rbxts/react";
-import Graph, { GraphData } from "graph";
+import Graph, { GraphData } from "app/graph";
 import Sidebar from "./sidebar";
 import {
   DropShadowFrame,
@@ -20,7 +20,6 @@ import BenchmarkAll, {
 } from "benchmark";
 import { Workspace } from "@rbxts/services";
 import MicroProfiler from "./microprofiler";
-import { Object } from "@rbxts/luau-polyfill";
 import { Configuration } from "configurations";
 import Settings from "./settings";
 
@@ -28,84 +27,99 @@ const SIDEBAR_WIDTH = 0.15;
 const RESULTS_WIDTH = 0.2;
 const MICROPROFILER_HEIGHT = 0.2;
 
+type UIState = {
+  openedMenu: "settings" | "benchmark" | undefined;
+  currentBenchmark?: ModuleScript;
+  benchmarks: ModuleScript[];
+  data?: GraphData;
+  progress?: number;
+  calls: number;
+  progressStatus?: string;
+  results?: Result[];
+  highlightedX: { [key: string]: number };
+  errorMessage?: string;
+  profileLogs?: Map<string, Stats<ProfileLog>>;
+};
+
 export function App(props: {
   GetSetting?: (x: string) => void;
   SetSetting?: (x: string, y: string) => void;
 }) {
-  /** States */
-  const [currentBenchmark, setCurrentBenchmark] = useState<
-    ModuleScript | undefined
-  >(undefined);
-  const [benchmarks, setBenchmarks] = useState<ModuleScript[]>([]);
-  const [data, setData] = useState<GraphData | undefined>(undefined);
-  const [progress, setProgress] = useState<number | undefined>(undefined);
-  const [calls, setCalls] = useState<number>(1250);
-  const [progressStatus, setProgressStatus] = useState<string | undefined>(
-    undefined,
-  );
-  const [results, setResults] = useState<Result[] | undefined>(undefined);
-  const [highlightedX, setHighlightedX] = useState<{ [key: string]: number }>(
-    {},
-  );
-  const [errorMessage, setErrorMessage] = useState<string | undefined>(
-    undefined,
-  );
-  const [profileLogs, setProfileLogs] =
-    useState<Map<string, Stats<ProfileLog>>>();
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [uiState, setUiState] = useState<UIState>({
+    openedMenu: undefined,
+    currentBenchmark: undefined,
+    benchmarks: [],
+    data: undefined,
+    progress: undefined,
+    calls: 1250,
+    progressStatus: undefined,
+    results: undefined,
+    highlightedX: {},
+    errorMessage: undefined,
+    profileLogs: undefined,
+  });
+
+  const updateUiState = (patch: Partial<UIState>) =>
+    setUiState((prev) => ({ ...prev, ...patch }));
 
   /** Functions */
   const startBenchmark = () => {
-    setProgress(0);
+    updateUiState({ progress: 0 });
 
     const [result, profileLogs] = BenchmarkAll(
-      currentBenchmark!,
-      calls,
+      uiState.currentBenchmark!,
+      uiState.calls,
       (count, status) => {
-        setProgress(math.map(count, 0, calls, 0, 100));
-        setProgressStatus(status);
+        updateUiState({
+          progress: math.map(count, 0, uiState.calls, 0, 100),
+          progressStatus: status,
+        });
       },
-      setErrorMessage,
+      (err) => updateUiState({ errorMessage: err }),
     );
 
     const filteredResults = FilterMap(
       result as unknown as GraphData,
-      calls / 250,
+      uiState.calls / 250,
     );
 
-    setProfileLogs(profileLogs);
-    setData(filteredResults);
-    setResults(
-      ComputeResults(
+    updateUiState({
+      profileLogs,
+      data: filteredResults,
+      results: ComputeResults(
         Configuration.ComputeStatsFiltered
           ? filteredResults
           : (result as unknown as GraphData),
       ),
-    );
+    });
   };
+
   const closeCurrentPage = () => {
-    setSettingsOpen(false);
-    setData(undefined);
-    setProgress(0);
-    setErrorMessage(undefined);
+    updateUiState({
+      openedMenu: undefined,
+      data: undefined,
+      progress: 0,
+      errorMessage: undefined,
+    });
   };
 
   /** Events/Memos */
   useMemo(() => {
-    setBenchmarks(GetBenchmarkableModules());
+    updateUiState({ benchmarks: GetBenchmarkableModules() });
   }, []);
+
   useEffect(() => {
-    if (!results) return;
+    if (!uiState.results) return;
 
     let highlightedXs: { [key: string]: number } = {};
-    for (const [key, value] of pairs(results)) {
+    for (const [key, value] of pairs(uiState.results)) {
       highlightedXs[value.Name] = value.NumberData.find(
         (data) => data[0] === Configuration.PrioritizedStat,
       )![1] as number;
     }
 
-    setHighlightedX(highlightedXs);
-  }, [results]);
+    updateUiState({ highlightedX: highlightedXs });
+  }, [uiState.results]);
 
   /** UI */
   return (
@@ -117,34 +131,37 @@ export function App(props: {
       <uilistlayout FillDirection={"Horizontal"} />
       <DropShadowFrame Size={new UDim2(SIDEBAR_WIDTH, 5, 1, 0)} ZIndex={2}>
         <Sidebar
-          Benchmarks={benchmarks.map((benchmark) =>
+          Benchmarks={uiState.benchmarks.map((benchmark) =>
             GetBenchmarkName(benchmark),
           )}
           OnSelection={(name) => {
             closeCurrentPage();
-            setCurrentBenchmark(
-              benchmarks.find(
+            updateUiState({
+              currentBenchmark: uiState.benchmarks.find(
                 (benchmark) => GetBenchmarkName(benchmark) === name,
               ),
-            );
+              openedMenu: "benchmark",
+            });
           }}
           OnRefresh={() => {
             closeCurrentPage();
-            setBenchmarks(GetBenchmarkableModules());
+            updateUiState({ benchmarks: GetBenchmarkableModules() });
           }}
           ToggleSettings={() => {
             closeCurrentPage();
-            setSettingsOpen((x) => !x);
+            updateUiState({
+              openedMenu:
+                uiState.openedMenu === "settings" ? undefined : "settings",
+            });
           }}
-          SettingsOpen={settingsOpen}
+          SettingsOpen={uiState.openedMenu === "settings"}
           OnNew={() => {
             const Selection = game.FindFirstChildOfClass("Selection")!;
             const clonedTemplate = script.Parent?.Parent!.FindFirstChild(
               "tests",
             )
               ?.FindFirstChild("Template.bench")!
-              .Clone()!; /* not at all pretty */
-
+              .Clone()!;
             clonedTemplate.Parent = Selection.Get()[0] || Workspace;
             Selection.Set([clonedTemplate]);
           }}
@@ -158,9 +175,9 @@ export function App(props: {
         {/* Title */}
         <textlabel
           Text={
-            settingsOpen
+            uiState.openedMenu === "settings"
               ? "<b>Settings</b>"
-              : `<b>${GetBenchmarkName(currentBenchmark)}</b>   ${currentBenchmark?.Name ?? ""}`
+              : `<b>${GetBenchmarkName(uiState.currentBenchmark)}</b>   ${uiState.currentBenchmark?.Name ?? ""}`
           }
           RichText
           Position={new UDim2(0.03, 0, 0.01, 0)}
@@ -174,14 +191,14 @@ export function App(props: {
         />
 
         {/* Settings */}
-        {settingsOpen ? (
+        {uiState.openedMenu === "settings" ? (
           <Settings
             GetSetting={props.GetSetting}
             SetSetting={props.SetSetting}
           />
-        ) : errorMessage /* Error */ ? (
+        ) : uiState.errorMessage ? (
           <textlabel
-            Text={`Error: ${errorMessage}`}
+            Text={`Error: ${uiState.errorMessage}`}
             RichText
             Position={new UDim2(0.5, 0, 0.5, 0)}
             Size={new UDim2(0.75, 0, 0.05, 0)}
@@ -193,14 +210,14 @@ export function App(props: {
             TextColor3={COLORS.ErrorText}
             ZIndex={2}
           />
-        ) : data /* Data exists, show it! */ ? (
+        ) : uiState.data ? (
           <frame Size={new UDim2(1, 0, 1, 0)} BackgroundTransparency={1}>
             <frame
               Size={new UDim2(RESULTS_WIDTH, 0, 0.95, 0)}
               Position={new UDim2(0, 0, 0.05, 0)}
               BackgroundTransparency={1}
             >
-              <Results Results={results!} />
+              <Results Results={uiState.results!} />
             </frame>
             <frame
               Size={
@@ -209,7 +226,11 @@ export function App(props: {
               BackgroundTransparency={1}
               Position={new UDim2(RESULTS_WIDTH, 0, 0, 0)}
             >
-              <Graph Data={data} XPrefix="µs" HighlightedX={highlightedX} />
+              <Graph
+                Data={uiState.data}
+                XPrefix="µs"
+                HighlightedX={uiState.highlightedX}
+              />
             </frame>
             <frame
               Size={new UDim2(1 - RESULTS_WIDTH, 0, MICROPROFILER_HEIGHT, 0)}
@@ -219,38 +240,35 @@ export function App(props: {
               }
             >
               <MicroProfiler
-                Results={ToMicroprofilerData(results!)}
-                MicroProfiler={profileLogs}
+                Results={ToMicroprofilerData(uiState.results!)}
+                MicroProfiler={uiState.profileLogs}
               />
             </frame>
           </frame>
-        ) : progress /* Currently runnning benchmark */ ? (
+        ) : uiState.progress ? (
           <ProgressBar
-            Value={progress}
+            Value={uiState.progress}
             Max={100}
-            Formatter={() => progressStatus ?? ""}
+            Formatter={() => uiState.progressStatus ?? ""}
             Position={new UDim2(0.5, 0, 0.5, 0)}
             AnchorPoint={new Vector2(0.5, 0.5)}
             Size={new UDim2(0.75, 0, 0.05, 0)}
           />
-        ) : currentBenchmark ? (
+        ) : uiState.currentBenchmark ? (
           <>
-            {/* Need to start */}
             <MainButton
               Text="Start Benchmark"
               Position={new UDim2(0.5, 0, 0.5, 0)}
               AnchorPoint={new Vector2(0.5, 0.5)}
               Size={new UDim2(0.2, 0, 0.05, 0)}
-              OnActivated={() => {
-                startBenchmark();
-              }}
+              OnActivated={startBenchmark}
             />
             <NumericInput
               Position={new UDim2(0.5, 0, 0.575, 0)}
               Size={new UDim2(0.2, 0, 0.05, 0)}
               AnchorPoint={new Vector2(0.5, 0.5)}
-              Value={calls}
-              OnValidChanged={setCalls}
+              Value={uiState.calls}
+              OnValidChanged={(calls) => updateUiState({ calls })}
               Arrows
               Slider={false}
             />

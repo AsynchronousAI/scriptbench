@@ -1,7 +1,6 @@
 import React from "@rbxts/react";
 import ReactRoblox from "@rbxts/react-roblox";
-import Graph, { GraphProps } from "graph";
-
+import Graph, { GraphProps } from "app/graph";
 const controls = {};
 
 const story = {
