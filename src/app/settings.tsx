@@ -1,13 +1,12 @@
 import { Object } from "@rbxts/luau-polyfill";
-import React, { useEffect, useState } from "@rbxts/react";
+import React, { useContext, useEffect, useState } from "@rbxts/react";
 import { HttpService } from "@rbxts/services";
 import {
   Button,
-  ColorPicker,
   Dropdown,
   MainButton,
   NumericInput,
-  Slider,
+  PluginContext,
   TextInput,
 } from "@rbxts/studiocomponents-react2";
 import { Stats } from "benchmark";
@@ -26,29 +25,32 @@ export const DefaultSettings: {
   LineVal: 84,
 };
 
-/** Encode/Decode API */
-function encode(value: string | number): string {
-  return HttpService.JSONEncode(value);
+/** Encode/Decode API, once this gets big enough we could seperate it into its own file */
+export function SetSetting(
+  plugin: Plugin | undefined,
+  key: string,
+  value: string | number,
+): string {
+  if (!plugin) return "";
+
+  const encoded = HttpService.JSONEncode(value);
+  plugin.SetSetting(key, encoded);
+  return encoded;
 }
 
-function decode(value: string): string | number {
+export function GetSetting(
+  plugin: Plugin | undefined,
+  key: string,
+): string | number | undefined {
+  if (!plugin) return undefined;
+
+  const value = plugin.GetSetting(key) as string;
   try {
     const decoded = HttpService.JSONDecode(value) as string | number;
     return decoded as string | number;
   } catch {
     return value; // If decoding fails, return the original value
   }
-}
-
-/** Export a Get function for other components to access this data */
-export function GetSetting(key: string): string | number | undefined {
-  const savedValue = HttpService.GetAsync(
-    `https://example.com/settings/${key}`,
-  );
-  if (savedValue) {
-    return decode(savedValue);
-  }
-  return undefined; // Return undefined if no value is found
 }
 
 /* Components */
@@ -80,10 +82,8 @@ function SettingsSubTitle(props: { Text: string }) {
 }
 
 /* Main UI */
-export default function Settings(props: {
-  GetSetting?: (x: string) => void;
-  SetSetting?: (x: string, y: string) => void;
-}) {
+export default function Settings() {
+  const plugin = useContext(PluginContext)?.plugin;
   const [colorPreviewText, setColorPreviewText] = useState("Hello, World!");
   const [settings, setSettings] = useState(DefaultSettings);
 
@@ -97,13 +97,12 @@ export default function Settings(props: {
   };
   const resetSettings = () => {
     for (const [key, defaultValue] of pairs(DefaultSettings)) {
-      const savedValue = props.GetSetting?.(key) as string | undefined;
-      const decodedValue = savedValue && decode(savedValue);
+      const savedValue = GetSetting(plugin, key);
 
-      if (decodedValue)
+      if (savedValue)
         setSettingsItem(
           key,
-          decodedValue as (typeof DefaultSettings)[keyof typeof DefaultSettings],
+          savedValue as (typeof DefaultSettings)[keyof typeof DefaultSettings],
         );
       else {
         setSettingsItem(key, defaultValue);
@@ -112,8 +111,7 @@ export default function Settings(props: {
   };
   const saveSettings = () => {
     for (const [key, value] of pairs(settings)) {
-      const encodedValue = encode(value);
-      props.SetSetting?.(key, encodedValue);
+      SetSetting(plugin, key, value);
     }
     resetSettings();
   };

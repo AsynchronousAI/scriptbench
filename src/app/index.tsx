@@ -86,10 +86,7 @@ function DataFrame(props: UIState) {
   );
 }
 
-export function App(props: {
-  GetSetting?: (x: string) => void;
-  SetSetting?: (x: string, y: string) => void;
-}) {
+export function App() {
   const [uiState, setUiState] = useState<UIState>({
     openedMenu: undefined,
     currentBenchmark: undefined,
@@ -246,10 +243,7 @@ export function App(props: {
 
             {/* Settings */}
             {uiState.openedMenu === "settings" /* Settings menu */ ? (
-              <Settings
-                GetSetting={props.GetSetting}
-                SetSetting={props.SetSetting}
-              />
+              <Settings />
             ) : uiState.errorMessage /* Error message */ ? (
               <textlabel
                 Text={`Error: ${uiState.errorMessage}`}

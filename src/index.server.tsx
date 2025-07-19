@@ -41,10 +41,7 @@ function main() {
     createPortal(
       <StrictMode>
         <PluginProvider Plugin={plugin}>
-          <App
-            GetSetting={(x: string) => plugin.GetSetting(x)}
-            SetSetting={(x: string, y: string) => plugin.SetSetting(x, y)}
-          />
+          <App />
         </PluginProvider>
       </StrictMode>,
       widget,
