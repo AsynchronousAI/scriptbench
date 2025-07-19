@@ -1,5 +1,5 @@
 import { InstanceEvent, RefObject, useState } from "@rbxts/react";
-import { DomainRange, GraphData, LINE_WIDTH } from ".";
+import { DomainRange, GraphData } from ".";
 import { usePx } from "hooks/usePx";
 import { COLORS } from "colors";
 import React from "@rbxts/react";
@@ -10,6 +10,7 @@ import {
   FromPosition,
   GetKeyColor,
 } from "./computation";
+import { LINE_WIDTH } from "configurations";
 
 function Line(props: {
   Container?: RefObject<Frame>;
@@ -162,7 +163,7 @@ ${math.floor(FromPosition(RangeMin, RangeMax, y, true))} Calls`}
             new NumberSequence([
               new NumberSequenceKeypoint(
                 0,
-                1 - AsPosition(RangeMin, RangeMax, props.StartY) / 1.5,
+                1 - AsPosition(RangeMin, RangeMax, props.StartY) / 1.75,
               ),
               new NumberSequenceKeypoint(1, 1),
             ])

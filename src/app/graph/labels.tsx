@@ -1,14 +1,14 @@
 import { usePx } from "hooks/usePx";
-import {
-  DOMAIN_LABELS,
-  DomainRange,
-  LABEL_TEXT_SIZE,
-  LABEL_THICKNESS,
-  RANGE_LABELS,
-} from ".";
+import { DomainRange } from ".";
 import React from "@rbxts/react";
 import { COLORS } from "colors";
 import { AsPosition, FormatNumber, InIncrements } from "./computation";
+import {
+  DOMAIN_LABELS,
+  LABEL_TEXT_SIZE,
+  LABEL_THICKNESS,
+  RANGE_LABELS,
+} from "configurations";
 
 export function Labels(props: {
   domainRange: DomainRange;

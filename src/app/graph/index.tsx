@@ -4,6 +4,7 @@ import { usePx } from "hooks/usePx";
 import { Lines } from "./lines";
 import { Labels } from "./labels";
 import { AsPosition, ComputeRangeDomain, GetKeyColor } from "./computation";
+import { LABEL_THICKNESS, LINE_WIDTH } from "configurations";
 
 /** Types */
 export type GraphData = { [key: string]: { [key: number]: number } };
@@ -21,13 +22,6 @@ export interface DomainRange {
   Range: number;
   Domain: number;
 }
-
-/** Configurations */
-export const LABEL_THICKNESS = 0.075;
-export const DOMAIN_LABELS = 5;
-export const RANGE_LABELS = 5;
-export const LINE_WIDTH = 2.5;
-export const LABEL_TEXT_SIZE = 16;
 
 /** React Components */
 function HighlightedX(props: {
