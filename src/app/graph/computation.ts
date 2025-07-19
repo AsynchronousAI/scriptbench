@@ -76,14 +76,15 @@ export function InIncrements(
 }
 export function GetKeyColor(
   name: string,
+  hueOffset: number = 0,
   sat: number = 0.63,
   value: number = 0.84,
 ): [Color3, number] {
-  let seed = 0;
+  let seed = 69;
   for (let i = 0; i < name.size(); i++) {
     seed += name.byte(i + 1) as unknown as number;
   }
   const rng = new Random(seed);
   const hue = rng.NextInteger(0, 150) / 150;
-  return [Color3.fromHSV(hue, sat, value), seed];
+  return [Color3.fromHSV((hue + hueOffset) % 1, sat, value), seed];
 }

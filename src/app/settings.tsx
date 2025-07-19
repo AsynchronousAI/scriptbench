@@ -16,11 +16,13 @@ import { GetKeyColor } from "./graph/computation";
 export const DefaultSettings: {
   PrioritizedStat: keyof Stats<unknown>;
   Batching: number;
+  LineHue: number;
   LineSat: number;
   LineVal: number;
 } = {
   PrioritizedStat: "Avg",
   Batching: 100,
+  LineHue: 0,
   LineSat: 63,
   LineVal: 84,
 };
@@ -83,7 +85,7 @@ function SettingsSubTitle(props: { Text: string }) {
 
 /* Main UI */
 export default function Settings() {
-  const plugin = useContext(PluginContext)?.plugin;
+  const plugin = PluginContext && useContext(PluginContext)?.plugin;
   const [colorPreviewText, setColorPreviewText] = useState("Hello, World!");
   const [settings, setSettings] = useState(DefaultSettings);
 
@@ -150,6 +152,16 @@ export default function Settings() {
       />
 
       <SettingsTitle Text="Line Color" />
+      <SettingsSubTitle Text="Hue Offset" />
+      <NumericInput
+        Size={new UDim2(0.3, 0, 0.05, 0)}
+        Value={settings.LineHue}
+        OnValidChanged={(v: number) => setSettingsItem("LineHue", v)}
+        Min={0}
+        Max={360}
+        Step={1}
+        Slider
+      />
       <SettingsSubTitle Text="Saturation" />
       <NumericInput
         Size={new UDim2(0.3, 0, 0.05, 0)}
@@ -184,6 +196,7 @@ export default function Settings() {
         TextColor3={
           GetKeyColor(
             colorPreviewText,
+            settings.LineHue / 100,
             settings.LineSat / 100,
             settings.LineVal / 100,
           )[0]
