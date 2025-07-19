@@ -1,6 +1,7 @@
 import React, { StrictMode } from "@rbxts/react";
 import { createPortal, createRoot } from "@rbxts/react-roblox";
 import { HttpService, RunService } from "@rbxts/services";
+import { PluginProvider } from "@rbxts/studiocomponents-react2";
 import App from "app";
 import { DefaultSettings } from "app/settings";
 
@@ -39,10 +40,12 @@ function main() {
   root.render(
     createPortal(
       <StrictMode>
-        <App
-          GetSetting={(x: string) => plugin.GetSetting(x)}
-          SetSetting={(x: string, y: string) => plugin.SetSetting(x, y)}
-        />
+        <PluginProvider Plugin={plugin}>
+          <App
+            GetSetting={(x: string) => plugin.GetSetting(x)}
+            SetSetting={(x: string, y: string) => plugin.SetSetting(x, y)}
+          />
+        </PluginProvider>
       </StrictMode>,
       widget,
     ),

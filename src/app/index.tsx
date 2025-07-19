@@ -6,6 +6,7 @@ import {
   MainButton,
   ProgressBar,
   NumericInput,
+  Splitter,
 } from "@rbxts/studiocomponents-react2";
 import { COLORS } from "colors";
 import Results, { Result } from "./results";
@@ -26,6 +27,7 @@ import Settings from "./settings";
 const SIDEBAR_WIDTH = 0.15;
 const RESULTS_WIDTH = 0.2;
 const MICROPROFILER_HEIGHT = 0.2;
+const TITLE_HEIGHT = 0.035;
 
 type UIState = {
   openedMenu: "settings" | "benchmark" | undefined;
@@ -40,6 +42,49 @@ type UIState = {
   errorMessage?: string;
   profileLogs?: Map<string, Stats<ProfileLog>>;
 };
+
+function DataFrame(props: UIState) {
+  const [alpha1, setAlpha1] = useState(1 - RESULTS_WIDTH);
+  const [alpha2, setAlpha2] = useState(MICROPROFILER_HEIGHT);
+
+  return (
+    <Splitter
+      Size={new UDim2(1, 0, 1 - TITLE_HEIGHT * 1.5, 0)}
+      Position={new UDim2(0, 0, TITLE_HEIGHT * 1.5, 0)}
+      Alpha={alpha2}
+      FillDirection={Enum.FillDirection.Horizontal}
+      OnChanged={setAlpha2}
+    >
+      {{
+        Side0: <Results Results={props.results!} />,
+        Side1: (
+          <Splitter
+            key="Side1"
+            Alpha={alpha1}
+            FillDirection={Enum.FillDirection.Vertical}
+            OnChanged={setAlpha1}
+          >
+            {{
+              Side0: (
+                <Graph
+                  Data={props.data!}
+                  XPrefix="µs"
+                  HighlightedX={props.highlightedX}
+                />
+              ),
+              Side1: (
+                <MicroProfiler
+                  Results={ToMicroprofilerData(props.results!)}
+                  MicroProfiler={props.profileLogs}
+                />
+              ),
+            }}
+          </Splitter>
+        ),
+      }}
+    </Splitter>
+  );
+}
 
 export function App(props: {
   GetSetting?: (x: string) => void;
@@ -58,6 +103,7 @@ export function App(props: {
     errorMessage: undefined,
     profileLogs: undefined,
   });
+  const [sideBarAlpha, setSideBarAlpha] = useState(SIDEBAR_WIDTH);
 
   const updateUiState = (patch: Partial<UIState>) =>
     setUiState((prev) => ({ ...prev, ...patch }));
@@ -123,161 +169,139 @@ export function App(props: {
 
   /** UI */
   return (
-    <frame
+    <Splitter
       Size={new UDim2(1, 0, 1, 0)}
-      BackgroundColor3={COLORS.Background}
-      BorderMode={"Inset"}
+      FillDirection={Enum.FillDirection.Horizontal}
+      Alpha={sideBarAlpha}
+      OnChanged={setSideBarAlpha}
     >
-      <uilistlayout FillDirection={"Horizontal"} />
-      <DropShadowFrame Size={new UDim2(SIDEBAR_WIDTH, 5, 1, 0)} ZIndex={2}>
-        <Sidebar
-          Benchmarks={uiState.benchmarks.map((benchmark) =>
-            GetBenchmarkName(benchmark),
-          )}
-          OnSelection={(name) => {
-            closeCurrentPage();
-            updateUiState({
-              currentBenchmark: uiState.benchmarks.find(
-                (benchmark) => GetBenchmarkName(benchmark) === name,
-              ),
-              openedMenu: "benchmark",
-            });
-          }}
-          OnRefresh={() => {
-            closeCurrentPage();
-            updateUiState({ benchmarks: GetBenchmarkableModules() });
-          }}
-          ToggleSettings={() => {
-            closeCurrentPage();
-            updateUiState({
-              openedMenu:
-                uiState.openedMenu === "settings" ? undefined : "settings",
-            });
-          }}
-          SettingsOpen={uiState.openedMenu === "settings"}
-          OnNew={() => {
-            const Selection = game.FindFirstChildOfClass("Selection")!;
-            const clonedTemplate = script.Parent?.Parent!.FindFirstChild(
-              "tests",
-            )
-              ?.FindFirstChild("Template.bench")!
-              .Clone()!;
-            clonedTemplate.Parent = Selection.Get()[0] || Workspace;
-            Selection.Set([clonedTemplate]);
-          }}
-        />
-      </DropShadowFrame>
+      {{
+        /* Sidebar */
+        Side0: (
+          <DropShadowFrame Size={new UDim2(1, 0, 1, 0)} ZIndex={2}>
+            <Sidebar
+              Benchmarks={uiState.benchmarks.map((benchmark) =>
+                GetBenchmarkName(benchmark),
+              )}
+              OnSelection={(name) => {
+                closeCurrentPage();
+                updateUiState({
+                  currentBenchmark: uiState.benchmarks.find(
+                    (benchmark) => GetBenchmarkName(benchmark) === name,
+                  ),
+                  openedMenu: "benchmark",
+                });
+              }}
+              OnRefresh={() => {
+                closeCurrentPage();
+                updateUiState({ benchmarks: GetBenchmarkableModules() });
+              }}
+              ToggleSettings={() => {
+                closeCurrentPage();
+                updateUiState({
+                  openedMenu:
+                    uiState.openedMenu === "settings" ? undefined : "settings",
+                });
+              }}
+              SettingsOpen={uiState.openedMenu === "settings"}
+              OnNew={() => {
+                const Selection = game.FindFirstChildOfClass("Selection")!;
+                const clonedTemplate = script
+                  .FindFirstAncestorOfClass("Script")! /* index.server.ts */
+                  .FindFirstChild("tests") /* src/tests */
+                  ?.FindFirstChild(
+                    "Template.bench",
+                  )! /* src/tests/Template.bench */
+                  .Clone()!;
+                clonedTemplate.Parent = Selection.Get()[0] || Workspace;
+                Selection.Set([clonedTemplate]);
+              }}
+            />
+          </DropShadowFrame>
+        ),
 
-      <frame
-        Size={new UDim2(1 - SIDEBAR_WIDTH, 0, 1, 0)}
-        BackgroundTransparency={1}
-      >
-        {/* Title */}
-        <textlabel
-          Text={
-            uiState.openedMenu === "settings"
-              ? "<b>Settings</b>"
-              : `<b>${GetBenchmarkName(uiState.currentBenchmark)}</b>   ${uiState.currentBenchmark?.Name ?? ""}`
-          }
-          RichText
-          Position={new UDim2(0.03, 0, 0.01, 0)}
-          Size={new UDim2(0.5, 0, 0.035, 0)}
-          TextScaled
-          Font={Enum.Font.BuilderSans}
-          BackgroundTransparency={1}
-          TextXAlignment={"Left"}
-          TextColor3={COLORS.FocusText}
-          ZIndex={2}
-        />
+        /* Main frame */
+        Side1: (
+          <frame
+            BackgroundColor3={COLORS.Background}
+            Size={new UDim2(1, 0, 1, 0)}
+          >
+            {/* Title */}
+            <textlabel
+              Text={
+                uiState.openedMenu === "settings"
+                  ? "<b>Settings</b>"
+                  : `<b>${GetBenchmarkName(uiState.currentBenchmark)}</b>   ${uiState.currentBenchmark?.Name ?? ""}`
+              }
+              RichText
+              Position={new UDim2(0.03, 0, 0.01, 0)}
+              Size={new UDim2(0.5, 0, TITLE_HEIGHT, 0)}
+              TextScaled
+              Font={Enum.Font.BuilderSans}
+              BackgroundTransparency={1}
+              TextXAlignment={"Left"}
+              TextColor3={COLORS.FocusText}
+              ZIndex={2}
+            />
 
-        {/* Settings */}
-        {uiState.openedMenu === "settings" ? (
-          <Settings
-            GetSetting={props.GetSetting}
-            SetSetting={props.SetSetting}
-          />
-        ) : uiState.errorMessage ? (
-          <textlabel
-            Text={`Error: ${uiState.errorMessage}`}
-            RichText
-            Position={new UDim2(0.5, 0, 0.5, 0)}
-            Size={new UDim2(0.75, 0, 0.05, 0)}
-            BackgroundTransparency={1}
-            AnchorPoint={new Vector2(0.5, 0.5)}
-            TextScaled
-            Font={Enum.Font.Code}
-            TextXAlignment={"Left"}
-            TextColor3={COLORS.ErrorText}
-            ZIndex={2}
-          />
-        ) : uiState.data ? (
-          <frame Size={new UDim2(1, 0, 1, 0)} BackgroundTransparency={1}>
-            <frame
-              Size={new UDim2(RESULTS_WIDTH, 0, 0.95, 0)}
-              Position={new UDim2(0, 0, 0.05, 0)}
-              BackgroundTransparency={1}
-            >
-              <Results Results={uiState.results!} />
-            </frame>
-            <frame
-              Size={
-                new UDim2(1 - RESULTS_WIDTH, 0, 1 - MICROPROFILER_HEIGHT, 0)
-              }
-              BackgroundTransparency={1}
-              Position={new UDim2(RESULTS_WIDTH, 0, 0, 0)}
-            >
-              <Graph
-                Data={uiState.data}
-                XPrefix="µs"
-                HighlightedX={uiState.highlightedX}
+            {/* Settings */}
+            {uiState.openedMenu === "settings" /* Settings menu */ ? (
+              <Settings
+                GetSetting={props.GetSetting}
+                SetSetting={props.SetSetting}
               />
-            </frame>
-            <frame
-              Size={new UDim2(1 - RESULTS_WIDTH, 0, MICROPROFILER_HEIGHT, 0)}
-              BackgroundTransparency={1}
-              Position={
-                new UDim2(RESULTS_WIDTH, 0, 1 - MICROPROFILER_HEIGHT, 0)
-              }
-            >
-              <MicroProfiler
-                Results={ToMicroprofilerData(uiState.results!)}
-                MicroProfiler={uiState.profileLogs}
+            ) : uiState.errorMessage /* Error message */ ? (
+              <textlabel
+                Text={`Error: ${uiState.errorMessage}`}
+                RichText
+                Position={new UDim2(0.5, 0, 0.5, 0)}
+                Size={new UDim2(0.75, 0, 0.05, 0)}
+                BackgroundTransparency={1}
+                AnchorPoint={new Vector2(0.5, 0.5)}
+                TextScaled
+                Font={Enum.Font.Code}
+                TextXAlignment={"Left"}
+                TextColor3={COLORS.ErrorText}
+                ZIndex={2}
               />
-            </frame>
+            ) : uiState.data /* Show the results */ ? (
+              <DataFrame {...uiState} />
+            ) : uiState.progress /* Result progress */ ? (
+              <ProgressBar
+                Value={uiState.progress}
+                Max={100}
+                Formatter={() => uiState.progressStatus ?? ""}
+                Position={new UDim2(0.5, 0, 0.5, 0)}
+                AnchorPoint={new Vector2(0.5, 0.5)}
+                Size={new UDim2(0.75, 0, 0.05, 0)}
+              />
+            ) : uiState.currentBenchmark /* Provide options */ ? (
+              <>
+                <MainButton
+                  Text="Start Benchmark"
+                  Position={new UDim2(0.5, 0, 0.5, 0)}
+                  AnchorPoint={new Vector2(0.5, 0.5)}
+                  Size={new UDim2(0.2, 0, 0.05, 0)}
+                  OnActivated={startBenchmark}
+                />
+                <NumericInput
+                  Position={new UDim2(0.5, 0, 0.575, 0)}
+                  Size={new UDim2(0.2, 0, 0.05, 0)}
+                  AnchorPoint={new Vector2(0.5, 0.5)}
+                  Value={uiState.calls}
+                  OnValidChanged={(calls) => updateUiState({ calls })}
+                  Arrows
+                  Slider={false}
+                />
+              </>
+            ) : (
+              /* Nothing to show..? */
+              <></>
+            )}
           </frame>
-        ) : uiState.progress ? (
-          <ProgressBar
-            Value={uiState.progress}
-            Max={100}
-            Formatter={() => uiState.progressStatus ?? ""}
-            Position={new UDim2(0.5, 0, 0.5, 0)}
-            AnchorPoint={new Vector2(0.5, 0.5)}
-            Size={new UDim2(0.75, 0, 0.05, 0)}
-          />
-        ) : uiState.currentBenchmark ? (
-          <>
-            <MainButton
-              Text="Start Benchmark"
-              Position={new UDim2(0.5, 0, 0.5, 0)}
-              AnchorPoint={new Vector2(0.5, 0.5)}
-              Size={new UDim2(0.2, 0, 0.05, 0)}
-              OnActivated={startBenchmark}
-            />
-            <NumericInput
-              Position={new UDim2(0.5, 0, 0.575, 0)}
-              Size={new UDim2(0.2, 0, 0.05, 0)}
-              AnchorPoint={new Vector2(0.5, 0.5)}
-              Value={uiState.calls}
-              OnValidChanged={(calls) => updateUiState({ calls })}
-              Arrows
-              Slider={false}
-            />
-          </>
-        ) : (
-          <></>
-        )}
-      </frame>
-    </frame>
+        ),
+      }}
+    </Splitter>
   );
 }
 

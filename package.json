@@ -12,7 +12,7 @@
   "description": "Roblox plugin to compare your scripts with graphs, tables, and a microprofiler!",
   "devDependencies": {
     "@rbxts/compiler-types": "3.0.0-types.0",
-    "@rbxts/types": "^1.0.861",
+    "@rbxts/types": "^1.0.864",
     "concurrently": "^7.6.0",
     "roblox-ts": "3.0.0",
     "typescript": "^5.8.3"

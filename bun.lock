@@ -14,7 +14,7 @@
       },
       "devDependencies": {
         "@rbxts/compiler-types": "3.0.0-types.0",
-        "@rbxts/types": "^1.0.861",
+        "@rbxts/types": "^1.0.864",
         "concurrently": "^7.6.0",
         "roblox-ts": "3.0.0",
         "typescript": "^5.8.3",
@@ -42,7 +42,7 @@
 
     "@rbxts/set-timeout": ["@rbxts/set-timeout@1.1.2", "", { "dependencies": { "@rbxts/services": "^1.5.1" } }, "sha512-P/A0IiH9wuZdSJYr4Us0MDFm61nvIFR0acfKFHLkcOsgvIgELC90Up9ugiSsaMEHRIcIcO5UjE39LuS3xTzQHw=="],
 
-    "@rbxts/studiocomponents-react2": ["@rbxts/studiocomponents-react2@github:AsynchronousAI/StudioComponents#93512d8", { "peerDependencies": { "@rbxts/pretty-react-hooks": "^0.6.4", "@rbxts/react": "^17.2.3", "@rbxts/react-roblox": "^17.2.3" } }, "AsynchronousAI-StudioComponents-93512d8"],
+    "@rbxts/studiocomponents-react2": ["@rbxts/studiocomponents-react2@github:AsynchronousAI/StudioComponents#722b3e2", { "peerDependencies": { "@rbxts/pretty-react-hooks": "^0.6.4", "@rbxts/react": "^17.2.3", "@rbxts/react-roblox": "^17.2.3" } }, "AsynchronousAI-StudioComponents-722b3e2"],
 
     "@rbxts/types": ["@rbxts/types@1.0.864", "", {}, "sha512-fLy85YBhvNtrmpKaE9ilKPHl3+hyPIvJx6LxHEg2LdHX7+f7OeXlDnyYS0UPiIWiMuh4U6ZQpo0d0pZnBD3mkw=="],
 
