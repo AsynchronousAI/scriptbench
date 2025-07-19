@@ -21,13 +21,15 @@ import BenchmarkAll, {
 } from "benchmark";
 import { Workspace } from "@rbxts/services";
 import MicroProfiler from "./microprofiler";
-import { Configuration } from "configurations";
+import {
+  Configuration,
+  MICROPROFILER_HEIGHT,
+  RESULTS_WIDTH,
+  SIDEBAR_WIDTH,
+  TITLE_HEIGHT,
+  VERSION_NUMBER,
+} from "configurations";
 import Settings from "./settings";
-
-const SIDEBAR_WIDTH = 0.15;
-const RESULTS_WIDTH = 0.2;
-const MICROPROFILER_HEIGHT = 0.2;
-const TITLE_HEIGHT = 0.035;
 
 type UIState = {
   openedMenu: "settings" | "benchmark" | undefined;
@@ -48,41 +50,54 @@ function DataFrame(props: UIState) {
   const [alpha2, setAlpha2] = useState(MICROPROFILER_HEIGHT);
 
   return (
-    <Splitter
-      Size={new UDim2(1, 0, 1 - TITLE_HEIGHT * 1.5, 0)}
-      Position={new UDim2(0, 0, TITLE_HEIGHT * 1.5, 0)}
-      Alpha={alpha2}
-      FillDirection={Enum.FillDirection.Horizontal}
-      OnChanged={setAlpha2}
-    >
-      {{
-        Side0: <Results Results={props.results!} />,
-        Side1: (
-          <Splitter
-            key="Side1"
-            Alpha={alpha1}
-            FillDirection={Enum.FillDirection.Vertical}
-            OnChanged={setAlpha1}
-          >
-            {{
-              Side0: (
-                <Graph
-                  Data={props.data!}
-                  XPrefix="µs"
-                  HighlightedX={props.highlightedX}
-                />
-              ),
-              Side1: (
-                <MicroProfiler
-                  Results={ToMicroprofilerData(props.results!)}
-                  MicroProfiler={props.profileLogs}
-                />
-              ),
-            }}
-          </Splitter>
-        ),
-      }}
-    </Splitter>
+    <>
+      <Splitter
+        Size={new UDim2(1, 0, 1 - TITLE_HEIGHT * 1.5, 0)}
+        Position={new UDim2(0, 0, TITLE_HEIGHT * 1.5, 0)}
+        Alpha={alpha2}
+        FillDirection={Enum.FillDirection.Horizontal}
+        OnChanged={setAlpha2}
+      >
+        {{
+          Side0: <Results Results={props.results!} />,
+          Side1: (
+            <Splitter
+              key="Side1"
+              Alpha={alpha1}
+              FillDirection={Enum.FillDirection.Vertical}
+              OnChanged={setAlpha1}
+            >
+              {{
+                Side0: (
+                  <Graph
+                    Data={props.data!}
+                    XPrefix="µs"
+                    HighlightedX={props.highlightedX}
+                  />
+                ),
+                Side1: (
+                  <MicroProfiler
+                    Results={ToMicroprofilerData(props.results!)}
+                    MicroProfiler={props.profileLogs}
+                  />
+                ),
+              }}
+            </Splitter>
+          ),
+        }}
+      </Splitter>
+
+      {/* Watermark */}
+      <textlabel
+        Text={`Scriptbench v${VERSION_NUMBER}, © bitsplicer ${os.date("%Y")}`}
+        Size={new UDim2(0.2, 0, 0.025, 0)}
+        Position={new UDim2(0.795, 0, 0.975, 0)}
+        BackgroundTransparency={1}
+        TextScaled
+        TextColor3={COLORS.FocusText}
+        Font={"BuilderSansBold"}
+      />
+    </>
   );
 }
 
