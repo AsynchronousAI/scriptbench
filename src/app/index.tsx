@@ -31,21 +31,35 @@ import {
 } from "configurations";
 import Settings from "./settings";
 
-type UIState = {
+// Separate state interfaces for better organization
+interface UIState {
   openedMenu: "settings" | "benchmark" | undefined;
-  currentBenchmark?: ModuleScript;
-  benchmarks: ModuleScript[];
-  data?: GraphData;
-  progress?: number;
-  calls: number;
-  progressStatus?: string;
-  results?: Result[];
-  highlightedX: { [key: string]: number };
   errorMessage?: string;
-  profileLogs?: Map<string, Stats<ProfileLog>>;
-};
+}
 
-function DataFrame(props: UIState) {
+interface BenchmarkState {
+  available: ModuleScript[];
+  current?: ModuleScript;
+  calls: number;
+}
+
+interface BenchmarkExecution {
+  isRunning: boolean;
+  progress?: number;
+  status?: string;
+}
+
+interface BenchmarkResults {
+  data?: GraphData;
+  results?: Result[];
+  profileLogs?: Map<string, Stats<ProfileLog>>;
+  highlightedX: { [key: string]: number };
+}
+
+function DataFrame(props: {
+  results: BenchmarkResults;
+  onAlphaChange?: (alpha1: number, alpha2: number) => void;
+}) {
   const [alpha1, setAlpha1] = useState(1 - RESULTS_WIDTH);
   const [alpha2, setAlpha2] = useState(MICROPROFILER_HEIGHT);
 
@@ -59,7 +73,7 @@ function DataFrame(props: UIState) {
         OnChanged={setAlpha2}
       >
         {{
-          Side0: <Results Results={props.results!} />,
+          Side0: <Results Results={props.results.results!} />,
           Side1: (
             <Splitter
               key="Side1"
@@ -70,15 +84,15 @@ function DataFrame(props: UIState) {
               {{
                 Side0: (
                   <Graph
-                    Data={props.data!}
+                    Data={props.results.data!}
                     XPrefix="µs"
-                    HighlightedX={props.highlightedX}
+                    HighlightedX={props.results.highlightedX}
                   />
                 ),
                 Side1: (
                   <MicroProfiler
-                    Results={ToMicroprofilerData(props.results!)}
-                    MicroProfiler={props.profileLogs}
+                    Results={ToMicroprofilerData(props.results.results!)}
+                    MicroProfiler={props.results.profileLogs}
                   />
                 ),
               }}
@@ -102,82 +116,138 @@ function DataFrame(props: UIState) {
 }
 
 export function App() {
-  const [uiState, setUiState] = useState<UIState>({
+  // Separated state management
+  const [uiState, setUIState] = useState<UIState>({
     openedMenu: undefined,
-    currentBenchmark: undefined,
-    benchmarks: [],
-    data: undefined,
-    progress: undefined,
-    calls: 1250,
-    progressStatus: undefined,
-    results: undefined,
-    highlightedX: {},
     errorMessage: undefined,
-    profileLogs: undefined,
   });
+
+  const [benchmarkState, setBenchmarkState] = useState<BenchmarkState>({
+    available: [],
+    current: undefined,
+    calls: 1250,
+  });
+
+  const [execution, setExecution] = useState<BenchmarkExecution>({
+    isRunning: false,
+    progress: undefined,
+    status: undefined,
+  });
+
+  const [results, setResults] = useState<BenchmarkResults>({
+    data: undefined,
+    results: undefined,
+    profileLogs: undefined,
+    highlightedX: {},
+  });
+
   const [sideBarAlpha, setSideBarAlpha] = useState(SIDEBAR_WIDTH);
 
-  const updateUiState = (patch: Partial<UIState>) =>
-    setUiState((prev) => ({ ...prev, ...patch }));
+  // Helper functions for state management
+  const clearResults = () => {
+    setResults({
+      data: undefined,
+      results: undefined,
+      profileLogs: undefined,
+      highlightedX: {},
+    });
+    setUIState((prev) => ({ ...prev, errorMessage: undefined }));
+  };
+
+  const clearExecution = () => {
+    setExecution({
+      isRunning: false,
+      progress: undefined,
+      status: undefined,
+    });
+  };
+
+  const selectBenchmark = (benchmark: ModuleScript) => {
+    setBenchmarkState((prev) => ({ ...prev, current: benchmark }));
+    setUIState((prev) => ({ ...prev, openedMenu: "benchmark" }));
+    clearResults(); // Clear previous results when selecting new benchmark
+    clearExecution();
+  };
+
+  const refreshBenchmarks = () => {
+    const newBenchmarks = GetBenchmarkableModules();
+    setBenchmarkState((prev) => ({
+      ...prev,
+      available: newBenchmarks,
+      current:
+        prev.current && newBenchmarks.includes(prev.current)
+          ? prev.current
+          : undefined,
+    }));
+    setUIState((prev) => ({ ...prev, openedMenu: undefined }));
+    clearResults(); // Clear results on refresh
+    clearExecution();
+  };
 
   /** Functions */
   const startBenchmark = () => {
-    updateUiState({ progress: 0 });
+    if (!benchmarkState.current) return;
+
+    clearResults();
+    setExecution({ isRunning: true, progress: 0 });
 
     const [result, profileLogs] = BenchmarkAll(
-      uiState.currentBenchmark!,
-      uiState.calls,
+      benchmarkState.current,
+      benchmarkState.calls,
       (count, status) => {
-        updateUiState({
-          progress: math.map(count, 0, uiState.calls, 0, 100),
-          progressStatus: status,
-        });
+        setExecution((prev) => ({
+          ...prev,
+          progress: math.map(count, 0, benchmarkState.calls, 0, 100),
+          status,
+        }));
       },
-      (err) => updateUiState({ errorMessage: err }),
+      (err) => {
+        setUIState((prev) => ({ ...prev, errorMessage: err }));
+        clearExecution();
+      },
     );
 
     const filteredResults = FilterMap(
       result as unknown as GraphData,
-      uiState.calls / 250,
+      benchmarkState.calls / 250,
     );
 
-    updateUiState({
-      profileLogs,
+    const computedResults = ComputeResults(
+      Configuration.ComputeStatsFiltered
+        ? filteredResults
+        : (result as unknown as GraphData),
+    );
+
+    setResults({
       data: filteredResults,
-      results: ComputeResults(
-        Configuration.ComputeStatsFiltered
-          ? filteredResults
-          : (result as unknown as GraphData),
-      ),
+      results: computedResults,
+      profileLogs,
+      highlightedX: {}, // Will be computed in useEffect
     });
+
+    clearExecution();
   };
 
-  const closeCurrentPage = () => {
-    updateUiState({
-      openedMenu: undefined,
-      data: undefined,
-      progress: 0,
-      errorMessage: undefined,
-    });
-  };
-
-  /** Events/Memos */
+  /** Effects */
   useMemo(() => {
-    updateUiState({ benchmarks: GetBenchmarkableModules() });
+    setBenchmarkState((prev) => ({
+      ...prev,
+      available: GetBenchmarkableModules(),
+    }));
   }, []);
 
   useEffect(() => {
-    if (!uiState.results) return;
+    if (!results.results) return;
 
     let highlightedXs: { [key: string]: number } = {};
-    for (const [key, value] of pairs(uiState.results)) {
+    for (const [key, value] of pairs(results.results)) {
       highlightedXs[value.Name] = value.NumberData.find(
         (data) => data[0] === Configuration.PrioritizedStat,
       )![1] as number;
     }
 
-    updateUiState({ highlightedX: highlightedXs });
-  }, [uiState.results]);
+    setResults((prev) => ({ ...prev, highlightedX: highlightedXs }));
+  }, [results.results]);
 
   /** UI */
   return (
@@ -192,28 +262,24 @@ export function App() {
         Side0: (
           <DropShadowFrame Size={new UDim2(1, 0, 1, 0)} ZIndex={2}>
             <Sidebar
-              Benchmarks={uiState.benchmarks.map((benchmark) =>
+              Benchmarks={benchmarkState.available.map((benchmark) =>
                 GetBenchmarkName(benchmark),
               )}
               OnSelection={(name) => {
-                closeCurrentPage();
-                updateUiState({
-                  currentBenchmark: uiState.benchmarks.find(
-                    (benchmark) => GetBenchmarkName(benchmark) === name,
-                  ),
-                  openedMenu: "benchmark",
-                });
+                const benchmark = benchmarkState.available.find(
+                  (benchmark) => GetBenchmarkName(benchmark) === name,
+                );
+                if (benchmark) {
+                  selectBenchmark(benchmark);
+                }
               }}
-              OnRefresh={() => {
-                closeCurrentPage();
-                updateUiState({ benchmarks: GetBenchmarkableModules() });
-              }}
+              OnRefresh={refreshBenchmarks}
               ToggleSettings={() => {
-                closeCurrentPage();
-                updateUiState({
+                setUIState((prev) => ({
+                  ...prev,
                   openedMenu:
-                    uiState.openedMenu === "settings" ? undefined : "settings",
-                });
+                    prev.openedMenu === "settings" ? undefined : "settings",
+                }));
               }}
               SettingsOpen={uiState.openedMenu === "settings"}
               OnNew={() => {
@@ -243,10 +309,12 @@ export function App() {
               Text={
                 uiState.openedMenu === "settings"
                   ? "<b>Settings</b>"
-                  : `<b>${GetBenchmarkName(uiState.currentBenchmark)}</b>   ${uiState.currentBenchmark?.Name ?? ""}`
+                  : uiState.openedMenu === "benchmark"
+                    ? `<b>${GetBenchmarkName(benchmarkState.current)}</b>   ${benchmarkState.current?.Name ?? ""}`
+                    : "<b>No benchmark selected</b>"
               }
               RichText
-              Position={new UDim2(0.03, 0, 0.01, 0)}
+              Position={new UDim2(0.03, 0, 0.015, 0)}
               Size={new UDim2(0.5, 0, TITLE_HEIGHT, 0)}
               TextScaled
               Font={Enum.Font.BuilderSans}
@@ -256,10 +324,10 @@ export function App() {
               ZIndex={2}
             />
 
-            {/* Settings */}
-            {uiState.openedMenu === "settings" /* Settings menu */ ? (
+            {/* Content */}
+            {uiState.openedMenu === "settings" ? (
               <Settings />
-            ) : uiState.errorMessage /* Error message */ ? (
+            ) : uiState.errorMessage ? (
               <textlabel
                 Text={`Error: ${uiState.errorMessage}`}
                 RichText
@@ -273,18 +341,20 @@ export function App() {
                 TextColor3={COLORS.ErrorText}
                 ZIndex={2}
               />
-            ) : uiState.data /* Show the results */ ? (
-              <DataFrame {...uiState} />
-            ) : uiState.progress /* Result progress */ ? (
+            ) : results.data &&
+              benchmarkState.current &&
+              uiState.openedMenu === "benchmark" ? (
+              <DataFrame results={results} />
+            ) : execution.isRunning && execution.progress !== undefined ? (
               <ProgressBar
-                Value={uiState.progress}
+                Value={execution.progress}
                 Max={100}
-                Formatter={() => uiState.progressStatus ?? ""}
+                Formatter={() => execution.status ?? ""}
                 Position={new UDim2(0.5, 0, 0.5, 0)}
                 AnchorPoint={new Vector2(0.5, 0.5)}
                 Size={new UDim2(0.75, 0, 0.05, 0)}
               />
-            ) : uiState.currentBenchmark /* Provide options */ ? (
+            ) : benchmarkState.current && uiState.openedMenu === "benchmark" ? (
               <>
                 <MainButton
                   Text="Start Benchmark"
@@ -297,14 +367,15 @@ export function App() {
                   Position={new UDim2(0.5, 0, 0.575, 0)}
                   Size={new UDim2(0.2, 0, 0.05, 0)}
                   AnchorPoint={new Vector2(0.5, 0.5)}
-                  Value={uiState.calls}
-                  OnValidChanged={(calls) => updateUiState({ calls })}
+                  Value={benchmarkState.calls}
+                  OnValidChanged={(calls) =>
+                    setBenchmarkState((prev) => ({ ...prev, calls }))
+                  }
                   Arrows
                   Slider={false}
                 />
               </>
             ) : (
-              /* Nothing to show..? */
               <></>
             )}
           </frame>

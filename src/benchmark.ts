@@ -205,7 +205,7 @@ function Benchmark(
 
 /* Exported functions */
 export function GetBenchmarkName(module?: ModuleScript) {
-  if (!module) return "No bench selected";
+  if (!module) return "";
 
   const required = require(module.Clone()) as FormattedBenchmarkScript<unknown>;
   if (required.Name) return required.Name;
