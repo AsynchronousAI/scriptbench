@@ -8,7 +8,7 @@ import {
   NumericInput,
   Splitter,
 } from "@rbxts/studiocomponents-react2";
-import { COLORS } from "colors";
+import { COLORS, LightenColor } from "colors";
 import Results, { Result } from "./results";
 import BenchmarkAll, {
   ComputeResults,
@@ -16,6 +16,7 @@ import BenchmarkAll, {
   GetBenchmarkableModules,
   GetBenchmarkName,
   ProfileLog,
+  ProfileLogStats,
   Stats,
   ToMicroprofilerData,
 } from "benchmark";
@@ -30,6 +31,8 @@ import {
 } from "configurations";
 import Settings from "./settings";
 import { Settings as SettingsNamespace } from "settings";
+import { Object } from "@rbxts/luau-polyfill";
+import { GetKeyColor } from "./graph/computation";
 
 // Separate state interfaces for better organization
 interface UIState {
@@ -52,13 +55,14 @@ interface BenchmarkExecution {
 interface BenchmarkResults {
   data?: GraphData;
   results?: Result[];
-  profileLogs?: Map<string, Stats<ProfileLog>>;
+  microprofilerStats?: Map<string, Stats<ProfileLog>>;
   highlightedX: { [key: string]: number };
 }
 
 function DataFrame(props: {
   results: BenchmarkResults;
   onAlphaChange?: (alpha1: number, alpha2: number) => void;
+  onMicroProfilerClick?: (parentName: string, name: string) => void;
 }) {
   const [alpha1, setAlpha1] = useState(1 - RESULTS_WIDTH);
   const [alpha2, setAlpha2] = useState(MICROPROFILER_HEIGHT);
@@ -92,7 +96,8 @@ function DataFrame(props: {
                 Side1: (
                   <MicroProfiler
                     Results={ToMicroprofilerData(props.results.results!)}
-                    MicroProfiler={props.results.profileLogs}
+                    MicroProfiler={props.results.microprofilerStats}
+                    OnClick={props.onMicroProfilerClick}
                   />
                 ),
               }}
@@ -137,7 +142,7 @@ export function App() {
   const [results, setResults] = useState<BenchmarkResults>({
     data: undefined,
     results: undefined,
-    profileLogs: undefined,
+    microprofilerStats: undefined,
     highlightedX: {},
   });
 
@@ -148,7 +153,7 @@ export function App() {
     setResults({
       data: undefined,
       results: undefined,
-      profileLogs: undefined,
+      microprofilerStats: undefined,
       highlightedX: {},
     });
     setUIState((prev) => ({ ...prev, errorMessage: undefined }));
@@ -182,6 +187,48 @@ export function App() {
     setUIState((prev) => ({ ...prev, openedMenu: undefined }));
     clearResults(); // Clear results on refresh
     clearExecution();
+  };
+
+  const pinMicroProfiler = (parentName: string, name: string) => {
+    const fullName = `${parentName} (${name})`;
+    const isInResults = results.results?.some(
+      (result) => result.Name === fullName,
+    );
+
+    if (isInResults) {
+      /* remove from results */
+      setResults((prev) => ({
+        ...prev,
+        results: prev.results!.filter((result) => result.Name !== fullName),
+      }));
+      return;
+    }
+
+    /** add to results */
+    let micoprofilerStat: Partial<Stats<number>> = {};
+    for (const stats of Object.values(results.microprofilerStats!)) {
+      for (const [stat, microprofilerData] of Object.entries(stats)) {
+        for (const item of Object.values(microprofilerData)) {
+          if (item.name !== name) continue;
+          micoprofilerStat[stat] = item.time;
+        }
+      }
+    }
+
+    const NumberData = Object.entries(micoprofilerStat);
+    if (NumberData.size() === 0) return; /* nothing good to show */
+    const newItem = {
+      Name: fullName,
+      Color: LightenColor(GetKeyColor(parentName)[0]),
+      Order: micoprofilerStat[SettingsNamespace.GetSetting("PrioritizedStat")],
+      NumberData: Object.entries(micoprofilerStat),
+      IsMicroProfiler: true,
+    } as Result;
+
+    setResults((prev) => ({
+      ...prev,
+      results: [...prev.results!, newItem],
+    }));
   };
 
   /** Functions */
@@ -218,10 +265,15 @@ export function App() {
         : (result as unknown as GraphData),
     );
 
+    const microprofilerStats = new Map<string, Stats<ProfileLog>>();
+    for (const [key, value] of Object.entries(profileLogs!)) {
+      microprofilerStats.set(key as string, ProfileLogStats(value));
+    }
+
     setResults({
       data: filteredResults,
       results: computedResults,
-      profileLogs,
+      microprofilerStats,
       highlightedX: {}, // Will be computed in useEffect
     });
 
@@ -241,6 +293,8 @@ export function App() {
 
     let highlightedXs: { [key: string]: number } = {};
     for (const [key, value] of pairs(results.results)) {
+      if (value.IsMicroProfiler) continue;
+
       highlightedXs[value.Name] = value.NumberData.find(
         (data) => data[0] === SettingsNamespace.GetSetting("PrioritizedStat"),
       )![1] as number;
@@ -344,7 +398,10 @@ export function App() {
             ) : results.data &&
               benchmarkState.current &&
               uiState.openedMenu === "benchmark" ? (
-              <DataFrame results={results} />
+              <DataFrame
+                results={results}
+                onMicroProfilerClick={pinMicroProfiler}
+              />
             ) : execution.isRunning && execution.progress !== undefined ? (
               <ProgressBar
                 Value={execution.progress}

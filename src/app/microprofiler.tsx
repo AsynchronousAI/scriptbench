@@ -22,6 +22,7 @@ export type MicroProfilerData = { [key: string]: number };
 export interface MicroProfilerProps {
   Results: MicroProfilerData;
   MicroProfiler?: Map<string, Stats<ProfileLog>>;
+  OnClick?: (parentName: string, name: string) => void;
 }
 
 /* Export */
@@ -30,6 +31,7 @@ function MicroProfilerProcesses(props: {
   maxTime: number;
   time: number;
   color: Color3;
+  onClick?: (name: string) => void;
 }) {
   const usingProcesses =
     props.processes[
@@ -51,12 +53,19 @@ function MicroProfilerProcesses(props: {
     if (name === false) name = "Untracked";
 
     return (
-      <frame
+      <textbutton
         ZIndex={zindex}
         BorderColor3={COLORS.Border}
         BackgroundColor3={new Color3(1, 1, 1)}
         Size={new UDim2(time / props.maxTime, 0, (1 - PADDING) * 0.5, 0)}
         Position={new UDim2(thisPosition, 0, (1 - PADDING) * 0.5, 0)}
+        Text=""
+        AutoButtonColor={false}
+        Event={{
+          MouseButton1Click: () => {
+            props.onClick?.(name);
+          },
+        }}
       >
         {time / props.maxTime >
           0 /* do not show if the frame is too small */ && (
@@ -77,7 +86,7 @@ function MicroProfilerProcesses(props: {
           />
         )}
         <uigradient Color={gradient(color)} />
-      </frame>
+      </textbutton>
     );
   });
 }
@@ -145,6 +154,9 @@ export default function MicroProfiler(props: MicroProfilerProps) {
                 maxTime={maxTime}
                 time={time}
                 color={color}
+                onClick={(thisName) =>
+                  props.OnClick?.(name as string, thisName)
+                }
               />
             )}
           </frame>

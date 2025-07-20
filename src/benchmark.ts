@@ -128,7 +128,7 @@ function ComputeStats(data: number[]): Stats<number> {
     MAD: mad,
   };
 }
-function ProfileLogStats(profileLogs: ProfileLog[]): Stats<ProfileLog> {
+export function ProfileLogStats(profileLogs: ProfileLog[]): Stats<ProfileLog> {
   let profileLogStats: Stats<ProfileLog> = {
     Avg: [],
     "10%": [],
@@ -203,7 +203,7 @@ function Benchmark(
   calls: number,
 
   setCount: (count: number) => void,
-): [Map<number, number>, Stats<ProfileLog>] {
+): [Map<number, number>, ProfileLog[]] {
   /* benchmark a single case in a module */
   let recordedTimes = new Map<number, number>(); /* time taken to calls map */
   const batching = Settings.GetSetting("Batching");
@@ -233,7 +233,7 @@ function Benchmark(
     setCount(count);
   }
 
-  return [recordedTimes, ProfileLogStats(globalProfileLog)];
+  return [recordedTimes, table.clone(globalProfileLog)];
 }
 
 /* Exported functions */
@@ -285,10 +285,10 @@ export default function BenchmarkAll(
   calls: number,
   setCount?: (count: number, status: string) => void,
   onError?: (error: string) => void,
-): [BenchmarkResults, Map<string, Stats<ProfileLog>>] | [] {
+): [BenchmarkResults, Map<string, ProfileLog[]>] | [] {
   /* benchmark all cases of a module */
   const totalResults = new Map<string, Map<number, number>>();
-  const totalProfileLogs = new Map<string, Stats<ProfileLog>>();
+  const totalProfileLogs = new Map<string, ProfileLog[]>();
 
   const requiredModule = require(
     module.Clone(),
@@ -357,6 +357,8 @@ export default function BenchmarkAll(
 export function ToMicroprofilerData(results: Result[]): MicroProfilerData {
   const data: MicroProfilerData = {};
   for (const [index, result] of pairs(results)) {
+    if (result.IsMicroProfiler) continue;
+
     const lookingFor = result.NumberData.filter(
       (value) =>
         value[0] ===
