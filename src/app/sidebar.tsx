@@ -26,7 +26,7 @@ const GraphIcon = {
   Alignment: Enum.HorizontalAlignment.Left,
 };
 
-const ITEM_SIZE = 36;
+const ITEM_SIZE = 26;
 const BOTTOM_BUTTONS_N = 3;
 
 export default function Sidebar(props: SidebarProps) {
@@ -50,7 +50,17 @@ export default function Sidebar(props: SidebarProps) {
         PaddingLeft={new UDim(0, px(10))}
         PaddingRight={new UDim(0, px(10))}
       />
-      <ScrollFrame Size={new UDim2(1, 0, 1, -px(ITEM_SIZE) * BOTTOM_BUTTONS_N)}>
+      <ScrollFrame
+        Size={new UDim2(1, 0, 1, -px(ITEM_SIZE) * (BOTTOM_BUTTONS_N + 1))}
+        PaddingTop={new UDim(0, px(5))}
+        PaddingBottom={new UDim(0, px(5))}
+        PaddingLeft={new UDim(0, px(5))}
+        PaddingRight={new UDim(0, px(5))}
+        Layout={{
+          ClassName: "UIListLayout",
+          Padding: new UDim(0, px(7.5)),
+        }}
+      >
         {/* Top to Bottom */}
         <TextInput
           Size={new UDim2(1, 0, 0, px(ITEM_SIZE))}
