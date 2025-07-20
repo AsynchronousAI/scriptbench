@@ -1,4 +1,4 @@
-import { Object, String } from "@rbxts/luau-polyfill";
+import { Error, Object, String } from "@rbxts/luau-polyfill";
 import { MicroProfilerData } from "app/microprofiler";
 import { Result } from "app/results";
 import { Configuration } from "configurations";
@@ -33,6 +33,9 @@ export interface Stats<T> {
   "10%": T;
   Min: T;
   Max: T;
+  StdDev: T;
+  Mode: T;
+  MAD: T;
 }
 
 /* Library which is provided to the benchmark functions */
@@ -81,22 +84,49 @@ function getPercentileAverage(
 }
 
 function ComputeStats(data: number[]): Stats<number> {
-  const sorted = [...data].sort((a, b) => a < b);
+  if (data.size() === 0) {
+    throw new Error("Data array must not be empty.");
+  }
 
+  const sorted = [...data].sort();
   const size = sorted.size();
-  const average =
-    sorted.reduce((sum: number, key: number) => sum + key, 0) / size;
+
+  const average = sorted.reduce((sum, value) => sum + value, 0) / size;
 
   const min = sorted[0];
-  const max = sorted[sorted.size() - 1];
+  const max = sorted[size - 1];
+
+  // Variance and Standard Deviation
+  const variance =
+    sorted.reduce((sum, val) => sum + math.pow(val - average, 2), 0) / size;
+  const stdDev = math.sqrt(variance);
+
+  // Mode
+  const freqMap = new Map<number, number>();
+  for (const num of data) {
+    freqMap.set(num, (freqMap.get(num) || 0) + 1);
+  }
+  const mode = Object.entries(freqMap).sort((a, b) => a[1] < b[1])[0][0];
+
+  // Median Absolute Deviation (MAD)
+  const median = getPercentileAverage(sorted, 0.25, 0.75);
+  const deviations = sorted.map((val) => math.abs(val - median));
+  const mad = getPercentileAverage(
+    deviations.sort((a, b) => a < b),
+    0.25,
+    0.75,
+  );
 
   return {
     Avg: average,
-    "10%": getPercentileAverage(sorted, 0, 0.1),
+    "10%": getPercentileAverage(sorted, 0.0, 0.1),
     "50%": getPercentileAverage(sorted, 0.25, 0.75),
-    "90%": getPercentileAverage(sorted, 0, 0.9),
-    Max: max,
+    "90%": getPercentileAverage(sorted, 0.0, 0.9),
     Min: min,
+    Max: max,
+    StdDev: stdDev,
+    Mode: mode,
+    MAD: mad,
   };
 }
 function ProfileLogStats(profileLogs: ProfileLog[]): Stats<ProfileLog> {
@@ -107,6 +137,9 @@ function ProfileLogStats(profileLogs: ProfileLog[]): Stats<ProfileLog> {
     "90%": [],
     Min: [],
     Max: [],
+    MAD: [],
+    StdDev: [],
+    Mode: [],
   };
 
   /* Make each of the stats time be elapsed */

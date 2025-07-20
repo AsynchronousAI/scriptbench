@@ -37,6 +37,9 @@ const story = {
                 "10%": [],
                 Min: [],
                 Max: [],
+                MAD: [],
+                StdDev: [],
+                Mode: [],
               },
             ],
           ])

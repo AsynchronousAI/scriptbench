@@ -14,6 +14,14 @@ export interface ResultsProps {
   Results: Result[];
 }
 
+function bytesToNumberLE(str: string): number {
+  const bytes = str.split("").map((char) => string.byte(char)[0]);
+  let result = 0;
+  for (let i = 0; i < bytes.size(); i++) {
+    result += bytes[i] * math.pow(256, i);
+  }
+  return result;
+}
 export default function Results(props: ResultsProps) {
   return (
     <ScrollFrame>
@@ -93,7 +101,7 @@ export default function Results(props: ResultsProps) {
               return (
                 <frame
                   Visible={open}
-                  LayoutOrder={index}
+                  LayoutOrder={bytesToNumberLE(key)}
                   Size={new UDim2(1, 0, 0, size)}
                   Position={new UDim2(0.5, 0, 0.5, 0)}
                   AnchorPoint={new Vector2(0.5, 0.5)}

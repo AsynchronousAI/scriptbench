@@ -138,7 +138,7 @@ export default function Settings() {
       <SettingsTitle Text="Prioritized Statistic" />
       <Dropdown
         Size={new UDim2(0.1, 0, 0.05, 0)}
-        Items={["10%", "50%", "90%", "Avg", "Min", "Max"]}
+        Items={["10%", "50%", "90%", "Avg", "Min", "Max", "Mode"]}
         SelectedItem={settings.PrioritizedStat}
         OnItemSelected={(v) => setSettingsItem("PrioritizedStat", v)}
       />
