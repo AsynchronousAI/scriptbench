@@ -1,59 +1,17 @@
-import { Object } from "@rbxts/luau-polyfill";
-import React, { useContext, useEffect, useState } from "@rbxts/react";
-import { HttpService } from "@rbxts/services";
+import React, { useEffect, useState } from "@rbxts/react";
 import {
   Button,
+  Checkbox,
   Dropdown,
   MainButton,
   NumericInput,
-  PluginContext,
   TextInput,
 } from "@rbxts/studiocomponents-react2";
-import { Stats } from "benchmark";
 import { COLORS } from "colors";
 import { GetKeyColor } from "./graph/computation";
-
-export const DefaultSettings: {
-  PrioritizedStat: keyof Stats<unknown>;
-  Batching: number;
-  LineHue: number;
-  LineSat: number;
-  LineVal: number;
-} = {
-  PrioritizedStat: "Avg",
-  Batching: 100,
-  LineHue: 0,
-  LineSat: 63,
-  LineVal: 84,
-};
-
-/** Encode/Decode API, once this gets big enough we could seperate it into its own file */
-export function SetSetting(
-  plugin: Plugin | undefined,
-  key: string,
-  value: string | number,
-): string {
-  if (!plugin) return "";
-
-  const encoded = HttpService.JSONEncode(value);
-  plugin.SetSetting(key, encoded);
-  return encoded;
-}
-
-export function GetSetting(
-  plugin: Plugin | undefined,
-  key: string,
-): string | number | undefined {
-  if (!plugin) return undefined;
-
-  const value = plugin.GetSetting(key) as string;
-  try {
-    const decoded = HttpService.JSONDecode(value) as string | number;
-    return decoded as string | number;
-  } catch {
-    return value; // If decoding fails, return the original value
-  }
-}
+import { DefaultSettings } from "settings";
+import { usePx } from "hooks/usePx";
+import { Settings as SettingsNamespace } from "settings";
 
 /* Components */
 function SettingsTitle(props: { Text: string }) {
@@ -85,7 +43,7 @@ function SettingsSubTitle(props: { Text: string }) {
 
 /* Main UI */
 export default function Settings() {
-  const plugin = PluginContext && useContext(PluginContext)?.plugin;
+  const px = usePx();
   const [colorPreviewText, setColorPreviewText] = useState("Hello, World!");
   const [settings, setSettings] = useState(DefaultSettings);
 
@@ -99,7 +57,7 @@ export default function Settings() {
   };
   const resetSettings = () => {
     for (const [key, defaultValue] of pairs(DefaultSettings)) {
-      const savedValue = GetSetting(plugin, key);
+      const savedValue = SettingsNamespace.GetSetting(key);
 
       if (savedValue)
         setSettingsItem(
@@ -113,7 +71,7 @@ export default function Settings() {
   };
   const saveSettings = () => {
     for (const [key, value] of pairs(settings)) {
-      SetSetting(plugin, key, value);
+      SettingsNamespace.SetSetting(key, value);
     }
     resetSettings();
   };
@@ -122,19 +80,16 @@ export default function Settings() {
 
   return (
     <frame
-      Size={new UDim2(1, 0, 0.9, 0)}
-      Position={new UDim2(0.5, 0, 0.5, 0)}
+      Size={new UDim2(1, 0, 0.95, 0)}
+      Position={new UDim2(0.5, 0, 0.55, 0)}
       AnchorPoint={new Vector2(0.5, 0.5)}
       BackgroundTransparency={1}
     >
       <uilistlayout
-        FillDirection={"Vertical"}
-        VerticalAlignment={"Top"}
-        HorizontalAlignment={"Center"}
-        Padding={new UDim(0.025, 0)}
-        SortOrder={"LayoutOrder"}
+        HorizontalAlignment={Enum.HorizontalAlignment.Center}
+        SortOrder={Enum.SortOrder.LayoutOrder}
+        Padding={new UDim(0, px(10))}
       />
-
       <SettingsTitle Text="Prioritized Statistic" />
       <Dropdown
         Size={new UDim2(0.1, 0, 0.05, 0)}
@@ -206,6 +161,19 @@ export default function Settings() {
         BackgroundTransparency={1}
         Size={new UDim2(0.3, 0, 0.025, 0)}
       />
+      {/*
+      <SettingsTitle Text="Additional Settings" />
+      <Checkbox
+        Label="Filter outliers? (reccomended)"
+        Value={settings.FilterOutliers}
+        ContentAlignment={Enum.HorizontalAlignment.Center}
+        OnChanged={() => {
+          setSettings((previousSettings) => ({
+            ...previousSettings,
+            FilterOutliers: !previousSettings.FilterOutliers,
+          }));
+        }}
+      />*/}
 
       {/* Bottom bar with Save + Cancel */}
       <frame

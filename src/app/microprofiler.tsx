@@ -3,9 +3,9 @@ import React from "@rbxts/react";
 import { ScrollFrame } from "@rbxts/studiocomponents-react2";
 import { ProfileLog, Stats } from "benchmark";
 import { COLORS, LightenColor } from "colors";
-import { Configuration } from "configurations";
 import { usePx } from "hooks/usePx";
 import { FormatNumber, GetKeyColor } from "./graph/computation";
+import { Settings } from "settings";
 
 /* Constants  */
 const HEIGHT = 45;
@@ -31,7 +31,10 @@ function MicroProfilerProcesses(props: {
   time: number;
   color: Color3;
 }) {
-  const usingProcesses = props.processes[Configuration.PrioritizedStat];
+  const usingProcesses =
+    props.processes[
+      Settings.GetSetting("PrioritizedStat") as keyof Stats<ProfileLog>
+    ];
   const px = usePx();
 
   let position = 0;

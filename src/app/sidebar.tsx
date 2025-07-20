@@ -26,7 +26,7 @@ const GraphIcon = {
   Alignment: Enum.HorizontalAlignment.Left,
 };
 
-const ITEM_SIZE = 26;
+const ITEM_SIZE = 32;
 const BOTTOM_BUTTONS_N = 3;
 
 export default function Sidebar(props: SidebarProps) {

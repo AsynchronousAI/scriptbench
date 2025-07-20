@@ -4,6 +4,7 @@ import { RunService } from "@rbxts/services";
 import { PluginProvider } from "@rbxts/studiocomponents-react2";
 import App from "app";
 import { VERSION_NUMBER } from "configurations";
+import { Settings } from "settings";
 
 const toolbar = plugin.CreateToolbar(`Scriptbench v${VERSION_NUMBER}`);
 const toggle = toolbar.CreateButton(
@@ -37,6 +38,7 @@ function main() {
     toggle.SetActive(widget.Enabled);
   });
 
+  Settings.LoadPlugin(plugin);
   root.render(
     createPortal(
       <StrictMode>

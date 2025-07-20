@@ -1,13 +1,12 @@
 import { Error, Object, String } from "@rbxts/luau-polyfill";
 import { MicroProfilerData } from "app/microprofiler";
 import { Result } from "app/results";
-import { Configuration } from "configurations";
 import { GraphData } from "app/graph";
 import { GetKeyColor } from "app/graph/computation";
+import { Settings } from "settings";
 
 /* Constants */
 const REQUIRED_PREFIX = ".bench";
-const YIELD = 500;
 
 /* Types */
 export type BenchmarkResults = Map<string, Map<number, number>>;
@@ -207,6 +206,7 @@ function Benchmark(
 ): [Map<number, number>, Stats<ProfileLog>] {
   /* benchmark a single case in a module */
   let recordedTimes = new Map<number, number>(); /* time taken to calls map */
+  const batching = Settings.GetSetting("Batching");
 
   table.clear(globalProfileLog);
   for (let count = 0; count <= calls; count++) {
@@ -229,7 +229,7 @@ function Benchmark(
     const current = recordedTimes.get(elapsedTime) ?? 0;
     recordedTimes.set(elapsedTime, current + 1);
 
-    if (count % YIELD === 0) task.wait();
+    if (count % batching === 0) task.wait();
     setCount(count);
   }
 
@@ -253,7 +253,8 @@ export function ComputeResults(data: GraphData): Result[] {
   for (const [name] of pairs(data)) {
     const stats = ComputeStats(Object.keys(data[name]));
     results.push({
-      Order: stats[Configuration.PrioritizedStat],
+      Order:
+        stats[Settings.GetSetting("PrioritizedStat") as keyof typeof stats],
       Name: name as string,
       Color: GetKeyColor(name as string)[0],
       NumberData: Object.entries(stats).map(([key, value]) => [key, value]),
@@ -357,7 +358,11 @@ export function ToMicroprofilerData(results: Result[]): MicroProfilerData {
   const data: MicroProfilerData = {};
   for (const [index, result] of pairs(results)) {
     const lookingFor = result.NumberData.filter(
-      (value) => value[0] === Configuration.PrioritizedStat,
+      (value) =>
+        value[0] ===
+        (Settings.GetSetting(
+          "PrioritizedStat",
+        ) as keyof typeof result.NumberData),
     )[0][1];
     data[result.Name] = lookingFor;
   }

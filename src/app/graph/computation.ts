@@ -1,5 +1,6 @@
 import { Object } from "@rbxts/luau-polyfill";
 import { DomainRange } from ".";
+import { Settings } from "settings";
 
 /* Handles math for rendering, like converting values to position */
 export function AsPosition(
@@ -76,9 +77,9 @@ export function InIncrements(
 }
 export function GetKeyColor(
   name: string,
-  hueOffset: number = 0,
-  sat: number = 0.63,
-  value: number = 0.84,
+  hueOffset: number = Settings.GetSetting("LineHue") / 100,
+  sat: number = Settings.GetSetting("LineSat") / 100,
+  value: number = Settings.GetSetting("LineVal") / 100,
 ): [Color3, number] {
   let seed = 69;
   for (let i = 0; i < name.size(); i++) {

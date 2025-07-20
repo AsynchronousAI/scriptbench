@@ -22,7 +22,6 @@ import BenchmarkAll, {
 import { Workspace } from "@rbxts/services";
 import MicroProfiler from "./microprofiler";
 import {
-  Configuration,
   MICROPROFILER_HEIGHT,
   RESULTS_WIDTH,
   SIDEBAR_WIDTH,
@@ -30,6 +29,7 @@ import {
   VERSION_NUMBER,
 } from "configurations";
 import Settings from "./settings";
+import { Settings as SettingsNamespace } from "settings";
 
 // Separate state interfaces for better organization
 interface UIState {
@@ -213,7 +213,7 @@ export function App() {
     );
 
     const computedResults = ComputeResults(
-      Configuration.ComputeStatsFiltered
+      SettingsNamespace.GetSetting("FilterOutliers")
         ? filteredResults
         : (result as unknown as GraphData),
     );
@@ -242,7 +242,7 @@ export function App() {
     let highlightedXs: { [key: string]: number } = {};
     for (const [key, value] of pairs(results.results)) {
       highlightedXs[value.Name] = value.NumberData.find(
-        (data) => data[0] === Configuration.PrioritizedStat,
+        (data) => data[0] === SettingsNamespace.GetSetting("PrioritizedStat"),
       )![1] as number;
     }
 
