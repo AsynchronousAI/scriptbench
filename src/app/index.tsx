@@ -57,6 +57,7 @@ interface BenchmarkResults {
   results?: Result[];
   microprofilerStats?: Map<string, Stats<ProfileLog>>;
   highlightedX: { [key: string]: number };
+  profileLogs?: Map<string, ProfileLog[]>;
 }
 
 function DataFrame(props: {
@@ -143,6 +144,7 @@ export function App() {
     data: undefined,
     results: undefined,
     microprofilerStats: undefined,
+    profileLogs: undefined,
     highlightedX: {},
   });
 
@@ -154,6 +156,7 @@ export function App() {
       data: undefined,
       results: undefined,
       microprofilerStats: undefined,
+      profileLogs: undefined,
       highlightedX: {},
     });
     setUIState((prev) => ({ ...prev, errorMessage: undefined }));
@@ -196,15 +199,20 @@ export function App() {
     );
 
     if (isInResults) {
-      /* remove from results */
-      setResults((prev) => ({
-        ...prev,
-        results: prev.results!.filter((result) => result.Name !== fullName),
-      }));
+      setResults((prev) => {
+        let filteredData = { ...prev.data! };
+        delete filteredData[fullName];
+
+        return {
+          ...prev,
+          results: prev.results!.filter((result) => result.Name !== fullName),
+          data: FilterMap(filteredData, benchmarkState.calls / 250),
+        };
+      });
       return;
     }
 
-    /** add to results */
+    /** convert Stats for ProfilerLog to just Stats<number> for the specific block */
     let micoprofilerStat: Partial<Stats<number>> = {};
     for (const stats of Object.values(results.microprofilerStats!)) {
       for (const [stat, microprofilerData] of Object.entries(stats)) {
@@ -215,19 +223,58 @@ export function App() {
       }
     }
 
+    /** create an object to add to the sidebar */
     const NumberData = Object.entries(micoprofilerStat);
     if (NumberData.size() === 0) return; /* nothing good to show */
     const newItem = {
       Name: fullName,
-      Color: LightenColor(GetKeyColor(parentName)[0]),
+      Color: GetKeyColor(fullName)[0],
       Order: micoprofilerStat[SettingsNamespace.GetSetting("PrioritizedStat")],
       NumberData: Object.entries(micoprofilerStat),
       IsMicroProfiler: true,
     } as Result;
 
+    /** create an object to add to the graph */
+    const runTimeData = results.profileLogs!.get(parentName)!;
+
+    /* the above variable will look like
+      {
+        name: 'Create', // we want it to only be `name` variable
+        time: 123,
+      }[/* first array is all the different calls of the run /][/* second array is all the runs /]
+
+      we need to make it a frequency chart for just `name`:
+      {
+        1:2,
+        2:3,
+      }
+    */
+
+    /* step 1. merge all the test runs into one giant array */
+    const mergedData: ProfileLog = [];
+    for (const batch of runTimeData) {
+      for (const run of batch) {
+        mergedData.push(run);
+      }
+    }
+
+    /* step 2. filter an array of just this datas times */
+    const thisBlockData = mergedData.filter((log) => log.name === name);
+
+    /* step 3. create a map of the frequency of each time */
+    const thisBlockTimes = thisBlockData.map((log) => log.time);
+    let newData: { [key: number]: number } = {};
+    for (const time of thisBlockTimes) {
+      newData[time] = (newData[time] || 0) + 1;
+    }
+
     setResults((prev) => ({
       ...prev,
       results: [...prev.results!, newItem],
+      data: FilterMap(
+        { ...prev.data!, [fullName]: newData },
+        benchmarkState.calls / 250,
+      ),
     }));
   };
 
@@ -273,6 +320,7 @@ export function App() {
     setResults({
       data: filteredResults,
       results: computedResults,
+      profileLogs: profileLogs!,
       microprofilerStats,
       highlightedX: {}, // Will be computed in useEffect
     });
