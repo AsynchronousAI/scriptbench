@@ -52,7 +52,7 @@ export default function Results(props: ResultsProps) {
           Size={new UDim2(1, 0, 0, 0)}
           AutomaticSize="Y"
           BackgroundColor3={COLORS.LightBackground}
-          LayoutOrder={result.Order}
+          LayoutOrder={result.Order * 100}
         >
           <uilistlayout FillDirection="Vertical" SortOrder="LayoutOrder" />
 
@@ -108,7 +108,7 @@ export default function Results(props: ResultsProps) {
             result.NumberData.map(([key, val]) => (
               <frame
                 key={`data-${index}-${key}`}
-                LayoutOrder={bytesToNumberLE(key)}
+                LayoutOrder={result.Order * 100 + bytesToNumberLE(key)}
                 Size={new UDim2(1, 0, 0, size)}
                 BorderColor3={COLORS.Border}
                 BackgroundTransparency={1}
