@@ -206,7 +206,11 @@ export function App() {
         return {
           ...prev,
           results: prev.results!.filter((result) => result.Name !== fullName),
-          data: FilterMap(filteredData, benchmarkState.calls / 250),
+          data: FilterMap(
+            filteredData,
+            benchmarkState.calls /
+              SettingsNamespace.GetSetting("OutlierDivider"),
+          ),
         };
       });
       return;
@@ -273,7 +277,7 @@ export function App() {
       results: [...prev.results!, newItem],
       data: FilterMap(
         { ...prev.data!, [fullName]: newData },
-        benchmarkState.calls / 250,
+        benchmarkState.calls / SettingsNamespace.GetSetting("OutlierDivider"),
       ),
     }));
   };
@@ -303,7 +307,7 @@ export function App() {
 
     const filteredResults = FilterMap(
       result as unknown as GraphData,
-      benchmarkState.calls / 250,
+      benchmarkState.calls / SettingsNamespace.GetSetting("OutlierDivider"),
     );
 
     const computedResults = ComputeResults(

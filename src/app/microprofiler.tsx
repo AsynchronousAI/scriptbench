@@ -8,7 +8,7 @@ import { FormatNumber, GetKeyColor } from "./graph/computation";
 import { Settings } from "settings";
 
 /* Constants  */
-const HEIGHT = 45;
+const HEIGHT = 30;
 const PADDING = 0.25; /* in scale */
 
 const gradient = (color: Color3) =>

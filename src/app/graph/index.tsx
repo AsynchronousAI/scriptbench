@@ -56,7 +56,7 @@ export default function Graph(props: GraphProps) {
 
   return (
     <frame
-      Size={new UDim2(0.975, 0, 0.975, 0)}
+      Size={new UDim2(0.985, 0, 1, 0)}
       BackgroundColor3={COLORS.Background}
       Position={new UDim2(0.5, 0, 0.5, 0)}
       AnchorPoint={new Vector2(0.5, 0.5)}

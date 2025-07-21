@@ -11,9 +11,11 @@ const REQUIRED_PREFIX = ".bench";
 /* Types */
 export type BenchmarkResults = Map<string, Map<number, number>>;
 interface FormattedBenchmarkScript<T> {
-  Parameter: () => T;
-  Functions: { [name: string]: (lib: typeof BenchmarkLibrary, arg: T) => void };
-  Name: string;
+  Parameter?: () => T;
+  Functions?: {
+    [name: string]: (lib: typeof BenchmarkLibrary, arg: T) => void;
+  };
+  Name?: string;
 
   /* Before + After functions */
   BeforeAll?: () => void;
@@ -210,16 +212,18 @@ function Benchmark(
 
   table.clear(globalProfileLog);
   for (let count = 0; count <= calls; count++) {
-    const parameter = requiredModule.Parameter();
+    const parameter = requiredModule.Parameter
+      ? [requiredModule.Parameter()]
+      : []; /* this is extremely weird hacking of the typescript compiler so we can absorb lua tuples */
 
     /* benchmark! */
     globalProfileLog.push([]); /* start on a new entry */
 
-    const usingFunction = requiredModule.Functions[use];
+    const usingFunction = requiredModule.Functions![use];
 
     requiredModule.BeforeEach?.();
     const start = os.clock();
-    usingFunction(BenchmarkLibrary, parameter);
+    usingFunction(BenchmarkLibrary, ...(parameter as [unknown]));
     const end_ = os.clock();
     requiredModule.AfterEach?.();
 
@@ -268,8 +272,11 @@ export function GetBenchmarkableModules() {
     if (!module.IsA("ModuleScript")) continue;
     if (!String.endsWith(module.Name, REQUIRED_PREFIX))
       continue; /* does not match required suffix */
+
     try {
-      require(module);
+      const required = require(module) as FormattedBenchmarkScript<unknown>;
+      if (!required.Functions)
+        throw `Module ${module.Name} does not have Functions.`;
     } catch (e) {
       warn(`Module ${module.Name} failed to load:`, e);
       continue; /* not a valid module */
@@ -297,7 +304,7 @@ export default function BenchmarkAll(
   // First, run all benchmarks and store the results
   xpcall(
     () => {
-      const functions = Object.keys(requiredModule.Functions);
+      const functions = Object.keys(requiredModule.Functions!);
 
       let index = 0;
 

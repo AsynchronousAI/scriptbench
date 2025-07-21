@@ -10,6 +10,7 @@ interface Settings {
   LineSat: number;
   LineVal: number;
   FilterOutliers: boolean;
+  OutlierDivider: number;
 }
 
 export const DefaultSettings: Settings = {
@@ -19,6 +20,7 @@ export const DefaultSettings: Settings = {
   LineSat: 63,
   LineVal: 84,
   FilterOutliers: true,
+  OutlierDivider: 350,
 };
 
 /* Access methods */

@@ -26,7 +26,7 @@ function bytesToNumberLE(str: string): number {
 
 export default function Results(props: ResultsProps) {
   const px = usePx();
-  const size = px(35);
+  const size = px(30);
   const [openStates, setOpenStates] = useState(() =>
     props.Results.map(() => true),
   );
