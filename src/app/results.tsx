@@ -21,7 +21,7 @@ function bytesToNumberLE(str: string): number {
   for (let i = 0; i < bytes.size(); i++) {
     result += bytes[i] * math.pow(256, i);
   }
-  return result;
+  return result % 100;
 }
 
 export default function Results(props: ResultsProps) {
