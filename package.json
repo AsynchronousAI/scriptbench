@@ -2,9 +2,9 @@
   "name": "scriptbench",
   "version": "1.0.0",
   "scripts": {
-    "dev": "cp serve.project.json default.project.json && rbxtsc && concurrently \"rbxtsc -w\" \"rojo serve\"",
-    "build": "cp build.project.json default.project.json && rbxtsc && rojo build --output Scriptbench.rbxm",
-    "plugin": "cp build.project.json default.project.json && rbxtsc && rojo build --plugin Scriptbench.rbxm"
+    "dev": "fse copy serve.project.json default.project.json && rbxtsc && concurrently \"rbxtsc -w\" \"rojo serve\"",
+    "build": "fse copy build.project.json default.project.json && rbxtsc && rojo build --output Scriptbench.rbxm",
+    "plugin": "fse copy build.project.json default.project.json && rbxtsc && rojo build --plugin Scriptbench.rbxm"
   },
   "keywords": [],
   "author": "AsynchronousAI",
@@ -15,7 +15,8 @@
     "@rbxts/types": "^1.0.864",
     "concurrently": "^7.6.0",
     "roblox-ts": "3.0.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "@atao60/fse-cli": "^0.1.9"
   },
   "dependencies": {
     "@rbxts/luau-polyfill": "^1.1.3",
