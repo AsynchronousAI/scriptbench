@@ -8,9 +8,6 @@ import { FormatNumber, GetKeyColor } from "./graph/computation";
 import { Settings } from "settings";
 
 /* Constants  */
-const HEIGHT = 30;
-const PADDING = 0.25; /* in scale */
-
 const gradient = (color: Color3) =>
   new ColorSequence([
     new ColorSequenceKeypoint(0, LightenColor(color, 0.025)),
@@ -57,8 +54,8 @@ function MicroProfilerProcesses(props: {
         ZIndex={zindex}
         BorderColor3={COLORS.Border}
         BackgroundColor3={new Color3(1, 1, 1)}
-        Size={new UDim2(time / props.maxTime, 0, (1 - PADDING) * 0.5, 0)}
-        Position={new UDim2(thisPosition, 0, (1 - PADDING) * 0.5, 0)}
+        Size={new UDim2(time / props.maxTime, 0, 1, 0)}
+        Position={new UDim2(thisPosition, 0, 0, 0)}
         Text=""
         AutoButtonColor={false}
         Event={{
@@ -100,34 +97,19 @@ export default function MicroProfiler(props: MicroProfilerProps) {
     <ScrollFrame ScrollingDirection={Enum.ScrollingDirection.XY}>
       {Object.entries(props.Results).map(([name, time]) => {
         const color = GetKeyColor(name as string)[0];
+
         const microprofiler = props.MicroProfiler?.get(name as string);
+        const microprofilerItems = microprofiler?.Avg?.size();
+        const microprofilerExists =
+          microprofilerItems && microprofilerItems > 0;
 
         return (
-          <frame /* No idea on how to add padding for ScrollBar, so just stack frames :> */
-            BackgroundTransparency={1}
-            Size={
-              new UDim2(
-                time / maxTime,
-                0,
-                0,
-                px(HEIGHT) * (microprofiler ? 2 : 1),
-              )
-            }
-            LayoutOrder={maxTime - time}
-          >
+          <>
             {/* Main frame */}
             <frame
-              ZIndex={2}
               BorderColor3={COLORS.Border}
               BackgroundColor3={new Color3(1, 1, 1)}
-              Size={
-                new UDim2(
-                  time / maxTime,
-                  0,
-                  (1 - PADDING) * (microprofiler ? 0.5 : 1),
-                  0,
-                )
-              }
+              Size={new UDim2(time / maxTime, 0, 0.25, 0)}
             >
               <textlabel
                 Text={`<b>${name as string}</b> ${FormatNumber(time)}µs`}
@@ -148,18 +130,23 @@ export default function MicroProfiler(props: MicroProfilerProps) {
             </frame>
 
             {/* MicroProfiler frame */}
-            {microprofiler && (
-              <MicroProfilerProcesses
-                processes={microprofiler}
-                maxTime={maxTime}
-                time={time}
-                color={color}
-                onClick={(thisName) =>
-                  props.OnClick?.(name as string, thisName)
-                }
-              />
-            )}
-          </frame>
+            {microprofilerExists ? (
+              <frame
+                BackgroundTransparency={1}
+                Size={new UDim2(time / maxTime, 0, 0.25, 0)}
+              >
+                <MicroProfilerProcesses
+                  processes={microprofiler!}
+                  maxTime={maxTime}
+                  time={time}
+                  color={color}
+                  onClick={(thisName) =>
+                    props.OnClick?.(name as string, thisName)
+                  }
+                />
+              </frame>
+            ) : undefined}
+          </>
         );
       })}
     </ScrollFrame>
