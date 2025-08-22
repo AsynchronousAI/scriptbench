@@ -6,8 +6,8 @@ function c(color: Enum.StudioStyleGuideColor) {
 }
 
 export const COLORS = {
-  Background: c(Enum.StudioStyleGuideColor.ScrollBarBackground),
-  LightBackground: c(Enum.StudioStyleGuideColor.MainBackground),
+  Background: c(Enum.StudioStyleGuideColor.MainBackground),
+  LightBackground: c(Enum.StudioStyleGuideColor.ScrollBarBackground),
   Border: c(Enum.StudioStyleGuideColor.Border),
   Text: c(Enum.StudioStyleGuideColor.SubText),
   DarkText: new Color3(0.12, 0.12, 0.12),
