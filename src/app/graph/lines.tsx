@@ -11,6 +11,7 @@ import {
   GetKeyColor,
 } from "./computation";
 import { LINE_WIDTH } from "configurations";
+import { Atoms } from "app/atoms";
 
 function Line(props: {
   Container?: RefObject<Frame>;
@@ -28,18 +29,12 @@ function Line(props: {
   domainRange: DomainRange;
 }) {
   const px = usePx();
-  const [x, setX] = useState(0);
-  const [y, setY] = useState(0);
-  const [showLabel, setShowLabel] = useState(false);
 
   const { DomainMin, DomainMax, RangeMin, RangeMax } = props.domainRange;
 
   const Events = {
-    MouseEnter: () => {
-      setShowLabel(true);
-    },
     MouseLeave: () => {
-      setShowLabel(false);
+      Atoms.hoveringLine(undefined);
     },
     MouseMoved: (_: Instance, mouseX: number, mouseY: number) => {
       const container = props.Container?.current;
@@ -50,40 +45,19 @@ function Line(props: {
       const guiSizeX = container.AbsoluteSize.X;
       const guiSizeY = container.AbsoluteSize.Y;
 
-      setX((mouseX - guiX) / guiSizeX);
-      setY((mouseY - guiY) / guiSizeY);
+      Atoms.hoveringLine({
+        text: props.Name,
+        position: new Vector2(
+          (mouseX - guiX) / guiSizeX,
+          (mouseY - guiY) / guiSizeY,
+        ),
+        color: props.Color,
+      });
     },
   } as unknown as InstanceEvent<Frame>;
 
   return (
     <>
-      {/* Label */}
-      <frame
-        Visible={showLabel}
-        Size={new UDim2(0.15, 0, 0.15, 0)}
-        BackgroundColor3={COLORS.LightBackground}
-        BorderColor3={COLORS.Border}
-        Position={new UDim2(x, 0, y, 0)}
-        ZIndex={props.ZIndex + 1}
-      >
-        <uipadding
-          PaddingTop={new UDim(0.1, 0)}
-          PaddingBottom={new UDim(0.1, 0)}
-        />
-        <textlabel
-          Font={Enum.Font.Code}
-          Size={new UDim2(1, 0, 1, 0)}
-          BackgroundTransparency={1}
-          TextColor3={COLORS.FocusText}
-          TextScaled
-          ZIndex={props.ZIndex + 2}
-          RichText
-          Text={`<b><font color="#${props.Color.ToHex()}">${props.Name}</font></b>
-${FormatNumber(FromPosition(DomainMin, DomainMax, x))}µs
-${math.floor(FromPosition(RangeMin, RangeMax, y, true))} Calls`}
-        />
-      </frame>
-
       {/* Travel across X */}
       <frame
         BorderSizePixel={0}

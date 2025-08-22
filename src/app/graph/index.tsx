@@ -3,8 +3,16 @@ import { COLORS } from "colors";
 import { usePx } from "hooks/usePx";
 import { Lines } from "./lines";
 import { Labels } from "./labels";
-import { AsPosition, ComputeRangeDomain, GetKeyColor } from "./computation";
+import {
+  AsPosition,
+  ComputeRangeDomain,
+  FormatNumber,
+  FromPosition,
+  GetKeyColor,
+} from "./computation";
 import { LABEL_THICKNESS, LINE_WIDTH } from "configurations";
+import { useAtom } from "@rbxts/react-charm";
+import { Atoms } from "app/atoms";
 
 /** Types */
 export type GraphData = { [key: string]: { [key: number]: number } };
@@ -52,6 +60,8 @@ function HighlightedX(props: {
 export default function Graph(props: GraphProps) {
   const domainRange = ComputeRangeDomain(props.Data);
 
+  const hoveringLine = useAtom(Atoms.hoveringLine);
+
   const containerRef = useRef<Frame>(undefined);
 
   return (
@@ -85,6 +95,40 @@ export default function Graph(props: GraphProps) {
           XPrefix={props.XPrefix}
           YPrefix={props.YPrefix}
         />
+
+        {/* Hover Label */}
+        {hoveringLine && (
+          <frame
+            Size={new UDim2(0.15, 0, 0.15, 0)}
+            BackgroundColor3={COLORS.LightBackground}
+            BorderColor3={COLORS.Border}
+            Position={
+              new UDim2(
+                hoveringLine.position.X ?? 0,
+                0,
+                hoveringLine.position.Y ?? 0,
+                0,
+              )
+            }
+            ZIndex={math.huge}
+          >
+            <uipadding
+              PaddingTop={new UDim(0.1, 0)}
+              PaddingBottom={new UDim(0.1, 0)}
+            />
+            <textlabel
+              Font={Enum.Font.Code}
+              Size={new UDim2(1, 0, 1, 0)}
+              BackgroundTransparency={1}
+              TextColor3={COLORS.FocusText}
+              TextScaled
+              RichText
+              Text={`<b><font color="#${hoveringLine.color.ToHex()}">${hoveringLine.text}</font></b>
+${FormatNumber(FromPosition(domainRange.DomainMin, domainRange.DomainMax, hoveringLine.position.X))}µs
+${math.floor(FromPosition(domainRange.RangeMin, domainRange.RangeMax, hoveringLine.position.Y, true))} Calls`}
+            />
+          </frame>
+        )}
       </frame>
     </frame>
   );
