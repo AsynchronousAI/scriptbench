@@ -10,7 +10,7 @@ const toolbar = plugin.CreateToolbar(`Scriptbench v${VERSION_NUMBER}`);
 const toggle = toolbar.CreateButton(
   "Scriptbench",
   "Benchmarker with graphs, tables, and a microprofiler!",
-  "rbxassetid://105442920358687",
+  "rbxassetid://139419069549889",
 );
 
 function main() {
