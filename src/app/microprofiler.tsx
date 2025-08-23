@@ -1,6 +1,10 @@
 import { Object } from "@rbxts/luau-polyfill";
-import React from "@rbxts/react";
-import { ScrollFrame } from "@rbxts/studiocomponents-react2";
+import React, { useState } from "@rbxts/react";
+import {
+  Button,
+  MainButton,
+  ScrollFrame,
+} from "@rbxts/studiocomponents-react2";
 import { ProfileLog, Stats } from "benchmark";
 import { COLORS, LightenColor } from "colors";
 import { usePx } from "hooks/usePx";
@@ -89,66 +93,96 @@ function MicroProfilerProcesses(props: {
 }
 export default function MicroProfiler(props: MicroProfilerProps) {
   const px = usePx();
+  const [spacing, setSpacing] = useState(1);
   const maxTime =
     math.max(...Object.values(props.Results)) *
     1.01; /* multiply for a bit of padding */
+  const displaySize = maxTime + spacing;
 
   return (
-    <ScrollFrame ScrollingDirection={Enum.ScrollingDirection.XY}>
-      {Object.entries(props.Results).map(([name, time]) => {
-        const color = GetKeyColor(name as string)[0];
+    <>
+      <Button
+        ZIndex={2}
+        Icon={{
+          Image: "rbxassetid://12072054746",
+          Size: Vector2.one.mul(24),
+          UseThemeColor: true,
+          Alignment: Enum.HorizontalAlignment.Left,
+        }}
+        Size={new UDim2(0, px(25), 0, px(25))}
+        Position={new UDim2(0.95, 0, 0.5, px(-15))}
+        AnchorPoint={new Vector2(0.5, 0.5)}
+        OnActivated={() => setSpacing((r) => (r -= 1))}
+      />
+      <Button
+        ZIndex={2}
+        Icon={{
+          Image: "rbxassetid://15396333997",
+          Size: Vector2.one.mul(24),
+          UseThemeColor: true,
+          Alignment: Enum.HorizontalAlignment.Left,
+        }}
+        Size={new UDim2(0, px(25), 0, px(25))}
+        Position={new UDim2(0.95, 0, 0.5, px(15))}
+        AnchorPoint={new Vector2(0.5, 0.5)}
+        OnActivated={() => setSpacing((r) => (r += 1))}
+      />
+      <ScrollFrame ScrollingDirection={Enum.ScrollingDirection.XY}>
+        {Object.entries(props.Results).map(([name, time]) => {
+          const color = GetKeyColor(name as string)[0];
 
-        const microprofiler = props.MicroProfiler?.get(name as string);
-        const microprofilerItems = microprofiler?.Avg?.size();
-        const microprofilerExists =
-          microprofilerItems && microprofilerItems > 0;
+          const microprofiler = props.MicroProfiler?.get(name as string);
+          const microprofilerItems = microprofiler?.Avg?.size();
+          const microprofilerExists =
+            microprofilerItems && microprofilerItems > 0;
 
-        return (
-          <>
-            {/* Main frame */}
-            <frame
-              BorderColor3={COLORS.Border}
-              BackgroundColor3={new Color3(1, 1, 1)}
-              Size={new UDim2(time / maxTime, 0, 0.25, 0)}
-            >
-              <textlabel
-                Text={`<b>${name as string}</b> ${FormatNumber(time)}µs`}
-                RichText
-                TextColor3={COLORS.DarkText}
-                TextTransparency={0.2}
-                ZIndex={3}
-                Font={"Code"}
-                TextScaled
-                TextXAlignment={Enum.TextXAlignment.Left}
-                TextYAlignment={Enum.TextYAlignment.Center}
-                BackgroundTransparency={1}
-                Size={new UDim2(1, -px(20), 0.65, 0)}
-                Position={new UDim2(0.5, 0, 0.5, 0)}
-                AnchorPoint={new Vector2(0.5, 0.5)}
-              />
-              <uigradient Color={gradient(color)} />
-            </frame>
-
-            {/* MicroProfiler frame */}
-            {microprofilerExists ? (
+          return (
+            <>
+              {/* Main frame */}
               <frame
-                BackgroundTransparency={1}
-                Size={new UDim2(time / maxTime, 0, 0.25, 0)}
+                BorderColor3={COLORS.Border}
+                BackgroundColor3={new Color3(1, 1, 1)}
+                Size={new UDim2(time / displaySize, 0, 0.25, 0)}
               >
-                <MicroProfilerProcesses
-                  processes={microprofiler!}
-                  maxTime={maxTime}
-                  time={time}
-                  color={color}
-                  onClick={(thisName) =>
-                    props.OnClick?.(name as string, thisName)
-                  }
+                <textlabel
+                  Text={`<b>${name as string}</b> ${FormatNumber(time)}µs`}
+                  RichText
+                  TextColor3={COLORS.DarkText}
+                  TextTransparency={0.2}
+                  ZIndex={3}
+                  Font={"Code"}
+                  TextScaled
+                  TextXAlignment={Enum.TextXAlignment.Left}
+                  TextYAlignment={Enum.TextYAlignment.Center}
+                  BackgroundTransparency={1}
+                  Size={new UDim2(1, -px(20), 0.65, 0)}
+                  Position={new UDim2(0.5, 0, 0.5, 0)}
+                  AnchorPoint={new Vector2(0.5, 0.5)}
                 />
+                <uigradient Color={gradient(color)} />
               </frame>
-            ) : undefined}
-          </>
-        );
-      })}
-    </ScrollFrame>
+
+              {/* MicroProfiler frame */}
+              {microprofilerExists ? (
+                <frame
+                  BackgroundTransparency={1}
+                  Size={new UDim2(time / displaySize, 0, 0.25, 0)}
+                >
+                  <MicroProfilerProcesses
+                    processes={microprofiler!}
+                    maxTime={displaySize}
+                    time={time}
+                    color={color}
+                    onClick={(thisName) =>
+                      props.OnClick?.(name as string, thisName)
+                    }
+                  />
+                </frame>
+              ) : undefined}
+            </>
+          );
+        })}
+      </ScrollFrame>
+    </>
   );
 }
