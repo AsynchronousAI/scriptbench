@@ -5,14 +5,14 @@ import { Lines } from "./lines";
 import { Labels } from "./labels";
 import {
   AsPosition,
-  ComputeRangeDomain,
+  useDomainRange,
   FormatNumber,
   FromPosition,
   GetKeyColor,
 } from "./computation";
 import { LABEL_THICKNESS, LINE_WIDTH } from "configurations";
 import { useAtom } from "@rbxts/react-charm";
-import { Atoms } from "app/atoms";
+import { GraphAtoms } from "app/graph/atoms";
 
 /** Types */
 export type GraphData = { [key: string]: { [key: number]: number } };
@@ -58,9 +58,9 @@ function HighlightedX(props: {
 
 /* Main */
 export default function Graph(props: GraphProps) {
-  const domainRange = ComputeRangeDomain(props.Data);
+  const domainRange = useDomainRange(props.Data);
 
-  const hoveringLine = useAtom(Atoms.hoveringLine);
+  const hoveringLine = useAtom(GraphAtoms.hoveringLine);
   const lineTime =
     hoveringLine &&
     FormatNumber(
@@ -107,7 +107,7 @@ export default function Graph(props: GraphProps) {
             const guiSizeX = container.AbsoluteSize.X;
             const guiSizeY = container.AbsoluteSize.Y;
 
-            Atoms.hoveringLine((current) => ({
+            GraphAtoms.hoveringLine((current) => ({
               text: current?.text,
               position: new Vector2(
                 (mouseX - guiX) / guiSizeX,

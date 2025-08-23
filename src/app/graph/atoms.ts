@@ -1,6 +1,8 @@
 import { atom } from "@rbxts/charm";
 
-export const Atoms = {
+export const GraphAtoms = {
+  zoom: atom(4),
+  focusedX: atom(0),
   hoveringLine: atom<
     | {
         text?: string;

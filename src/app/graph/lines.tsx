@@ -1,17 +1,13 @@
 import { InstanceEvent, RefObject, useState } from "@rbxts/react";
 import { DomainRange, GraphData } from ".";
 import { usePx } from "hooks/usePx";
-import { COLORS } from "colors";
 import React from "@rbxts/react";
 import { Object } from "@rbxts/luau-polyfill";
-import {
-  AsPosition,
-  FormatNumber,
-  FromPosition,
-  GetKeyColor,
-} from "./computation";
+import { AsPosition, GetKeyColor } from "./computation";
 import { LINE_WIDTH } from "configurations";
-import { Atoms } from "app/atoms";
+import { GraphAtoms } from "app/graph/atoms";
+
+const MIN_TRANSPARENCY = 0.9;
 
 function Line(props: {
   Container?: RefObject<Frame>;
@@ -34,14 +30,14 @@ function Line(props: {
 
   const Events = {
     MouseEnter: () => {
-      Atoms.hoveringLine((current) => ({
+      GraphAtoms.hoveringLine((current) => ({
         text: props.Name,
         color: props.Color,
         position: current ? current.position : new Vector2(0, 0),
       }));
     },
     MouseLeave: () => {
-      Atoms.hoveringLine((current) => ({
+      GraphAtoms.hoveringLine((current) => ({
         text: undefined,
         color: props.Color,
         position: current ? current.position : new Vector2(0, 0),
@@ -130,9 +126,10 @@ function Line(props: {
             new NumberSequence([
               new NumberSequenceKeypoint(
                 0,
-                1 - AsPosition(RangeMin, RangeMax, props.StartY) / 1.75,
+                MIN_TRANSPARENCY -
+                  AsPosition(RangeMin, RangeMax, props.StartY) / 1.75,
               ),
-              new NumberSequenceKeypoint(1, 1),
+              new NumberSequenceKeypoint(1, MIN_TRANSPARENCY),
             ])
           }
         />

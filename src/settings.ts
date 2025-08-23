@@ -14,13 +14,13 @@ interface Settings {
 }
 
 export const DefaultSettings: Settings = {
-  PrioritizedStat: "Avg",
+  PrioritizedStat: "Mode",
   Batching: 100,
   LineHue: 0,
   LineSat: 63,
   LineVal: 84,
   FilterOutliers: true,
-  OutlierDivider: 350,
+  OutlierDivider: 10_000,
 };
 
 /* Access methods */

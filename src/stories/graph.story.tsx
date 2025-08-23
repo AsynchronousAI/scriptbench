@@ -1,14 +1,21 @@
 import React from "@rbxts/react";
 import ReactRoblox from "@rbxts/react-roblox";
+import { Slider } from "@rbxts/ui-labs";
 import Graph, { GraphProps } from "app/graph";
-const controls = {};
+import { GraphAtoms } from "app/graph/atoms";
+const controls = {
+  Zoom: Slider(1, 1, 5, 0.1),
+  Scroll: 0,
+};
 
 const story = {
   react: React,
   reactRoblox: ReactRoblox,
   controls: controls,
-  story: (input: { controls: GraphProps }) => {
-    const props: GraphProps = input.controls;
+  story: (input: { controls: typeof controls }) => {
+    GraphAtoms.focusedX(input.controls.Scroll);
+    GraphAtoms.zoom(input.controls.Zoom as unknown as number);
+
     const component = (
       <Graph
         Data={{

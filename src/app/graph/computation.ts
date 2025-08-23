@@ -1,6 +1,8 @@
 import { Object } from "@rbxts/luau-polyfill";
 import { DomainRange } from ".";
 import { Settings } from "settings";
+import { GraphAtoms } from "./atoms";
+import { useAtom } from "@rbxts/react-charm";
 
 /* Handles math for rendering, like converting values to position */
 export function AsPosition(
@@ -33,12 +35,15 @@ export function FromPosition(
 export function FormatNumber(value: number, prefix?: string): string {
   return string.format("%.2f", value) + (prefix || "");
 }
-export function ComputeRangeDomain(
+export function useDomainRange(
   data: {
     [key: string]: { [key: number]: number };
   },
   baseline: number = 0 /* set to math.huge to disable */,
 ): DomainRange {
+  const zoom = useAtom(GraphAtoms.zoom);
+  const focusedX = useAtom(GraphAtoms.focusedX);
+
   let domainMin = math.huge;
   let domainMax = -math.huge;
   let rangeMin = math.huge;
@@ -52,6 +57,9 @@ export function ComputeRangeDomain(
       rangeMax = math.max(rangeMax, range);
     }
   }
+
+  domainMin = domainMin + focusedX;
+  domainMax = (domainMax + focusedX) / zoom;
 
   return {
     DomainMin: domainMin,
