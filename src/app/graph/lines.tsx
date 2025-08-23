@@ -33,26 +33,19 @@ function Line(props: {
   const { DomainMin, DomainMax, RangeMin, RangeMax } = props.domainRange;
 
   const Events = {
-    MouseLeave: () => {
-      Atoms.hoveringLine(undefined);
-    },
-    MouseMoved: (_: Instance, mouseX: number, mouseY: number) => {
-      const container = props.Container?.current;
-      if (!container) return;
-
-      const guiX = container.AbsolutePosition.X;
-      const guiY = container.AbsolutePosition.Y;
-      const guiSizeX = container.AbsoluteSize.X;
-      const guiSizeY = container.AbsoluteSize.Y;
-
-      Atoms.hoveringLine({
+    MouseEnter: () => {
+      Atoms.hoveringLine((current) => ({
         text: props.Name,
-        position: new Vector2(
-          (mouseX - guiX) / guiSizeX,
-          (mouseY - guiY) / guiSizeY,
-        ),
         color: props.Color,
-      });
+        position: current ? current.position : new Vector2(0, 0),
+      }));
+    },
+    MouseLeave: () => {
+      Atoms.hoveringLine((current) => ({
+        text: undefined,
+        color: props.Color,
+        position: current ? current.position : new Vector2(0, 0),
+      }));
     },
   } as unknown as InstanceEvent<Frame>;
 

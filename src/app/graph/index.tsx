@@ -61,6 +61,25 @@ export default function Graph(props: GraphProps) {
   const domainRange = ComputeRangeDomain(props.Data);
 
   const hoveringLine = useAtom(Atoms.hoveringLine);
+  const lineTime =
+    hoveringLine &&
+    FormatNumber(
+      FromPosition(
+        domainRange.DomainMin,
+        domainRange.DomainMax,
+        hoveringLine.position.X,
+      ),
+    );
+  const lineCalls =
+    hoveringLine &&
+    math.floor(
+      FromPosition(
+        domainRange.RangeMin,
+        domainRange.RangeMax,
+        hoveringLine.position.Y,
+        true,
+      ),
+    );
 
   const containerRef = useRef<Frame>(undefined);
 
@@ -78,6 +97,26 @@ export default function Graph(props: GraphProps) {
         Position={new UDim2(0.5, 0, 0.5, 0)}
         AnchorPoint={new Vector2(0.5, 0.5)}
         ref={containerRef}
+        Event={{
+          MouseMoved: (_: Instance, mouseX, mouseY) => {
+            const container = containerRef?.current;
+            if (!container) return;
+
+            const guiX = container.AbsolutePosition.X;
+            const guiY = container.AbsolutePosition.Y;
+            const guiSizeX = container.AbsoluteSize.X;
+            const guiSizeY = container.AbsoluteSize.Y;
+
+            Atoms.hoveringLine((current) => ({
+              text: current?.text,
+              position: new Vector2(
+                (mouseX - guiX) / guiSizeX,
+                (mouseY - guiY) / guiSizeY,
+              ),
+              color: current?.color ?? new Color3(),
+            }));
+          },
+        }}
       >
         {props.HighlightedX && (
           <HighlightedX
@@ -99,7 +138,7 @@ export default function Graph(props: GraphProps) {
         {/* Hover Label */}
         {hoveringLine && (
           <frame
-            Size={new UDim2(0.15, 0, 0.15, 0)}
+            Size={new UDim2(0.1, 0, hoveringLine.text ? 0.15 : 0.1, 0)}
             BackgroundColor3={COLORS.LightBackground}
             BorderColor3={COLORS.Border}
             Position={
@@ -123,9 +162,11 @@ export default function Graph(props: GraphProps) {
               TextColor3={COLORS.FocusText}
               TextScaled
               RichText
-              Text={`<b><font color="#${hoveringLine.color.ToHex()}">${hoveringLine.text}</font></b>
-${FormatNumber(FromPosition(domainRange.DomainMin, domainRange.DomainMax, hoveringLine.position.X))}µs
-${math.floor(FromPosition(domainRange.RangeMin, domainRange.RangeMax, hoveringLine.position.Y, true))} Calls`}
+              Text={
+                (hoveringLine.text
+                  ? `<b><font color="#${hoveringLine.color.ToHex()}">${hoveringLine.text}</font></b>\n`
+                  : ``) + `${lineTime}µs\n${lineCalls} Calls`
+              }
             />
           </frame>
         )}

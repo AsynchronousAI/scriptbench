@@ -3,7 +3,7 @@ import { atom } from "@rbxts/charm";
 export const Atoms = {
   hoveringLine: atom<
     | {
-        text: string;
+        text?: string;
         position: Vector2;
         color: Color3;
       }
