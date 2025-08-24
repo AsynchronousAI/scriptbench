@@ -279,7 +279,7 @@ export function App() {
         benchmarkState.calls / SettingsNamespace.GetSetting("OutlierDivider"),
       ),
     }));
-    GraphAtoms.zoom(0);
+    GraphAtoms.zoom(1);
   };
 
   /** Functions */
