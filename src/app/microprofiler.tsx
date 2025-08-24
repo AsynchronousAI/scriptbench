@@ -112,7 +112,7 @@ export default function MicroProfiler(props: MicroProfilerProps) {
         Size={new UDim2(0, px(25), 0, px(25))}
         Position={new UDim2(0.95, 0, 0.5, px(-15))}
         AnchorPoint={new Vector2(0.5, 0.5)}
-        OnActivated={() => setSpacing((r) => (r -= 1))}
+        OnActivated={() => setSpacing((r) => (r -= 5))}
       />
       <Button
         ZIndex={2}
@@ -125,7 +125,7 @@ export default function MicroProfiler(props: MicroProfilerProps) {
         Size={new UDim2(0, px(25), 0, px(25))}
         Position={new UDim2(0.95, 0, 0.5, px(15))}
         AnchorPoint={new Vector2(0.5, 0.5)}
-        OnActivated={() => setSpacing((r) => (r += 1))}
+        OnActivated={() => setSpacing((r) => (r += 5))}
       />
       <ScrollFrame ScrollingDirection={Enum.ScrollingDirection.XY}>
         {Object.entries(props.Results).map(([name, time]) => {
