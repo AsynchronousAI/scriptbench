@@ -58,6 +58,9 @@ function BenchmarkPicker() {
             .Clone()!;
           clonedTemplate.Parent = Selection.Get()[0] || Workspace;
           Selection.Set([clonedTemplate]);
+          game
+            .GetService("ScriptEditorService")
+            .OpenScriptDocumentAsync(clonedTemplate as LuaSourceContainer);
         }}
       />
     </DropShadowFrame>

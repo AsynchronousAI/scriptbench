@@ -18,6 +18,14 @@ export interface SidebarProps {
   ToggleSettings?: () => void;
   SettingsOpen?: boolean;
 }
+interface BottomButtonProps {
+  SettingsOpen?: boolean;
+  Benchmarks: string[];
+  ToggleSettings?: () => void;
+  SetSelected: (benchmarkName: string) => void;
+  OnRefresh?: () => void;
+  OnNew?: () => void;
+}
 
 const GraphIcon = {
   Image: "rbxassetid://105442920358687",
@@ -27,8 +35,84 @@ const GraphIcon = {
 };
 
 const ITEM_SIZE = 32;
-const BOTTOM_BUTTONS_N = 3;
 
+function BottomOptions(props: BottomButtonProps) {
+  const px = usePx();
+  return (
+    <frame
+      Size={new UDim2(1, 0, 0, px(ITEM_SIZE))}
+      Position={new UDim2(0, 0, 1, -px(ITEM_SIZE))}
+      BackgroundTransparency={1}
+    >
+      {/* Bottom to Top */}
+      <uilistlayout
+        FillDirection={"Horizontal"}
+        HorizontalAlignment={"Center"}
+        VerticalAlignment={"Bottom"}
+        Padding={new UDim(0.1, 0)}
+        SortOrder={"LayoutOrder"}
+      />
+      {props.SettingsOpen ? (
+        <MainButton
+          LayoutOrder={props.Benchmarks.size() + 1}
+          Position={new UDim2(1, 0, 0, 0)}
+          Size={new UDim2(0, px(ITEM_SIZE), 0, px(ITEM_SIZE))}
+          Icon={{
+            Image: "rbxassetid://183390139",
+            Color: COLORS.Text,
+            Size: new Vector2(14, 14),
+          }}
+          OnActivated={() => {
+            props.ToggleSettings?.();
+            props.SetSelected("");
+          }}
+        />
+      ) : (
+        <Button
+          LayoutOrder={props.Benchmarks.size() + 1}
+          Position={new UDim2(1, 0, 0, 0)}
+          Size={new UDim2(0, px(ITEM_SIZE), 0, px(ITEM_SIZE))}
+          Icon={{
+            Image: "rbxassetid://183390139",
+            Color: COLORS.Text,
+            Size: new Vector2(14, 14),
+          }}
+          OnActivated={() => {
+            props.ToggleSettings?.();
+            props.SetSelected("");
+          }}
+        />
+      )}
+      <Button
+        LayoutOrder={props.Benchmarks.size() + 2}
+        Position={new UDim2(1, 0, 0, 0)}
+        Size={new UDim2(0, px(ITEM_SIZE), 0, px(ITEM_SIZE))}
+        Icon={{
+          Image: "rbxassetid://11541290790",
+          Color: COLORS.Text,
+          Size: new Vector2(14, 14),
+        }}
+        OnActivated={() => {
+          props.OnRefresh?.();
+          props.SetSelected("");
+        }}
+      />
+      <Button
+        LayoutOrder={props.Benchmarks.size() + 3}
+        Position={new UDim2(1, 0, 0, 0)}
+        Size={new UDim2(0, px(ITEM_SIZE), 0, px(ITEM_SIZE))}
+        Icon={{
+          Image: "rbxassetid://15081504003",
+          Color: COLORS.Text,
+          Size: new Vector2(14, 14),
+        }}
+        OnActivated={() => {
+          props.OnNew?.();
+        }}
+      />
+    </frame>
+  );
+}
 export default function Sidebar(props: SidebarProps) {
   const [currentlySelected, setCurrentlySelected] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -51,7 +135,7 @@ export default function Sidebar(props: SidebarProps) {
         PaddingRight={new UDim(0, px(10))}
       />
       <ScrollFrame
-        Size={new UDim2(1, 0, 1, -px(ITEM_SIZE) * (BOTTOM_BUTTONS_N + 1))}
+        Size={new UDim2(1, 0, 1, -px(ITEM_SIZE * 1.5))}
         PaddingTop={new UDim(0, px(5))}
         PaddingBottom={new UDim(0, px(5))}
         PaddingLeft={new UDim(0, px(5))}
@@ -93,82 +177,14 @@ export default function Sidebar(props: SidebarProps) {
           );
         })}
       </ScrollFrame>
-      <frame
-        Size={new UDim2(1, 0, 0, px(ITEM_SIZE) * BOTTOM_BUTTONS_N)}
-        Position={new UDim2(0, 0, 1, -px(ITEM_SIZE) * BOTTOM_BUTTONS_N)}
-        BackgroundTransparency={1}
-      >
-        {/* Bottom to Top */}
-        <uilistlayout
-          FillDirection={"Vertical"}
-          HorizontalAlignment={"Center"}
-          VerticalAlignment={"Bottom"}
-          Padding={new UDim(0.1, 0)}
-          SortOrder={"LayoutOrder"}
-        />
-        {props.SettingsOpen ? (
-          <MainButton
-            LayoutOrder={props.Benchmarks.size() + 1}
-            Position={new UDim2(1, 0, 0, 0)}
-            Size={new UDim2(1, 0, 0, px(ITEM_SIZE))}
-            Text="Settings"
-            Icon={{
-              Image: "rbxassetid://183390139",
-              Color: COLORS.Text,
-              Size: new Vector2(14, 14),
-            }}
-            OnActivated={() => {
-              props.ToggleSettings?.();
-              setCurrentlySelected("");
-            }}
-          />
-        ) : (
-          <Button
-            LayoutOrder={props.Benchmarks.size() + 1}
-            Position={new UDim2(1, 0, 0, 0)}
-            Size={new UDim2(1, 0, 0, px(ITEM_SIZE))}
-            Text="Settings"
-            Icon={{
-              Image: "rbxassetid://183390139",
-              Color: COLORS.Text,
-              Size: new Vector2(14, 14),
-            }}
-            OnActivated={() => {
-              props.ToggleSettings?.();
-              setCurrentlySelected("");
-            }}
-          />
-        )}
-        <Button
-          LayoutOrder={props.Benchmarks.size() + 2}
-          Position={new UDim2(1, 0, 0, 0)}
-          Size={new UDim2(1, 0, 0, px(ITEM_SIZE))}
-          Text="Refresh"
-          Icon={{
-            Image: "rbxassetid://11541290790",
-            Color: COLORS.Text,
-            Size: new Vector2(14, 14),
-          }}
-          OnActivated={() => {
-            props.OnRefresh?.();
-            setCurrentlySelected("");
-          }}
-        />
-        <Button
-          LayoutOrder={props.Benchmarks.size() + 3}
-          Position={new UDim2(1, 0, 0, 0)}
-          Size={new UDim2(1, 0, 0, px(ITEM_SIZE))}
-          Text="New Bench"
-          Icon={{
-            Image: "rbxassetid://15081504003",
-            Color: COLORS.Text,
-            Size: new Vector2(14, 14),
-          }}
-          OnActivated={() => {
-            props.OnNew?.();
-          }}
-        />
-      </frame>
+      <BottomOptions
+        SetSelected={setCurrentlySelected}
+        SettingsOpen={props.SettingsOpen}
+        OnRefresh={props.OnRefresh}
+        OnNew={props.OnNew}
+        ToggleSettings={props.ToggleSettings}
+        Benchmarks={props.Benchmarks}
+      />
     </frame>
   );
 }
