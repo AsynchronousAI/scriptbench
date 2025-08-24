@@ -15,10 +15,6 @@ import BenchmarkAll, {
   FilterMap,
   GetBenchmarkableModules,
   GetBenchmarkName,
-  ProfileLog,
-  ProfileLogStats,
-  Stats,
-  ToMicroprofilerData,
 } from "benchmark";
 import { Workspace } from "@rbxts/services";
 import MicroProfiler from "./microprofiler";
@@ -33,6 +29,9 @@ import Settings from "./settings";
 import { Settings as SettingsNamespace } from "settings";
 import { Object } from "@rbxts/luau-polyfill";
 import { GetKeyColor } from "./graph/computation";
+import { ProfileLog, Stats } from "benchmark/types";
+import { ProfileLogStats, ToMicroprofilerData } from "benchmark/profiler";
+import { GraphAtoms } from "./graph/atoms";
 
 // Separate state interfaces for better organization
 interface UIState {
@@ -280,6 +279,7 @@ export function App() {
         benchmarkState.calls / SettingsNamespace.GetSetting("OutlierDivider"),
       ),
     }));
+    GraphAtoms.zoom(0);
   };
 
   /** Functions */

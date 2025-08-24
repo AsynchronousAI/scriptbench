@@ -1,5 +1,3 @@
-import { Stats } from "benchmark";
-
 /** Configurations */
 export const VERSION_NUMBER = "1.1.0";
 

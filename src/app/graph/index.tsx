@@ -104,7 +104,7 @@ export default function Graph(props: GraphProps) {
         Size={new UDim2(0, px(25), 0, px(25))}
         Position={new UDim2(0.95, 0, 0.5, px(-15))}
         AnchorPoint={new Vector2(0.5, 0.5)}
-        OnActivated={() => GraphAtoms.zoom((r) => math.min(r + 1, 10))}
+        OnActivated={() => GraphAtoms.zoom((r) => math.min(r + 1, 15))}
       />
       <Button
         ZIndex={2}

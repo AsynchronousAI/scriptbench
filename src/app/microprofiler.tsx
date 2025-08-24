@@ -5,11 +5,11 @@ import {
   MainButton,
   ScrollFrame,
 } from "@rbxts/studiocomponents-react2";
-import { ProfileLog, Stats } from "benchmark";
 import { COLORS, LightenColor } from "colors";
 import { usePx } from "hooks/usePx";
 import { FormatNumber, GetKeyColor } from "./graph/computation";
 import { Settings } from "settings";
+import { ProfileLog, Stats } from "benchmark/types";
 
 /* Constants  */
 const gradient = (color: Color3) =>
@@ -143,6 +143,7 @@ export default function MicroProfiler(props: MicroProfilerProps) {
                 BorderColor3={COLORS.Border}
                 BackgroundColor3={new Color3(1, 1, 1)}
                 Size={new UDim2(time / displaySize, 0, 0.25, 0)}
+                LayoutOrder={maxTime - time}
               >
                 <textlabel
                   Text={`<b>${name as string}</b> ${FormatNumber(time)}µs`}
@@ -167,6 +168,7 @@ export default function MicroProfiler(props: MicroProfilerProps) {
                 <frame
                   BackgroundTransparency={1}
                   Size={new UDim2(time / displaySize, 0, 0.25, 0)}
+                  LayoutOrder={maxTime - time}
                 >
                   <MicroProfilerProcesses
                     processes={microprofiler!}

@@ -1,7 +1,7 @@
 import { createContext, useContext } from "@rbxts/react";
 import { HttpService } from "@rbxts/services";
 import PluginContext from "@rbxts/studiocomponents-react2/out/Contexts/PluginContext";
-import { Stats } from "benchmark";
+import { Stats } from "benchmark/types";
 
 interface Settings {
   PrioritizedStat: keyof Stats<unknown>;
@@ -14,7 +14,7 @@ interface Settings {
 }
 
 export const DefaultSettings: Settings = {
-  PrioritizedStat: "Mode",
+  PrioritizedStat: "50%",
   Batching: 100,
   LineHue: 0,
   LineSat: 63,
