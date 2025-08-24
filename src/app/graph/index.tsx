@@ -13,6 +13,7 @@ import {
 import { LABEL_THICKNESS, LINE_WIDTH } from "configurations";
 import { useAtom } from "@rbxts/react-charm";
 import { GraphAtoms } from "app/graph/atoms";
+import { Button } from "@rbxts/studiocomponents-react2";
 
 /** Types */
 export type GraphData = { [key: string]: { [key: number]: number } };
@@ -59,6 +60,7 @@ function HighlightedX(props: {
 /* Main */
 export default function Graph(props: GraphProps) {
   const domainRange = useDomainRange(props.Data);
+  const px = usePx();
 
   const hoveringLine = useAtom(GraphAtoms.hoveringLine);
   const lineTime =
@@ -91,6 +93,32 @@ export default function Graph(props: GraphProps) {
       AnchorPoint={new Vector2(0.5, 0.5)}
       BorderSizePixel={0}
     >
+      <Button
+        ZIndex={2}
+        Icon={{
+          Image: "rbxassetid://12072054746",
+          Size: Vector2.one.mul(24),
+          UseThemeColor: true,
+          Alignment: Enum.HorizontalAlignment.Left,
+        }}
+        Size={new UDim2(0, px(25), 0, px(25))}
+        Position={new UDim2(0.95, 0, 0.5, px(-15))}
+        AnchorPoint={new Vector2(0.5, 0.5)}
+        OnActivated={() => GraphAtoms.zoom((r) => math.min(r + 1, 10))}
+      />
+      <Button
+        ZIndex={2}
+        Icon={{
+          Image: "rbxassetid://15396333997",
+          Size: Vector2.one.mul(24),
+          UseThemeColor: true,
+          Alignment: Enum.HorizontalAlignment.Left,
+        }}
+        Size={new UDim2(0, px(25), 0, px(25))}
+        Position={new UDim2(0.95, 0, 0.5, px(15))}
+        AnchorPoint={new Vector2(0.5, 0.5)}
+        OnActivated={() => GraphAtoms.zoom((r) => math.max(r - 1, 1))}
+      />
       <frame
         Size={new UDim2(1 - LABEL_THICKNESS * 2, 0, 1 - LABEL_THICKNESS * 2, 0)}
         BackgroundTransparency={1}

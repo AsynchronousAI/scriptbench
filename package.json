@@ -2,7 +2,7 @@
   "name": "scriptbench",
   "version": "1.0.0",
   "scripts": {
-    "dev": "fse copy serve.project.json default.project.json && rbxtsc && concurrently \"rbxtsc -w\" \"rojo serve\"",
+    "dev": "fse copy serve.project.json default.project.json && rbxtsc && concurrently \"rbxtsc -w\" \"rojo serve --port=34873\"",
     "build": "fse copy build.project.json default.project.json && rbxtsc && rojo build --output Scriptbench.rbxm",
     "plugin": "fse copy build.project.json default.project.json && rbxtsc && rojo build --plugin Scriptbench.rbxm"
   },
