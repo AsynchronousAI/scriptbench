@@ -20,7 +20,7 @@ export const DefaultSettings: Settings = {
   LineSat: 63,
   LineVal: 84,
   FilterOutliers: true,
-  OutlierDivider: 10_000,
+  OutlierDivider: 700,
 };
 
 /* Access methods */

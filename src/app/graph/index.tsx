@@ -13,7 +13,7 @@ import {
 import { LABEL_THICKNESS, LINE_WIDTH } from "configurations";
 import { useAtom } from "@rbxts/react-charm";
 import { GraphAtoms } from "app/graph/atoms";
-import { Button } from "@rbxts/studiocomponents-react2";
+import { Button, ScrollFrame } from "@rbxts/studiocomponents-react2";
 
 /** Types */
 export type GraphData = { [key: string]: { [key: number]: number } };
@@ -61,6 +61,8 @@ function HighlightedX(props: {
 export default function Graph(props: GraphProps) {
   const domainRange = useDomainRange(props.Data);
   const px = usePx();
+  const zoom = useAtom(GraphAtoms.zoom);
+  const fakeScrollObject = useRef<Frame>();
 
   const hoveringLine = useAtom(GraphAtoms.hoveringLine);
   const lineTime =
@@ -92,6 +94,7 @@ export default function Graph(props: GraphProps) {
       Position={new UDim2(0.5, 0, 0.5, 0)}
       AnchorPoint={new Vector2(0.5, 0.5)}
       BorderSizePixel={0}
+      ClipsDescendants
     >
       <Button
         ZIndex={2}
@@ -119,10 +122,33 @@ export default function Graph(props: GraphProps) {
         AnchorPoint={new Vector2(0.5, 0.5)}
         OnActivated={() => GraphAtoms.zoom((r) => math.max(r - 1, 1))}
       />
+
+      {/* Scrolling */}
+      <ScrollFrame
+        ScrollingDirection={Enum.ScrollingDirection.X}
+        Size={new UDim2(0.9 - LABEL_THICKNESS / 2, 0, 0.95, 0)}
+        Position={new UDim2(0.5 + LABEL_THICKNESS / 2, 0, 0.5, 0)}
+        AnchorPoint={new Vector2(0.5, 0.5)}
+        BorderSizePixel={0}
+        OnScrolled={(pos) => {
+          const fakeScroller = fakeScrollObject.current;
+          if (!fakeScroller) return;
+
+          const max = fakeScroller.AbsoluteSize.X;
+          const percent = math.map(pos.X, 0, max, 0, 1);
+          GraphAtoms.focusedX(percent * domainRange.Domain);
+        }}
+      >
+        <frame
+          Size={new UDim2(zoom, 0, 1, 0)}
+          BackgroundTransparency={1}
+          ref={fakeScrollObject}
+        />
+      </ScrollFrame>
       <frame
         Size={new UDim2(1 - LABEL_THICKNESS * 2, 0, 1 - LABEL_THICKNESS * 2, 0)}
         BackgroundTransparency={1}
-        Position={new UDim2(0.5, 0, 0.5, 0)}
+        Position={new UDim2(0.5, 0, 0.45, 0)}
         AnchorPoint={new Vector2(0.5, 0.5)}
         ref={containerRef}
         Event={{

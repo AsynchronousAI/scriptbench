@@ -58,12 +58,9 @@ export function useDomainRange(
     }
   }
 
-  domainMin = domainMin + focusedX;
-  domainMax = (domainMax + focusedX) / zoom;
-
   return {
-    DomainMin: domainMin,
-    DomainMax: domainMax,
+    DomainMin: domainMin + focusedX,
+    DomainMax: domainMin + focusedX + (domainMax - domainMin) / zoom,
     RangeMin: math.min(rangeMin, baseline),
     RangeMax: rangeMax,
     Domain: domainMax - domainMin,
