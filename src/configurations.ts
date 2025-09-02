@@ -1,5 +1,5 @@
 /** Configurations */
-export const VERSION_NUMBER = "1.1.0";
+export const VERSION_NUMBER = "2.0.0";
 
 /* App UI */
 export const SIDEBAR_WIDTH = 0.15;
