@@ -109,7 +109,7 @@ export const pinMicroProfiler = (parentName: string, name: string) => {
   Atoms.results((prev) => [...prev!, newItem]);
   Atoms.data((prev) =>
     FilterMap(
-      [...prev!, { name: fullName, data: newData, highlightedX: 1 }],
+      [...prev!, { name: fullName, data: newData }],
       peek(Atoms.calls) / Settings.GetSetting("OutlierDivider"),
     ),
   );
