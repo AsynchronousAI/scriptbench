@@ -14,7 +14,6 @@ const story = {
       <Results
         Results={[
           {
-            Index: 2,
             Order: 1,
             Name: "t[i]",
             NumberData: [
@@ -24,7 +23,6 @@ const story = {
             ],
           },
           {
-            Index: 3,
             Order: 2,
             Name: "t[#i+1]",
             NumberData: [
@@ -35,7 +33,6 @@ const story = {
           },
 
           {
-            Index: 1,
             Order: 3,
             Name: "table.insert",
             NumberData: [

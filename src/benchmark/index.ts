@@ -28,7 +28,6 @@ export function ComputeResults(data: GraphData): Result[] {
         stats[Settings.GetSetting("PrioritizedStat") as keyof typeof stats],
       Name: values.name,
       NumberData: Object.entries(stats).map(([key, value]) => [key, value]),
-      Index: index,
     });
   }
   return results;

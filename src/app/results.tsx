@@ -8,7 +8,6 @@ export interface Result {
   Name: string;
   NumberData: Array<[string, number]>;
   Order: number;
-  Index: number;
   IsMicroProfiler?: boolean;
 }
 export interface ResultsProps {
@@ -96,7 +95,7 @@ export default function Results(props: ResultsProps) {
               Text={`<b>${result.Name}</b>`}
               RichText
               Font={Enum.Font.Code}
-              TextColor3={GetKeyColor(result.Index)}
+              TextColor3={GetKeyColor(index + 1)}
               TextScaled
               TextXAlignment="Left"
               BackgroundTransparency={1}
