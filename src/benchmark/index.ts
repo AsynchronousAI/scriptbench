@@ -1,9 +1,9 @@
 import { Object, String } from "@rbxts/luau-polyfill";
 import { Result } from "app/results";
-import { GraphData } from "app/graph";
 import { Settings } from "settings";
 import { FormattedBenchmarkScript, ProfileLog } from "./types";
 import { ComputeStats } from "./stats";
+import { GraphData } from "app/graph/types";
 
 /* Constants */
 const REQUIRED_PREFIX = ".bench";

@@ -1,9 +1,9 @@
 import { Object } from "@rbxts/luau-polyfill";
-import { GraphData } from "app/graph";
 import { FormattedBenchmarkScript, ProfileLog } from "./types";
 import { Settings } from "settings";
 import { BenchmarkLibrary } from "./lib";
 import { ToMicroseconds } from "./profiler";
+import { GraphData } from "app/graph/types";
 
 const clock = os.clock;
 export function FilterMap(data: GraphData, threshold: number): GraphData {

@@ -1,7 +1,7 @@
 import { Object } from "@rbxts/luau-polyfill";
-import { DomainRange, GraphData } from ".";
 import { GraphAtoms } from "./atoms";
 import { useAtom } from "@rbxts/react-charm";
+import { DomainRange, GraphData } from "./types";
 
 /* Handles math for rendering, like converting values to position */
 export function AsPosition(

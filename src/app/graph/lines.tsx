@@ -1,5 +1,4 @@
 import { InstanceEvent, RefObject, useState } from "@rbxts/react";
-import { DomainRange, GraphData } from ".";
 import { usePx } from "hooks/usePx";
 import React from "@rbxts/react";
 import { Object } from "@rbxts/luau-polyfill";
@@ -7,6 +6,7 @@ import { AsPosition } from "./computation";
 import { LINE_WIDTH } from "configurations";
 import { GraphAtoms } from "app/graph/atoms";
 import { GetKeyColor } from "colors";
+import { DomainRange, GraphData } from "./types";
 
 const MIN_TRANSPARENCY = 0.9;
 

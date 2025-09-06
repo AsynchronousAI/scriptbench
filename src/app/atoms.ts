@@ -1,7 +1,7 @@
 import { atom } from "@rbxts/charm";
-import { GraphData } from "./graph";
 import { Result } from "./results";
 import { ProfileLog, Stats } from "benchmark/types";
+import { GraphData } from "./graph/types";
 
 export const Atoms = {
   availableBenchmarks: atom<ModuleScript[]>([]),

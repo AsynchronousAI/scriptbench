@@ -1,5 +1,4 @@
 import { usePx } from "hooks/usePx";
-import { DomainRange } from ".";
 import React from "@rbxts/react";
 import { COLORS } from "colors";
 import { AsPosition, FormatNumber, InIncrements } from "./computation";
@@ -9,11 +8,13 @@ import {
   LABEL_THICKNESS,
   RANGE_LABELS,
 } from "configurations";
+import { DomainRange } from "./types";
 
 export function Labels(props: {
   domainRange: DomainRange;
   XPrefix?: string;
   YPrefix?: string;
+  GridLines?: boolean;
 }) {
   const px = usePx();
   const { DomainMin, DomainMax, Domain, RangeMin, RangeMax, Range } =
@@ -58,15 +59,17 @@ export function Labels(props: {
               TextYAlignment="Center"
               ZIndex={math.huge}
             />
-            <frame
-              Size={new UDim2(0, 1, 1, 0)}
-              Position={
-                new UDim2(AsPosition(DomainMin, DomainMax, value), 0, 0, 0)
-              }
-              BackgroundColor3={COLORS.Border}
-              BorderSizePixel={0}
-              ZIndex={5}
-            />
+            {props.GridLines && (
+              <frame
+                Size={new UDim2(0, 1, 1, 0)}
+                Position={
+                  new UDim2(AsPosition(DomainMin, DomainMax, value), 0, 0, 0)
+                }
+                BackgroundColor3={COLORS.Border}
+                BorderSizePixel={0}
+                ZIndex={5}
+              />
+            )}
           </>
         );
       })}
@@ -95,15 +98,22 @@ export function Labels(props: {
               TextYAlignment="Center"
               ZIndex={math.huge}
             />
-            <frame
-              Size={new UDim2(1, 0, 0, 1)}
-              Position={
-                new UDim2(0, 0, AsPosition(RangeMin, RangeMax, value, true), 0)
-              }
-              BackgroundColor3={COLORS.Border}
-              BorderSizePixel={0}
-              ZIndex={5}
-            />
+            {props.GridLines && (
+              <frame
+                Size={new UDim2(1, 0, 0, 1)}
+                Position={
+                  new UDim2(
+                    0,
+                    0,
+                    AsPosition(RangeMin, RangeMax, value, true),
+                    0,
+                  )
+                }
+                BackgroundColor3={COLORS.Border}
+                BorderSizePixel={0}
+                ZIndex={5}
+              />
+            )}
           </>
         );
       })}
