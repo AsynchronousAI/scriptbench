@@ -5,9 +5,9 @@ import {
   MainButton,
   ScrollFrame,
 } from "@rbxts/studiocomponents-react2";
-import { COLORS, LightenColor } from "colors";
+import { COLORS, GetKeyColor, LightenColor } from "colors";
 import { usePx } from "hooks/usePx";
-import { FormatNumber, GetKeyColor } from "./graph/computation";
+import { FormatNumber } from "./graph/computation";
 import { Settings } from "settings";
 import { ProfileLog, Stats } from "benchmark/types";
 
@@ -128,8 +128,8 @@ export default function MicroProfiler(props: MicroProfilerProps) {
         OnActivated={() => setSpacing((r) => (r += 5))}
       />
       <ScrollFrame ScrollingDirection={Enum.ScrollingDirection.XY}>
-        {Object.entries(props.Results).map(([name, time]) => {
-          const color = GetKeyColor(name as string)[0];
+        {Object.entries(props.Results).map(([name, time], index) => {
+          const color = GetKeyColor(index + 1);
 
           const microprofiler = props.MicroProfiler?.get(name as string);
           const microprofilerItems = microprofiler?.Avg?.size();

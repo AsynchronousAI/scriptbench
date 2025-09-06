@@ -7,8 +7,7 @@ import {
   NumericInput,
   TextInput,
 } from "@rbxts/studiocomponents-react2";
-import { COLORS } from "colors";
-import { GetKeyColor } from "./graph/computation";
+import { COLORS, GetKeyColor } from "colors";
 import { DefaultSettings } from "settings";
 import { usePx } from "hooks/usePx";
 import { Settings as SettingsNamespace } from "settings";
@@ -44,7 +43,7 @@ function SettingsSubTitle(props: { Text: string }) {
 /* Main UI */
 export default function Settings() {
   const px = usePx();
-  const [colorPreviewText, setColorPreviewText] = useState("Hello, World!");
+  const [colorPreviewIndex, setColorPreviewIndex] = useState(1);
   const [settings, setSettings] = useState(DefaultSettings);
 
   const setSettingsItem = (
@@ -90,6 +89,7 @@ export default function Settings() {
         SortOrder={Enum.SortOrder.LayoutOrder}
         Padding={new UDim(0, px(10))}
       />
+
       <SettingsTitle Text="Prioritized Statistic" />
       <Dropdown
         Size={new UDim2(0.1, 0, 0.05, 0)}
@@ -107,16 +107,7 @@ export default function Settings() {
       />
 
       <SettingsTitle Text="Line Color" />
-      <SettingsSubTitle Text="Hue Offset" />
-      <NumericInput
-        Size={new UDim2(0.3, 0, 0.05, 0)}
-        Value={settings.LineHue}
-        OnValidChanged={(v: number) => setSettingsItem("LineHue", v)}
-        Min={0}
-        Max={360}
-        Step={1}
-        Slider
-      />
+
       <SettingsSubTitle Text="Saturation" />
       <NumericInput
         Size={new UDim2(0.3, 0, 0.05, 0)}
@@ -139,41 +130,26 @@ export default function Settings() {
       />
       <SettingsSubTitle Text="Test" />
 
-      <TextInput
-        Text={colorPreviewText}
-        Size={new UDim2(0.3, 0, 0.025, 0)}
+      <NumericInput
+        Value={colorPreviewIndex}
+        Size={new UDim2(0.2, 0, 0.05, 0)}
+        Arrows
         PlaceholderText="Try color from names"
-        OnChanged={(v: string) => setColorPreviewText(v)}
+        OnValidChanged={(v: number) => setColorPreviewIndex(v)}
       />
       <textlabel
-        Text={`<b>${colorPreviewText}</b>`}
+        Text={`<b>Preview Text</b>`}
         RichText
-        TextColor3={
-          GetKeyColor(
-            colorPreviewText,
-            settings.LineHue / 100,
-            settings.LineSat / 100,
-            settings.LineVal / 100,
-          )[0]
-        }
+        TextColor3={GetKeyColor(
+          colorPreviewIndex,
+          settings.LineSat / 100,
+          settings.LineVal / 100,
+        )}
         Font="Code"
         TextScaled
         BackgroundTransparency={1}
         Size={new UDim2(0.3, 0, 0.025, 0)}
       />
-      {/*
-      <SettingsTitle Text="Additional Settings" />
-      <Checkbox
-        Label="Filter outliers? (reccomended)"
-        Value={settings.FilterOutliers}
-        ContentAlignment={Enum.HorizontalAlignment.Center}
-        OnChanged={() => {
-          setSettings((previousSettings) => ({
-            ...previousSettings,
-            FilterOutliers: !previousSettings.FilterOutliers,
-          }));
-        }}
-      />*/}
 
       {/* Bottom bar with Save + Cancel */}
       <frame

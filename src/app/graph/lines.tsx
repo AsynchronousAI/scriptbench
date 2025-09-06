@@ -3,9 +3,10 @@ import { DomainRange, GraphData } from ".";
 import { usePx } from "hooks/usePx";
 import React from "@rbxts/react";
 import { Object } from "@rbxts/luau-polyfill";
-import { AsPosition, GetKeyColor } from "./computation";
+import { AsPosition } from "./computation";
 import { LINE_WIDTH } from "configurations";
 import { GraphAtoms } from "app/graph/atoms";
+import { GetKeyColor } from "colors";
 
 const MIN_TRANSPARENCY = 0.9;
 
@@ -144,7 +145,7 @@ export function Lines(props: {
 }) {
   const allXSet = new Set<number>();
   for (const series of Object.values(props.Data)) {
-    for (const x of Object.keys(series)) {
+    for (const x of Object.keys(series.data)) {
       allXSet.add(tonumber(x) as number);
     }
   }
@@ -152,8 +153,9 @@ export function Lines(props: {
   allX.sort((a, b) => a < b);
 
   let lines = [];
-  for (const [key, points] of pairs(props.Data)) {
-    const [color, seed] = GetKeyColor(key as string);
+
+  for (const [index, data] of pairs(props.Data)) {
+    const color = GetKeyColor(index);
 
     let prevY: number | undefined = undefined;
     for (let i = 0; i < allX.size(); i++) {
@@ -161,14 +163,14 @@ export function Lines(props: {
       const nextX = allX[i + 1];
       if (nextX === undefined) continue;
 
-      const y = (points[x] ? points[x] : prevY ? prevY : 0) as number;
-      const nextY = points[nextX] !== undefined ? points[nextX] : y;
+      const y = (data.data[x] ? data.data[x] : prevY ? prevY : 0) as number;
+      const nextY = data.data[nextX] !== undefined ? data.data[nextX] : y;
 
       prevY = y;
 
       lines.push(
         <Line
-          Name={key as string}
+          Name={data.name}
           StartX={x}
           Container={props.Container}
           StartY={y}
@@ -176,7 +178,7 @@ export function Lines(props: {
           EndY={nextY}
           Color={color}
           domainRange={props.domainRange}
-          ZIndex={seed}
+          ZIndex={index + 5}
         />,
       );
     }

@@ -1,5 +1,5 @@
 import React, { useRef } from "@rbxts/react";
-import { COLORS } from "colors";
+import { COLORS, GetKeyColor } from "colors";
 import { usePx } from "hooks/usePx";
 import { Lines } from "./lines";
 import { Labels } from "./labels";
@@ -8,7 +8,6 @@ import {
   useDomainRange,
   FormatNumber,
   FromPosition,
-  GetKeyColor,
 } from "./computation";
 import { LABEL_THICKNESS, LINE_WIDTH } from "configurations";
 import { useAtom } from "@rbxts/react-charm";
@@ -16,10 +15,13 @@ import { GraphAtoms } from "app/graph/atoms";
 import { Button, ScrollFrame } from "@rbxts/studiocomponents-react2";
 
 /** Types */
-export type GraphData = { [key: string]: { [key: number]: number } };
+export type GraphData = {
+  name: string;
+  data: { [key: number]: number };
+  highlightedX?: number;
+}[];
 export interface GraphProps {
   Data: GraphData;
-  HighlightedX?: { [key: string]: number };
   XPrefix?: string;
   YPrefix?: string;
 }
@@ -33,23 +35,26 @@ export interface DomainRange {
 }
 
 /** React Components */
-function HighlightedX(props: {
-  HighlightedX: { [key: string]: number };
-  domainRange: DomainRange;
-}) {
+function HighlightedX(props: { Data: GraphData; domainRange: DomainRange }) {
   const px = usePx();
   const { DomainMin, DomainMax } = props.domainRange;
 
   let highlights = [];
-  for (const [key, value] of pairs(props.HighlightedX)) {
-    const [color] = GetKeyColor(key as string);
+  for (const [key, value] of pairs(props.Data)) {
+    if (!value.highlightedX) continue;
 
     highlights.push(
       <frame
-        Position={new UDim2(AsPosition(DomainMin, DomainMax, value), 0, 0.5, 0)}
+        Position={
+          new UDim2(
+            AsPosition(DomainMin, DomainMax, value.highlightedX),
+            0,
+            0.5,
+            0,
+          )
+        }
         AnchorPoint={new Vector2(0, 0.5)}
         Size={new UDim2(0, px(LINE_WIDTH), 1, 0)}
-        BackgroundColor3={color}
         BackgroundTransparency={0.5}
       />,
     );
@@ -172,12 +177,7 @@ export default function Graph(props: GraphProps) {
           },
         }}
       >
-        {props.HighlightedX && (
-          <HighlightedX
-            HighlightedX={props.HighlightedX}
-            domainRange={domainRange}
-          />
-        )}
+        <HighlightedX Data={props.Data} domainRange={domainRange} />
         <Lines
           Data={props.Data}
           domainRange={domainRange}

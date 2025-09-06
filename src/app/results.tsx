@@ -1,14 +1,14 @@
 import { Button, ScrollFrame } from "@rbxts/studiocomponents-react2";
-import { COLORS } from "colors";
+import { COLORS, GetKeyColor } from "colors";
 import { usePx } from "hooks/usePx";
 import React, { useState } from "react";
 import { FormatNumber } from "./graph/computation";
 
 export interface Result {
   Name: string;
-  Color: Color3;
   NumberData: Array<[string, number]>;
   Order: number;
+  Index: number;
   IsMicroProfiler?: boolean;
 }
 export interface ResultsProps {
@@ -96,7 +96,7 @@ export default function Results(props: ResultsProps) {
               Text={`<b>${result.Name}</b>`}
               RichText
               Font={Enum.Font.Code}
-              TextColor3={result.Color}
+              TextColor3={GetKeyColor(result.Index)}
               TextScaled
               TextXAlignment="Left"
               BackgroundTransparency={1}

@@ -1,7 +1,6 @@
 import { BenchmarkLibrary } from "./lib";
 
 /* Types */
-export type BenchmarkResults = Map<string, Map<number, number>>;
 export interface FormattedBenchmarkScript<T> {
   /* either one */
   Parameter?: () => T;

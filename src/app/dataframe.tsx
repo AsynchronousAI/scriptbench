@@ -23,7 +23,6 @@ export function DataFrame(props: {
   const results = useAtom(Atoms.results);
   const microprofilerStats = useAtom(Atoms.microprofilerStats);
   const data = useAtom(Atoms.data);
-  const highlightedX = useAtom(Atoms.highlightedX);
 
   return (
     <>
@@ -44,13 +43,7 @@ export function DataFrame(props: {
               OnChanged={setAlpha1}
             >
               {{
-                Side0: (
-                  <Graph
-                    Data={data!}
-                    XPrefix="µs"
-                    HighlightedX={highlightedX}
-                  />
-                ),
+                Side0: <Graph Data={data!} XPrefix="µs" />,
                 Side1: (
                   <MicroProfiler
                     Results={ToMicroprofilerData(results!)}

@@ -1,18 +1,13 @@
-import BenchmarkAll, {
-  ComputeResults,
-  FilterMap,
-  GetBenchmarkableModules,
-} from "benchmark";
+import { ComputeResults, GetBenchmarkableModules } from "benchmark";
 import { Atoms } from "./atoms";
 import { Settings } from "settings";
 import { peek } from "@rbxts/charm";
 import { GraphAtoms } from "./graph/atoms";
 import { ProfileLog, Stats } from "benchmark/types";
 import { Object } from "@rbxts/luau-polyfill";
-import { GetKeyColor } from "./graph/computation";
 import { Result } from "./results";
-import { GraphData } from "./graph";
 import { ProfileLogStats } from "benchmark/profiler";
+import BenchmarkAll, { FilterMap } from "benchmark/benchmark";
 
 export const clearResults = () => {
   Atoms.errorMessage(undefined);
@@ -54,8 +49,9 @@ export const pinMicroProfiler = (parentName: string, name: string) => {
   );
 
   if (isInResults) {
-    let filteredData = { ...peek(Atoms.data)! };
-    delete filteredData[fullName];
+    let filteredData = peek(Atoms.data)!.filter(
+      (data) => data.name !== fullName,
+    );
 
     Atoms.results((prev) => prev!.filter((result) => result.Name !== fullName));
     Atoms.data(
@@ -83,27 +79,14 @@ export const pinMicroProfiler = (parentName: string, name: string) => {
   if (NumberData.size() === 0) return; /* nothing good to show */
   const newItem = {
     Name: fullName,
-    Color: GetKeyColor(fullName)[0],
     Order: micoprofilerStat[Settings.GetSetting("PrioritizedStat")],
     NumberData: Object.entries(micoprofilerStat),
     IsMicroProfiler: true,
+    Index: peek(Atoms.results)!.size() + 1,
   } as Result;
 
   /** create an object to add to the graph */
   const runTimeData = peek(Atoms.profileLogs)!.get(parentName)!;
-
-  /* the above variable will look like
-    {
-      name: 'Create', // we want it to only be `name` variable
-      time: 123,
-    }[/* first array is all the different calls of the run /][/* second array is all the runs /]
-
-    we need to make it a frequency chart for just `name`:
-    {
-      1:2,
-      2:3,
-    }
-  */
 
   /* step 1. merge all the test runs into one giant array */
   const mergedData: ProfileLog = [];
@@ -126,7 +109,7 @@ export const pinMicroProfiler = (parentName: string, name: string) => {
   Atoms.results((prev) => [...prev!, newItem]);
   Atoms.data((prev) =>
     FilterMap(
-      { ...prev!, [fullName]: newData },
+      [...prev!, { name: fullName, data: newData, highlightedX: 1 }],
       peek(Atoms.calls) / Settings.GetSetting("OutlierDivider"),
     ),
   );
@@ -154,15 +137,15 @@ export const startBenchmark = () => {
     },
   );
 
+  if (!result) return;
+
   const filteredResults = FilterMap(
-    result as unknown as GraphData,
+    result,
     calls / Settings.GetSetting("OutlierDivider"),
   );
 
   const computedResults = ComputeResults(
-    Settings.GetSetting("FilterOutliers")
-      ? filteredResults
-      : (result as unknown as GraphData),
+    Settings.GetSetting("FilterOutliers") ? filteredResults : result,
   );
 
   const microprofilerStats = new Map<string, Stats<ProfileLog>>();

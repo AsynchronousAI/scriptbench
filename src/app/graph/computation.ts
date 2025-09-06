@@ -1,6 +1,5 @@
 import { Object } from "@rbxts/luau-polyfill";
-import { DomainRange } from ".";
-import { Settings } from "settings";
+import { DomainRange, GraphData } from ".";
 import { GraphAtoms } from "./atoms";
 import { useAtom } from "@rbxts/react-charm";
 
@@ -36,9 +35,7 @@ export function FormatNumber(value: number, prefix?: string): string {
   return string.format("%.2f", value) + (prefix || "");
 }
 export function useDomainRange(
-  data: {
-    [key: string]: { [key: number]: number };
-  },
+  data: GraphData,
   baseline: number = 0 /* set to math.huge to disable */,
 ): DomainRange {
   const zoom = useAtom(GraphAtoms.zoom);
@@ -50,7 +47,7 @@ export function useDomainRange(
   let rangeMax = -math.huge;
 
   for (const series of Object.values(data)) {
-    for (const [domain, range] of Object.entries(series)) {
+    for (const [domain, range] of Object.entries(series.data)) {
       domainMin = math.min(domainMin, domain);
       domainMax = math.max(domainMax, domain);
       rangeMin = math.min(rangeMin, range);
@@ -79,18 +76,4 @@ export function InIncrements(
     increments.push(i);
   }
   return increments;
-}
-export function GetKeyColor(
-  name: string,
-  hueOffset: number = Settings.GetSetting("LineHue") / 100,
-  sat: number = Settings.GetSetting("LineSat") / 100,
-  value: number = Settings.GetSetting("LineVal") / 100,
-): [Color3, number] {
-  let seed = 69;
-  for (let i = 0; i < name.size(); i++) {
-    seed += name.byte(i + 1) as unknown as number;
-  }
-  const rng = new Random(seed);
-  const hue = rng.NextInteger(0, 150) / 150;
-  return [Color3.fromHSV((hue + hueOffset) % 1, sat, value), seed];
 }

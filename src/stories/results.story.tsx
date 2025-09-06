@@ -14,8 +14,8 @@ const story = {
       <Results
         Results={[
           {
+            Index: 2,
             Order: 1,
-            Color: new Color3(1, 0, 0),
             Name: "t[i]",
             NumberData: [
               ["Key1", 1],
@@ -24,8 +24,8 @@ const story = {
             ],
           },
           {
+            Index: 3,
             Order: 2,
-            Color: new Color3(0, 1, 0),
             Name: "t[#i+1]",
             NumberData: [
               ["Key1", 1],
@@ -35,8 +35,8 @@ const story = {
           },
 
           {
+            Index: 1,
             Order: 3,
-            Color: new Color3(0, 0, 1),
             Name: "table.insert",
             NumberData: [
               ["Key1", 1],
