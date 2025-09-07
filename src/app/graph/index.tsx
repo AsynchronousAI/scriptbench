@@ -100,7 +100,9 @@ export default function Graph(props: GraphProps) {
 
           const max = fakeScroller.AbsoluteSize.X;
           const percent = math.map(pos.X, 0, max, 0, 1);
-          GraphAtoms.focusedX(percent * domainRange.Domain);
+
+          const newVal = percent * domainRange.Domain;
+          GraphAtoms.focusedX(newVal);
         }}
       >
         <frame

@@ -3,6 +3,7 @@ import { GraphAtoms } from "./atoms";
 import { useAtom } from "@rbxts/react-charm";
 import { DomainRange, GraphData } from "./types";
 import { GetKeyColor } from "colors";
+import { useEffect, useMemo } from "@rbxts/react";
 
 /* Handles math for rendering, like converting values to position */
 export function AsPosition(
@@ -56,14 +57,17 @@ export function useDomainRange(
     }
   }
 
-  return {
-    DomainMin: domainMin + focusedX,
-    DomainMax: domainMin + focusedX + (domainMax - domainMin) / zoom,
-    RangeMin: math.min(rangeMin, baseline),
-    RangeMax: rangeMax,
-    Domain: domainMax - domainMin,
-    Range: rangeMax - rangeMin,
-  };
+  return useMemo(
+    () => ({
+      DomainMin: domainMin + focusedX,
+      DomainMax: domainMin + focusedX + (domainMax - domainMin) / zoom,
+      RangeMin: math.min(rangeMin, baseline),
+      RangeMax: rangeMax,
+      Domain: domainMax - domainMin,
+      Range: rangeMax - rangeMin,
+    }),
+    [domainMin, domainMax, rangeMin, rangeMax, focusedX, zoom, baseline],
+  );
 }
 export function InIncrements(
   Min: number,

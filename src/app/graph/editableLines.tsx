@@ -86,6 +86,7 @@ export function EditableImageGradients(props: {
   );
 
   useEffect(() => {
+    print("rerender");
     const resolution = gradientImage.Size;
 
     /* compute new buffer */
