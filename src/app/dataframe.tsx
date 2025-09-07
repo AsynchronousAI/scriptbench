@@ -10,10 +10,9 @@ import {
 import { Splitter } from "@rbxts/studiocomponents-react2";
 import Results from "./results";
 import MicroProfiler from "./microprofiler";
-import Graph from "./graph";
+import Graph, { GraphingMode } from "./graph";
 import { ToMicroprofilerData } from "benchmark/profiler";
 import { COLORS } from "colors";
-import EditableImageGraph from "./graph/editable";
 
 export function DataFrame(props: {
   onMicroProfilerClick?: (parentName: string, name: string) => void;
@@ -44,7 +43,13 @@ export function DataFrame(props: {
               OnChanged={setAlpha1}
             >
               {{
-                Side0: <EditableImageGraph Data={data!} XPrefix="µs" />,
+                Side0: (
+                  <Graph
+                    Data={data!}
+                    XPrefix="µs"
+                    Mode={GraphingMode.Buckets}
+                  />
+                ),
                 Side1: (
                   <MicroProfiler
                     Results={ToMicroprofilerData(results!)}

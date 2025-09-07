@@ -28,7 +28,6 @@ export function Labels(props: {
         Position={new UDim2(-LABEL_THICKNESS - 0.2, 0, -0.2, 0)}
         BackgroundColor3={COLORS.Background}
         BorderSizePixel={0}
-        ZIndex={math.huge - 2}
       />
 
       {/* Domain tags + grid lines */}
@@ -57,7 +56,6 @@ export function Labels(props: {
               TextSize={px(LABEL_TEXT_SIZE)}
               TextXAlignment="Center"
               TextYAlignment="Center"
-              ZIndex={math.huge}
             />
             {props.GridLines && (
               <frame
@@ -67,7 +65,7 @@ export function Labels(props: {
                 }
                 BackgroundColor3={COLORS.Border}
                 BorderSizePixel={0}
-                ZIndex={5}
+                ZIndex={-1}
               />
             )}
           </>
@@ -96,7 +94,6 @@ export function Labels(props: {
               TextSize={px(LABEL_TEXT_SIZE)}
               TextXAlignment="Center"
               TextYAlignment="Center"
-              ZIndex={math.huge}
             />
             {props.GridLines && (
               <frame
@@ -111,7 +108,7 @@ export function Labels(props: {
                 }
                 BackgroundColor3={COLORS.Border}
                 BorderSizePixel={0}
-                ZIndex={5}
+                ZIndex={-1}
               />
             )}
           </>

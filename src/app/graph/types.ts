@@ -4,11 +4,7 @@ export type GraphData = {
   data: { [key: number]: number };
   highlightedX?: number;
 }[];
-export interface GraphProps {
-  Data: GraphData;
-  XPrefix?: string;
-  YPrefix?: string;
-}
+
 export interface DomainRange {
   DomainMin: number;
   DomainMax: number;

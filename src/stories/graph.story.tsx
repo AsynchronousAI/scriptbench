@@ -1,13 +1,12 @@
 import React from "@rbxts/react";
 import ReactRoblox from "@rbxts/react-roblox";
 import { Choose, Slider } from "@rbxts/ui-labs";
-import Graph from "app/graph";
+import Graph, { GraphingMode } from "app/graph";
 import { GraphAtoms } from "app/graph/atoms";
-import EditableImageGraph from "app/graph/editable";
 const controls = {
   Zoom: Slider(1, 1, 5, 0.1),
   Scroll: 0,
-  Mode: Choose(["Old", "EditableImage Line", "EditableImage Spline"]),
+  Mode: Choose(["Buckets", "Lines", "Spline"]),
 };
 
 const story = {
@@ -64,11 +63,18 @@ const story = {
         },
       ],
     };
-    if (mode === "Old") {
-      return <Graph {...props} />;
-    } else {
-      return <EditableImageGraph {...props} />;
-    }
+    return (
+      <Graph
+        {...props}
+        Mode={
+          mode === "Buckets"
+            ? GraphingMode.Buckets
+            : mode === "Lines"
+              ? GraphingMode.Lines
+              : GraphingMode.Spline
+        }
+      />
+    );
   },
 };
 

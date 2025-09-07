@@ -8,9 +8,21 @@ import { LABEL_THICKNESS, LINE_WIDTH } from "configurations";
 import { useAtom } from "@rbxts/react-charm";
 import { GraphAtoms } from "app/graph/atoms";
 import { Button, ScrollFrame } from "@rbxts/studiocomponents-react2";
-import { GraphData, GraphProps } from "./types";
+import { GraphData } from "./types";
+import { EditableImageGradients, EditableImageLines } from "./editableLines";
 
 /* Main */
+export enum GraphingMode {
+  Buckets,
+  Lines,
+  Spline,
+}
+export interface GraphProps {
+  Data: GraphData;
+  XPrefix?: string;
+  Mode: GraphingMode;
+  YPrefix?: string;
+}
 export default function Graph(props: GraphProps) {
   const domainRange = useDomainRange(props.Data);
   const px = usePx();
@@ -47,7 +59,6 @@ export default function Graph(props: GraphProps) {
       Position={new UDim2(0.5, 0, 0.5, 0)}
       AnchorPoint={new Vector2(0.5, 0.5)}
       BorderSizePixel={0}
-      ClipsDescendants
     >
       <Button
         ZIndex={2}
@@ -79,8 +90,8 @@ export default function Graph(props: GraphProps) {
       {/* Scrolling */}
       <ScrollFrame
         ScrollingDirection={Enum.ScrollingDirection.X}
-        Size={new UDim2(0.9 - LABEL_THICKNESS / 2, 0, 0.95, 0)}
-        Position={new UDim2(0.5 + LABEL_THICKNESS / 2, 0, 0.5, 0)}
+        Size={new UDim2(1 - LABEL_THICKNESS * 2, 0, 0.95, 0)}
+        Position={new UDim2(0.5, 0, 0.5, 0)}
         AnchorPoint={new Vector2(0.5, 0.5)}
         BorderSizePixel={0}
         OnScrolled={(pos) => {
@@ -98,6 +109,7 @@ export default function Graph(props: GraphProps) {
           ref={fakeScrollObject}
         />
       </ScrollFrame>
+
       <frame
         Size={new UDim2(1 - LABEL_THICKNESS * 2, 0, 1 - LABEL_THICKNESS * 2, 0)}
         BackgroundTransparency={1}
@@ -125,18 +137,35 @@ export default function Graph(props: GraphProps) {
           },
         }}
       >
-        <Lines
-          Data={props.Data}
-          domainRange={domainRange}
-          Container={containerRef}
-        />
         <Labels
           domainRange={domainRange}
           XPrefix={props.XPrefix}
           YPrefix={props.YPrefix}
           GridLines
         />
-
+        <canvasgroup Size={new UDim2(1, 0, 1, 0)} BackgroundTransparency={1}>
+          {props.Mode === GraphingMode.Lines ? (
+            <>
+              <EditableImageGradients
+                Data={props.Data}
+                domainRange={domainRange}
+              />
+              <EditableImageLines
+                Data={props.Data}
+                domainRange={domainRange}
+                Container={containerRef}
+              />
+            </>
+          ) : (
+            <>
+              <Lines
+                Data={props.Data}
+                domainRange={domainRange}
+                Container={containerRef}
+              />
+            </>
+          )}
+        </canvasgroup>
         {/* Hover Label */}
         {hoveringLine && (
           <frame

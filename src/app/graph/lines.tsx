@@ -20,7 +20,6 @@ function Line(props: {
   EndY: number;
   Color: Color3;
   Name: string;
-  ZIndex: number;
 
   /* graph attr */
   domainRange: DomainRange;
@@ -52,7 +51,6 @@ function Line(props: {
       <frame
         BorderSizePixel={0}
         BackgroundColor3={props.Color}
-        ZIndex={props.ZIndex}
         Event={Events}
         Size={
           new UDim2(
@@ -77,7 +75,6 @@ function Line(props: {
       <frame
         BorderSizePixel={0}
         BackgroundColor3={props.Color}
-        ZIndex={props.ZIndex}
         Event={Events}
         Size={
           new UDim2(
@@ -102,7 +99,6 @@ function Line(props: {
       <frame
         BorderSizePixel={0}
         BackgroundColor3={props.Color}
-        ZIndex={props.ZIndex}
         Size={
           new UDim2(
             AsPosition(DomainMin, DomainMax, props.StartX) -
@@ -155,7 +151,6 @@ export function Lines(props: {
         EndY={nextY}
         Color={color}
         domainRange={props.domainRange}
-        ZIndex={index + 5}
       />,
     );
   });

@@ -16,11 +16,13 @@ const GRADIENT_SIZE = 256;
 /* Precompute gradient */
 const gradientLUT: number[] = table.create(GRADIENT_SIZE);
 for (let i = 0; i < GRADIENT_SIZE; i++) {
+  /* linear gradient (0.9 -> 0.1) */
   gradientLUT[i] = math.floor(
-    math.max(0, math.min(1, 1 - i / GRADIENT_SIZE)) * 255,
+    (((GRADIENT_SIZE - i - 1) / (GRADIENT_SIZE - 1)) * 0.8 + 0.1) * 255,
   );
 }
 
+/* Gradient */
 function DrawLineGradient(
   image: EditableImage,
   imageBuffer: buffer,
@@ -73,7 +75,6 @@ function DrawLineGradient(
     }
   }
 }
-
 export function EditableImageGradients(props: {
   Data: GraphData;
   domainRange: DomainRange;
@@ -125,12 +126,10 @@ export function EditableImageGradients(props: {
 
     /* clear image */
     return () => {
-      gradientImage.DrawRectangle(
-        new Vector2(0, 0),
-        new Vector2(resolution.X, resolution.Y),
-        new Color3(0, 0),
-        1,
-        Enum.ImageCombineType.Overwrite,
+      gradientImage.WritePixelsBuffer(
+        Vector2.zero,
+        resolution,
+        buffer.create(buffer.len(gradientBuffer)),
       );
     };
   }, [props.domainRange]);
@@ -144,8 +143,9 @@ export function EditableImageGradients(props: {
   );
 }
 
+/* Lines */
 function Line(props: {
-  Container?: RefObject<CanvasGroup>;
+  Container?: RefObject<Frame | CanvasGroup>;
 
   /* line attr */
   StartX: number;
@@ -154,7 +154,6 @@ function Line(props: {
   EndY: number;
   Color: Color3;
   Name: string;
-  ZIndex: number;
 
   /* graph attr */
   domainRange: DomainRange;
@@ -208,11 +207,10 @@ function Line(props: {
       <frame
         BorderSizePixel={0}
         BackgroundColor3={props.Color}
-        ZIndex={props.ZIndex}
         Event={Events}
         AnchorPoint={new Vector2(0.5, 0.5)}
         Rotation={math.deg(math.atan2(endY - startY, endX - startX))}
-        Size={new UDim2(0, distance + 5, 0, px(LINE_WIDTH * 1.5))}
+        Size={new UDim2(0, distance + 5, 0, px(LINE_WIDTH))}
         Position={new UDim2(0, (startX + endX) / 2, 0, (startY + endY) / 2)}
       />
     </>
@@ -221,7 +219,7 @@ function Line(props: {
 export function EditableImageLines(props: {
   Data: GraphData;
   domainRange: DomainRange;
-  Container?: RefObject<CanvasGroup>;
+  Container?: RefObject<Frame | CanvasGroup>;
 }) {
   let lines: defined[] = [];
   forEachLine(props.Data, (x, y, nextX, nextY, data, color, index) => {
@@ -235,7 +233,6 @@ export function EditableImageLines(props: {
         EndY={nextY}
         Color={color}
         domainRange={props.domainRange}
-        ZIndex={index + 5}
       />,
     );
   });
