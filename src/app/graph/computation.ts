@@ -2,6 +2,7 @@ import { Object } from "@rbxts/luau-polyfill";
 import { GraphAtoms } from "./atoms";
 import { useAtom } from "@rbxts/react-charm";
 import { DomainRange, GraphData } from "./types";
+import { GetKeyColor } from "colors";
 
 /* Handles math for rendering, like converting values to position */
 export function AsPosition(
@@ -76,4 +77,43 @@ export function InIncrements(
     increments.push(i);
   }
   return increments;
+}
+export function forEachLine(
+  graphData: GraphData,
+  action: (
+    x: number,
+    y: number,
+    nextX: number,
+    nextY: number,
+    data: GraphData[0],
+    color: Color3,
+    index: number,
+  ) => void,
+) {
+  const allXSet = new Set<number>();
+  for (const series of Object.values(graphData)) {
+    for (const x of Object.keys(series.data)) {
+      allXSet.add(tonumber(x) as number);
+    }
+  }
+  const allX = [...allXSet];
+  allX.sort((a, b) => a < b);
+
+  for (const [index, data] of pairs(graphData)) {
+    const color = GetKeyColor(index);
+
+    let prevY: number | undefined = undefined;
+    for (let i = 0; i < allX.size(); i++) {
+      const x = allX[i];
+      const nextX = allX[i + 1];
+      if (nextX === undefined) continue;
+
+      const y = (data.data[x] ? data.data[x] : prevY ? prevY : 0) as number;
+      const nextY = data.data[nextX] !== undefined ? data.data[nextX] : y;
+
+      prevY = y;
+
+      action(x, y, nextX, nextY, data, color, index);
+    }
+  }
 }

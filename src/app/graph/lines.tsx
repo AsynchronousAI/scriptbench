@@ -2,7 +2,7 @@ import { InstanceEvent, RefObject, useState } from "@rbxts/react";
 import { usePx } from "hooks/usePx";
 import React from "@rbxts/react";
 import { Object } from "@rbxts/luau-polyfill";
-import { AsPosition } from "./computation";
+import { AsPosition, forEachLine } from "./computation";
 import { LINE_WIDTH } from "configurations";
 import { GraphAtoms } from "app/graph/atoms";
 import { GetKeyColor } from "colors";
@@ -143,45 +143,21 @@ export function Lines(props: {
   domainRange: DomainRange;
   Container?: RefObject<Frame>;
 }) {
-  const allXSet = new Set<number>();
-  for (const series of Object.values(props.Data)) {
-    for (const x of Object.keys(series.data)) {
-      allXSet.add(tonumber(x) as number);
-    }
-  }
-  const allX = [...allXSet];
-  allX.sort((a, b) => a < b);
-
-  let lines = [];
-
-  for (const [index, data] of pairs(props.Data)) {
-    const color = GetKeyColor(index);
-
-    let prevY: number | undefined = undefined;
-    for (let i = 0; i < allX.size(); i++) {
-      const x = allX[i];
-      const nextX = allX[i + 1];
-      if (nextX === undefined) continue;
-
-      const y = (data.data[x] ? data.data[x] : prevY ? prevY : 0) as number;
-      const nextY = data.data[nextX] !== undefined ? data.data[nextX] : y;
-
-      prevY = y;
-
-      lines.push(
-        <Line
-          Name={data.name}
-          StartX={x}
-          Container={props.Container}
-          StartY={y}
-          EndX={nextX}
-          EndY={nextY}
-          Color={color}
-          domainRange={props.domainRange}
-          ZIndex={index + 5}
-        />,
-      );
-    }
-  }
+  let lines: defined[] = [];
+  forEachLine(props.Data, (x, y, nextX, nextY, data, color, index) => {
+    lines.push(
+      <Line
+        Name={data.name}
+        StartX={x}
+        Container={props.Container}
+        StartY={y}
+        EndX={nextX}
+        EndY={nextY}
+        Color={color}
+        domainRange={props.domainRange}
+        ZIndex={index + 5}
+      />,
+    );
+  });
   return lines;
 }

@@ -106,6 +106,15 @@ export default function Settings() {
         OnValidChanged={(v: number) => setSettingsItem("Batching", v)}
       />
 
+      <SettingsTitle Text="Graphics Rendering" />
+      <SettingsSubTitle Text="How is rendering done, Buckets has best performance." />
+      <Dropdown
+        Size={new UDim2(0.1, 0, 0.05, 0)}
+        Items={["Buckets", "Linear (EditableImage)", "Spline (EditableImage)"]}
+        SelectedItem={"Buckets"}
+        OnItemSelected={print}
+      />
+
       <SettingsTitle Text="Line Color" />
 
       <SettingsSubTitle Text="Saturation" />
