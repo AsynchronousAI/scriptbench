@@ -6,7 +6,7 @@ import { GraphAtoms } from "app/graph/atoms";
 const controls = {
   Zoom: Slider(1, 1, 5, 0.1),
   Scroll: 0,
-  Mode: Choose(["Buckets", "Lines", "Spline"]),
+  Mode: Choose(["Steps", "Lines", "Spline"]),
 };
 
 const story = {
@@ -67,8 +67,8 @@ const story = {
       <Graph
         {...props}
         Mode={
-          mode === "Buckets"
-            ? GraphingMode.Buckets
+          mode === "Steps"
+            ? GraphingMode.Steps
             : mode === "Lines"
               ? GraphingMode.Lines
               : GraphingMode.Spline

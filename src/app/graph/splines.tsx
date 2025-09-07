@@ -3,15 +3,16 @@ import React, { InstanceEvent, ReactNode, RefObject } from "@rbxts/react";
 import { useEffect, useState } from "@rbxts/react";
 import { DomainRange, GraphData } from "./types";
 import { AssetService } from "@rbxts/services";
-import { GetKeyColor } from "colors";
-import { Object } from "@rbxts/luau-polyfill";
 import { AsPosition, forEachLine } from "./computation";
 import { usePx } from "hooks/usePx";
 import { GraphAtoms } from "./atoms";
 import { LINE_WIDTH } from "configurations";
+import CatmullRomSpline from "@rbxts/catmull-rom-spline-fork";
+import { Object } from "@rbxts/luau-polyfill";
+import { GetKeyColor } from "colors";
 
 /* Main */
-const GRADIENT_SIZE = 256;
+const GRADIENT_SIZE = 64;
 
 /* Precompute gradient */
 const gradientLUT: number[] = table.create(GRADIENT_SIZE);
@@ -23,11 +24,14 @@ for (let i = 0; i < GRADIENT_SIZE; i++) {
 }
 
 /* Gradient */
-function DrawLineGradient(
+type SplineData = {
+  [key: string]: { index: number; spline: CatmullRomSpline<Vector2> };
+};
+function DrawSplineGradient(
   image: EditableImage,
   imageBuffer: buffer,
-  startPos: Vector2,
-  endPos: Vector2,
+  spline: CatmullRomSpline<Vector2>,
+  domainRange: DomainRange,
   color: Color3,
 ) {
   const width = image.Size.X;
@@ -41,41 +45,28 @@ function DrawLineGradient(
   /* Draw pixel function */
   const setPixelSafe = (x: number, y: number, opacity: number) => {
     if (x < 0 || x >= width || y < 0 || y >= height) return;
+
     const memoryPos = 4 * (y * width + x);
     const pixel = (opacity << 24) | colorBits;
     buffer.writeu32(imageBuffer, memoryPos, pixel);
   };
 
-  /* Bresenham Algorithm */
-  let x0 = math.floor(startPos.X);
-  let y0 = math.floor(startPos.Y);
-  const x1 = math.floor(endPos.X);
-  const y1 = math.floor(endPos.Y);
+  for (const i of $range(0, GRADIENT_SIZE, 0.05)) {
+    const percentage = i / GRADIENT_SIZE;
+    let point = spline.CalculatePositionAt(percentage) as Vector2;
 
-  const dx = math.abs(x1 - x0);
-  const dy = math.abs(y1 - y0);
-  const sx = x0 < x1 ? 1 : -1;
-  const sy = y0 < y1 ? 1 : -1;
-  let err = dx - dy;
-  while (true) {
-    for (let i = y0; i < height; i++) {
-      setPixelSafe(x0, i, gradientLUT[i]);
-    }
+    const x = math.floor(
+      AsPosition(domainRange.DomainMin, domainRange.DomainMax, point.X) * width,
+    );
+    const y = math.floor(
+      AsPosition(domainRange.RangeMin, domainRange.RangeMax, point.Y, true) *
+        height,
+    );
 
-    if (x0 === x1 && y0 === y1) break;
-
-    const e2 = 2 * err;
-    if (e2 > -dy) {
-      err -= dy;
-      x0 += sx;
-    }
-    if (e2 < dx) {
-      err += dx;
-      y0 += sy;
-    }
+    setPixelSafe(x, y, 255);
   }
 }
-export function EditableImageGradients(props: {
+export function EditableImageSplineGradients(props: {
   Data: GraphData;
   domainRange: DomainRange;
 }) {
@@ -85,8 +76,25 @@ export function EditableImageGradients(props: {
     }),
   );
 
+  const [splines, setSplines] = useState<SplineData>({});
+
+  /* recompute splines with data */
   useEffect(() => {
-    print("rerender");
+    const newSplines: SplineData = {};
+    for (const [index, data] of pairs(props.Data)) {
+      const positions = Object.entries(data.data).map(
+        ([x, y]) => new Vector2(x, y),
+      );
+      newSplines[data.name] = {
+        index,
+        spline: new CatmullRomSpline(positions),
+      };
+    }
+    setSplines(newSplines);
+  }, [props.Data]);
+
+  /* rerender */
+  useEffect(() => {
     const resolution = gradientImage.Size;
 
     /* compute new buffer */
@@ -96,44 +104,30 @@ export function EditableImageGradients(props: {
     );
 
     /* draw lines */
-    forEachLine(props.Data, (x, y, nextX, nextY, data, color, index) => {
-      let start = new Vector2(
-        AsPosition(props.domainRange.DomainMin, props.domainRange.DomainMax, x),
-        AsPosition(
-          props.domainRange.RangeMin,
-          props.domainRange.RangeMax,
-          y,
-          true,
-        ),
-      ).mul(resolution);
-      let end_ = new Vector2(
-        AsPosition(
-          props.domainRange.DomainMin,
-          props.domainRange.DomainMax,
-          nextX,
-        ),
-        AsPosition(
-          props.domainRange.RangeMin,
-          props.domainRange.RangeMax,
-          nextY,
-          true,
-        ),
-      ).mul(resolution);
+    for (const [name, spline] of pairs(splines)) {
+      DrawSplineGradient(
+        gradientImage,
+        gradientBuffer,
+        spline.spline,
+        props.domainRange,
+        GetKeyColor(spline.index),
+      );
+    }
 
-      DrawLineGradient(gradientImage, gradientBuffer, start, end_, color);
-    });
     /* write */
     gradientImage.WritePixelsBuffer(Vector2.zero, resolution, gradientBuffer);
 
-    /* clear image */
+    /* clear image
     return () => {
-      gradientImage.WritePixelsBuffer(
+      gradientImage.DrawRectangle(
         Vector2.zero,
         resolution,
-        buffer.create(buffer.len(gradientBuffer)),
+        new Color3(),
+        255,
+        "Overwrite",
       );
-    };
-  }, [props.domainRange]);
+    };*/
+  }, [props.domainRange, splines]);
 
   return (
     <imagelabel
@@ -217,7 +211,7 @@ function Line(props: {
     </>
   );
 }
-export function EditableImageLines(props: {
+export function EditableImageSplineLines(props: {
   Data: GraphData;
   domainRange: DomainRange;
   Container?: RefObject<Frame | CanvasGroup>;

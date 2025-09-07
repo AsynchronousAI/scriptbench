@@ -1,7 +1,7 @@
-import React, { useRef } from "@rbxts/react";
+import React, { useEffect, useRef, useState } from "@rbxts/react";
 import { COLORS, GetKeyColor } from "colors";
 import { usePx } from "hooks/usePx";
-import { Lines } from "./lines";
+import { Lines } from "./steps";
 import { Labels } from "./labels";
 import { useDomainRange, FormatNumber, FromPosition } from "./computation";
 import { LABEL_THICKNESS, LINE_WIDTH } from "configurations";
@@ -9,11 +9,15 @@ import { useAtom } from "@rbxts/react-charm";
 import { GraphAtoms } from "app/graph/atoms";
 import { Button, ScrollFrame } from "@rbxts/studiocomponents-react2";
 import { GraphData } from "./types";
-import { EditableImageGradients, EditableImageLines } from "./editableLines";
+import { EditableImageGradients, EditableImageLines } from "./lines";
+import {
+  EditableImageSplineGradients,
+  EditableImageSplineLines,
+} from "./splines";
 
 /* Main */
 export enum GraphingMode {
-  Buckets,
+  Steps,
   Lines,
   Spline,
 }
@@ -157,6 +161,18 @@ export default function Graph(props: GraphProps) {
                 domainRange={domainRange}
                 Container={containerRef}
               />
+            </>
+          ) : props.Mode === GraphingMode.Spline ? (
+            <>
+              <EditableImageSplineGradients
+                Data={props.Data}
+                domainRange={domainRange}
+              />
+              {/*<EditableImageSplineLines
+                Data={props.Data}
+                domainRange={domainRange}
+                Container={containerRef}
+              />*/}
             </>
           ) : (
             <>

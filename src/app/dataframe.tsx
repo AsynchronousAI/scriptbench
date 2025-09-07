@@ -44,11 +44,7 @@ export function DataFrame(props: {
             >
               {{
                 Side0: (
-                  <Graph
-                    Data={data!}
-                    XPrefix="µs"
-                    Mode={GraphingMode.Buckets}
-                  />
+                  <Graph Data={data!} XPrefix="µs" Mode={GraphingMode.Lines} />
                 ),
                 Side1: (
                   <MicroProfiler
