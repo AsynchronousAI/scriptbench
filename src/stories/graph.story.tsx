@@ -3,10 +3,14 @@ import ReactRoblox from "@rbxts/react-roblox";
 import { Choose, Slider } from "@rbxts/ui-labs";
 import Graph, { GraphingMode } from "app/graph";
 import { GraphAtoms } from "app/graph/atoms";
+import { MockupGraphData } from "mockup";
+
 const controls = {
   Zoom: Slider(1, 1, 5, 0.1),
   Scroll: 0,
   Mode: Choose(["Steps", "Lines", "Spline"]),
+  Saturation: Slider(63, 0, 100, 1),
+  Value: Slider(83, 0, 100, 1),
 };
 
 const story = {
@@ -19,49 +23,7 @@ const story = {
     GraphAtoms.zoom(input.controls.Zoom as unknown as number);
 
     const props = {
-      Data: [
-        {
-          name: "apple",
-          data: {
-            1: 19,
-            2: 19,
-            3: 20,
-            4: 22,
-            5: 22,
-            6: 21,
-            7: 24,
-            8: 25,
-            9: 24,
-            10: 25,
-            11: 24,
-            12: 24,
-            13: 24,
-            14: 21,
-            15: 19,
-            16: 18,
-            17: 16,
-            18: 17,
-            19: 15,
-            20: 13,
-            21: 27,
-            22: 15,
-            23: 15,
-            24: 13,
-            25: 12,
-            26: 12,
-            27: 11,
-            28: 11,
-            29: 10,
-            30: 10,
-            31: 9,
-            32: 12,
-            33: 12,
-            34: 10,
-            35: 11,
-          },
-          highlightedX: 7.8,
-        },
-      ],
+      Data: MockupGraphData,
     };
     return (
       <Graph

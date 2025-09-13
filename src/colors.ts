@@ -18,13 +18,15 @@ export const COLORS = {
   ErrorText: c(Enum.StudioStyleGuideColor.ErrorText),
 };
 
-const HUES = [0, 35, 60, 100, 175, 235, 305];
-export function GetKeyColor(
-  index: number,
-  sat: number = Settings.GetSetting("LineSat") / 100,
-  value: number = Settings.GetSetting("LineVal") / 100,
-): Color3 {
-  const hue = HUES[(index - 1) % HUES.size()] / 355; /* who uses 355 range  */
+const HUES = [0, 50, 100, 175, 325];
+export function GetKeyColor(index: number): Color3 {
+  const sat = Settings.GetSetting("LineSat") / 100;
+  const value = Settings.GetSetting("LineVal") / 100;
+  const hueOffset = Settings.GetSetting("LineHue") / 100;
+
+  let hue = HUES[(index - 1) % HUES.size()] / 355; /* who uses 355 range  */
+  hue = (hueOffset + hue) % 1;
+
   return Color3.fromHSV(hue, sat, value);
 }
 export function LightenColor(color: Color3, amount: number = 0.015): Color3 {

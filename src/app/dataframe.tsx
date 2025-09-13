@@ -13,13 +13,13 @@ import { useSetting } from "settings";
 export function DataFrame(props: {
   onMicroProfilerClick?: (parentName: string, name: string) => void;
 }) {
-  const [alpha1, setAlpha1] = useSetting("ResultsPaneAlpha");
-  const [alpha2, setAlpha2] = useSetting("BottomPaneAlpha");
+  const [alpha1, setAlpha1] = useSetting("BottomPaneAlpha");
+  const [alpha2, setAlpha2] = useSetting("RightPaneAlpha");
+  const [rendering] = useSetting("Rendering");
 
   const results = useAtom(Atoms.results);
   const microprofilerStats = useAtom(Atoms.microprofilerStats);
   const data = useAtom(Atoms.data);
-  const [rendering] = useSetting("Rendering");
 
   return (
     <>
@@ -31,7 +31,7 @@ export function DataFrame(props: {
         OnChanged={setAlpha2}
       >
         {{
-          Side0: <Results Results={results!} />,
+          Side0: results && <Results Results={results} />,
           Side1: (
             <Splitter
               key="Side1"
@@ -40,16 +40,16 @@ export function DataFrame(props: {
               OnChanged={setAlpha1}
             >
               {{
-                Side0: (
+                Side0: data && (
                   <Graph
-                    Data={data!}
+                    Data={data}
                     XPrefix="µs"
                     Mode={GraphingMode[rendering]}
                   />
                 ),
-                Side1: (
+                Side1: results && (
                   <MicroProfiler
-                    Results={ToMicroprofilerData(results!)}
+                    Results={ToMicroprofilerData(results)}
                     MicroProfiler={microprofilerStats}
                     OnClick={props.onMicroProfilerClick}
                   />

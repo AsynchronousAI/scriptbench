@@ -18,14 +18,15 @@ export interface Settings {
   Rendering: "Lines" | "Steps" | "Spline";
 
   /* Panes */
-  ResultsPaneAlpha: number;
+  RightPaneAlpha: number;
+  SettingsRightPaneAlpha: number;
   BottomPaneAlpha: number;
   SideBarPaneAlpha: number;
 }
 
 export const DefaultSettings: Settings = {
   PrioritizedStat: "50%",
-  Batching: 100,
+  Batching: 1250,
   LineHue: 0,
   LineSat: 63,
   LineVal: 84,
@@ -33,8 +34,9 @@ export const DefaultSettings: Settings = {
   OutlierDivider: 700,
   Rendering: "Steps",
 
-  ResultsPaneAlpha: 1 - RESULTS_WIDTH,
-  BottomPaneAlpha: MICROPROFILER_HEIGHT,
+  RightPaneAlpha: RESULTS_WIDTH,
+  SettingsRightPaneAlpha: RESULTS_WIDTH * 1.5,
+  BottomPaneAlpha: 1 - MICROPROFILER_HEIGHT,
   SideBarPaneAlpha: SIDEBAR_WIDTH,
 };
 

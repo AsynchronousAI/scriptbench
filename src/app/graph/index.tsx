@@ -23,8 +23,8 @@ export enum GraphingMode {
 }
 export interface GraphProps {
   Data: GraphData;
-  XPrefix?: string;
   Mode: GraphingMode;
+  XPrefix?: string;
   YPrefix?: string;
 }
 export default function Graph(props: GraphProps) {
