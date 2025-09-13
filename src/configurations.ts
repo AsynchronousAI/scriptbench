@@ -11,5 +11,5 @@ export const TITLE_HEIGHT = 0.035;
 export const LABEL_THICKNESS = 0.075;
 export const DOMAIN_LABELS = 5;
 export const RANGE_LABELS = 5;
-export const LINE_WIDTH = 5;
+export const LINE_WIDTH = 3.5;
 export const LABEL_TEXT_SIZE = 16;

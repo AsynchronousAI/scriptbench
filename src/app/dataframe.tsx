@@ -1,24 +1,20 @@
 import React, { useState } from "@rbxts/react";
 import { useAtom } from "@rbxts/react-charm";
 import { Atoms } from "./atoms";
-import {
-  MICROPROFILER_HEIGHT,
-  RESULTS_WIDTH,
-  TITLE_HEIGHT,
-  VERSION_NUMBER,
-} from "configurations";
+import { TITLE_HEIGHT, VERSION_NUMBER } from "configurations";
 import { Splitter } from "@rbxts/studiocomponents-react2";
 import Results from "./results";
 import MicroProfiler from "./microprofiler";
 import Graph, { GraphingMode } from "./graph";
 import { ToMicroprofilerData } from "benchmark/profiler";
 import { COLORS } from "colors";
+import { useSetting } from "settings";
 
 export function DataFrame(props: {
   onMicroProfilerClick?: (parentName: string, name: string) => void;
 }) {
-  const [alpha1, setAlpha1] = useState(1 - RESULTS_WIDTH);
-  const [alpha2, setAlpha2] = useState(MICROPROFILER_HEIGHT);
+  const [alpha1, setAlpha1] = useSetting("ResultsPaneAlpha");
+  const [alpha2, setAlpha2] = useSetting("BottomPaneAlpha");
 
   const results = useAtom(Atoms.results);
   const microprofilerStats = useAtom(Atoms.microprofilerStats);
@@ -44,7 +40,7 @@ export function DataFrame(props: {
             >
               {{
                 Side0: (
-                  <Graph Data={data!} XPrefix="µs" Mode={GraphingMode.Lines} />
+                  <Graph Data={data!} XPrefix="µs" Mode={GraphingMode.Steps} />
                 ),
                 Side1: (
                   <MicroProfiler

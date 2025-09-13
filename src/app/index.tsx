@@ -11,9 +11,9 @@ import {
 import { COLORS } from "colors";
 import { GetBenchmarkableModules, GetBenchmarkName } from "benchmark";
 import { Workspace } from "@rbxts/services";
-import { SIDEBAR_WIDTH, TITLE_HEIGHT } from "configurations";
+import { TITLE_HEIGHT } from "configurations";
 import Settings from "./settings";
-import { Settings as SettingsNamespace } from "settings";
+import { Settings as SettingsNamespace, useSetting } from "settings";
 import { useAtom } from "@rbxts/react-charm";
 import { Atoms } from "./atoms";
 import {
@@ -100,7 +100,7 @@ function StartBenchmark() {
   );
 }
 export function App() {
-  const [sideBarAlpha, setSideBarAlpha] = useState(SIDEBAR_WIDTH);
+  const [sideBarAlpha, setSideBarAlpha] = useSetting("SideBarPaneAlpha");
 
   const openedMenu = useAtom(Atoms.openedMenu);
   const openedBenchmark = useAtom(Atoms.openedBenchmark);

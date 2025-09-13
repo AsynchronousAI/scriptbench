@@ -1,9 +1,13 @@
-import { createContext, useContext } from "@rbxts/react";
+import { createContext, useContext, useState } from "@rbxts/react";
 import { HttpService } from "@rbxts/services";
-import PluginContext from "@rbxts/studiocomponents-react2/out/Contexts/PluginContext";
 import { Stats } from "benchmark/types";
+import {
+  MICROPROFILER_HEIGHT,
+  RESULTS_WIDTH,
+  SIDEBAR_WIDTH,
+} from "configurations";
 
-interface Settings {
+export interface Settings {
   PrioritizedStat: keyof Stats<unknown>;
   Batching: number;
   LineHue: number;
@@ -11,6 +15,11 @@ interface Settings {
   LineVal: number;
   FilterOutliers: boolean;
   OutlierDivider: number;
+
+  /* Panes */
+  ResultsPaneAlpha: number;
+  BottomPaneAlpha: number;
+  SideBarPaneAlpha: number;
 }
 
 export const DefaultSettings: Settings = {
@@ -21,20 +30,27 @@ export const DefaultSettings: Settings = {
   LineVal: 84,
   FilterOutliers: true,
   OutlierDivider: 700,
+
+  ResultsPaneAlpha: 1 - RESULTS_WIDTH,
+  BottomPaneAlpha: MICROPROFILER_HEIGHT,
+  SideBarPaneAlpha: SIDEBAR_WIDTH,
 };
 
 /* Access methods */
 export namespace Settings {
   let plugin: Plugin | undefined;
+  let cache = new Map<keyof Settings, Settings[keyof Settings]>();
 
   export function LoadPlugin(p: Plugin) {
     plugin = p;
+    cache.clear();
   }
 
   export function SetSetting(
     key: keyof typeof DefaultSettings,
     value: (typeof DefaultSettings)[keyof typeof DefaultSettings],
   ) {
+    cache.set(key, value);
     if (!plugin) return;
 
     let encoded: string;
@@ -52,6 +68,7 @@ export namespace Settings {
   }
 
   export function GetSetting<T extends keyof Settings>(key: T): Settings[T] {
+    if (cache.has(key)) return cache.get(key) as Settings[T];
     if (!plugin) return DefaultSettings[key];
 
     const value = plugin.GetSetting(key) as string;
@@ -62,4 +79,19 @@ export namespace Settings {
       return DefaultSettings[key];
     }
   }
+}
+
+/* Access within React */
+export function useSetting<T extends keyof Settings>(
+  key: T,
+): [Settings[T], (newValue: Settings[T]) => void] {
+  const [value, setValue] = useState(Settings.GetSetting(key));
+
+  return [
+    value,
+    (newValue) => {
+      Settings.SetSetting(key, newValue);
+      setValue(newValue);
+    },
+  ];
 }
