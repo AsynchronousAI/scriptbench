@@ -19,6 +19,7 @@ export function DataFrame(props: {
   const results = useAtom(Atoms.results);
   const microprofilerStats = useAtom(Atoms.microprofilerStats);
   const data = useAtom(Atoms.data);
+  const [rendering] = useSetting("Rendering");
 
   return (
     <>
@@ -40,7 +41,11 @@ export function DataFrame(props: {
             >
               {{
                 Side0: (
-                  <Graph Data={data!} XPrefix="µs" Mode={GraphingMode.Steps} />
+                  <Graph
+                    Data={data!}
+                    XPrefix="µs"
+                    Mode={GraphingMode[rendering]}
+                  />
                 ),
                 Side1: (
                   <MicroProfiler

@@ -15,6 +15,7 @@ export interface Settings {
   LineVal: number;
   FilterOutliers: boolean;
   OutlierDivider: number;
+  Rendering: "Lines" | "Steps" | "Spline";
 
   /* Panes */
   ResultsPaneAlpha: number;
@@ -30,6 +31,7 @@ export const DefaultSettings: Settings = {
   LineVal: 84,
   FilterOutliers: true,
   OutlierDivider: 700,
+  Rendering: "Steps",
 
   ResultsPaneAlpha: 1 - RESULTS_WIDTH,
   BottomPaneAlpha: MICROPROFILER_HEIGHT,

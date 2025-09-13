@@ -111,8 +111,8 @@ export default function Settings() {
       <Dropdown
         Size={new UDim2(0.1, 0, 0.05, 0)}
         Items={["Steps", "Lines", "Spline"]}
-        SelectedItem={"Steps"}
-        OnItemSelected={print}
+        SelectedItem={settings.Rendering}
+        OnItemSelected={(v) => setSettingsItem("Rendering", v)}
       />
 
       <SettingsTitle Text="Line Color" />
