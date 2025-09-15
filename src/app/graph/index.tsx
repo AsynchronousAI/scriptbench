@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "@rbxts/react";
+import React, { useEffect, useMemo, useRef, useState } from "@rbxts/react";
 import { COLORS, GetKeyColor } from "colors";
 import { usePx } from "hooks/usePx";
 import { Lines } from "./steps";
@@ -9,7 +9,7 @@ import { useAtom } from "@rbxts/react-charm";
 import { GraphAtoms } from "app/graph/atoms";
 import { Button, ScrollFrame } from "@rbxts/studiocomponents-react2";
 import { GraphData } from "./types";
-import { EditableImageGradients, EditableImageLines } from "./lines";
+import { EditableImageLines } from "./lines";
 import {
   EditableImageSplineGradients,
   EditableImageSplineLines,
@@ -149,19 +149,13 @@ export default function Graph(props: GraphProps) {
           YPrefix={props.YPrefix}
           GridLines
         />
-        <canvasgroup Size={new UDim2(1, 0, 1, 0)} BackgroundTransparency={1}>
+        <frame Size={new UDim2(1, 0, 1, 0)} BackgroundTransparency={1}>
           {props.Mode === GraphingMode.Lines ? (
-            <>
-              <EditableImageGradients
-                Data={props.Data}
-                domainRange={domainRange}
-              />
-              <EditableImageLines
-                Data={props.Data}
-                domainRange={domainRange}
-                Container={containerRef}
-              />
-            </>
+            <EditableImageLines
+              Data={props.Data}
+              domainRange={domainRange}
+              Container={containerRef}
+            />
           ) : props.Mode === GraphingMode.Spline ? (
             <>
               <EditableImageSplineGradients
@@ -175,15 +169,13 @@ export default function Graph(props: GraphProps) {
               />*/}
             </>
           ) : (
-            <>
-              <Lines
-                Data={props.Data}
-                domainRange={domainRange}
-                Container={containerRef}
-              />
-            </>
+            <Lines
+              Data={props.Data}
+              domainRange={domainRange}
+              Container={containerRef}
+            />
           )}
-        </canvasgroup>
+        </frame>
         {/* Hover Label */}
         {hoveringLine && (
           <frame
