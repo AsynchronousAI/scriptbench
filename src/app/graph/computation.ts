@@ -65,6 +65,8 @@ export function useDomainRange(
       RangeMax: rangeMax,
       Domain: domainMax - domainMin,
       Range: rangeMax - rangeMin,
+      FullDomainMin: domainMin,
+      FullDomainMax: domainMax,
     }),
     [domainMin, domainMax, rangeMin, rangeMax, focusedX, zoom, baseline],
   );

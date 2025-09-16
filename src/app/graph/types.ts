@@ -12,4 +12,6 @@ export interface DomainRange {
   RangeMax: number;
   Range: number;
   Domain: number;
+  FullDomainMin: number;
+  FullDomainMax: number;
 }

@@ -9,11 +9,7 @@ import { useAtom } from "@rbxts/react-charm";
 import { GraphAtoms } from "app/graph/atoms";
 import { Button, ScrollFrame } from "@rbxts/studiocomponents-react2";
 import { GraphData } from "./types";
-import { EditableImageLines } from "./lines";
-import {
-  EditableImageSplineGradients,
-  EditableImageSplineLines,
-} from "./splines";
+import { EditableImageSpline } from "./editableImage";
 
 /* Main */
 export enum GraphingMode {
@@ -150,24 +146,13 @@ export default function Graph(props: GraphProps) {
           GridLines
         />
         <frame Size={new UDim2(1, 0, 1, 0)} BackgroundTransparency={1}>
-          {props.Mode === GraphingMode.Lines ? (
-            <EditableImageLines
+          {props.Mode === GraphingMode.Lines ||
+          props.Mode === GraphingMode.Spline ? (
+            <EditableImageSpline
               Data={props.Data}
               domainRange={domainRange}
               Container={containerRef}
             />
-          ) : props.Mode === GraphingMode.Spline ? (
-            <>
-              <EditableImageSplineGradients
-                Data={props.Data}
-                domainRange={domainRange}
-              />
-              {/*<EditableImageSplineLines
-                Data={props.Data}
-                domainRange={domainRange}
-                Container={containerRef}
-              />*/}
-            </>
           ) : (
             <Lines
               Data={props.Data}
