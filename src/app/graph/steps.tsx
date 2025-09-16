@@ -134,7 +134,7 @@ function Line(props: {
     </>
   );
 }
-export function Lines(props: {
+export function Steps(props: {
   Data: GraphData;
   domainRange: DomainRange;
   Container?: RefObject<Frame>;

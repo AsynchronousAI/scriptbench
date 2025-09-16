@@ -1,6 +1,6 @@
 import React, { RefObject, useEffect, useState } from "@rbxts/react";
 
-import { DomainRange, GraphData } from "./types";
+import { DomainRange, GraphData, GraphingMode } from "./types";
 import { AsPosition } from "./computation";
 import { GetKeyColor } from "colors";
 import { EditableImageGradient } from "./imageGradient";
@@ -13,11 +13,59 @@ const tangent = 0;
 const leftTan = new UDim2(-tangent, 0, 0, 0);
 const rightTan = new UDim2(tangent, 0, 0, 0);
 
+function LoadLines(
+  path2d: Path2D,
+  line: GraphData[number],
+  domainRange: DomainRange,
+) {
+  const controlPoints = [];
+  const entries = Object.entries(line.data);
+
+  for (let i = 0; i < entries.size(); i++) {
+    const [x, y] = entries[i];
+    const newX = AsPosition(domainRange.DomainMin, domainRange.DomainMax, x);
+    const newY = AsPosition(
+      domainRange.RangeMin,
+      domainRange.RangeMax,
+      y,
+      true,
+    );
+    controlPoints.push(new Path2DControlPoint(new UDim2(newX, 0, newY, 0)));
+  }
+
+  path2d.SetControlPoints(controlPoints);
+}
+function LoadSpline(
+  path2d: Path2D,
+  line: GraphData[number],
+  domainRange: DomainRange,
+) {
+  const controlPoints = [];
+  const entries = Object.entries(line.data);
+
+  for (let i = 0; i < entries.size(); i++) {
+    const [x, y] = entries[i];
+    const newX = AsPosition(domainRange.DomainMin, domainRange.DomainMax, x);
+    const newY = AsPosition(
+      domainRange.RangeMin,
+      domainRange.RangeMax,
+      y,
+      true,
+    );
+    controlPoints.push(
+      new Path2DControlPoint(new UDim2(newX, 0, newY, 0), leftTan, rightTan),
+    );
+  }
+
+  path2d.SetControlPoints(controlPoints);
+}
+
 /* Lines */
-export function EditableImageSpline(props: {
+export function EditableImage(props: {
   Data: GraphData;
   domainRange: DomainRange;
   Container?: RefObject<Frame | CanvasGroup>;
+  Mode: GraphingMode;
 }) {
   const { Data, domainRange } = props;
 
@@ -40,25 +88,11 @@ export function EditableImageSpline(props: {
         newPath2d.Parent = current;
         paths.push(newPath2d);
 
-        const controlPoints = Object.entries(line.data).map(([x, y]) => {
-          const newX = AsPosition(
-            domainRange.DomainMin,
-            domainRange.DomainMax,
-            x,
-          );
-          const newY = AsPosition(
-            domainRange.RangeMin,
-            domainRange.RangeMax,
-            y,
-            true,
-          );
-          return new Path2DControlPoint(
-            new UDim2(newX, 0, newY, 0),
-            leftTan,
-            rightTan,
-          );
-        });
-        newPath2d.SetControlPoints(controlPoints);
+        if (props.Mode === GraphingMode.Spline) {
+          LoadSpline(newPath2d, line, domainRange);
+        } else if (props.Mode === GraphingMode.Lines) {
+          LoadLines(newPath2d, line, domainRange);
+        }
 
         return (x: number) => {
           const relativeX = math.map(
@@ -86,7 +120,7 @@ export function EditableImageSpline(props: {
         path.Destroy();
       }
     };
-  }, [Data, domainRange, props.Container]);
+  }, [Data, domainRange, props.Container, props.Mode]);
 
   return (
     <>

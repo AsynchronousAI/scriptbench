@@ -15,3 +15,8 @@ export interface DomainRange {
   FullDomainMin: number;
   FullDomainMax: number;
 }
+export enum GraphingMode {
+  Steps,
+  Lines,
+  Spline,
+}

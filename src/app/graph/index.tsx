@@ -1,22 +1,17 @@
 import React, { useEffect, useMemo, useRef, useState } from "@rbxts/react";
 import { COLORS, GetKeyColor } from "colors";
 import { usePx } from "hooks/usePx";
-import { Lines } from "./steps";
 import { Labels } from "./labels";
 import { useDomainRange, FormatNumber, FromPosition } from "./computation";
 import { LABEL_THICKNESS, LINE_WIDTH } from "configurations";
 import { useAtom } from "@rbxts/react-charm";
 import { GraphAtoms } from "app/graph/atoms";
 import { Button, ScrollFrame } from "@rbxts/studiocomponents-react2";
-import { GraphData } from "./types";
-import { EditableImageSpline } from "./editableImage";
+import { GraphData, GraphingMode } from "./types";
+import { EditableImage } from "./editableImage";
+import { Steps } from "./steps";
 
 /* Main */
-export enum GraphingMode {
-  Steps,
-  Lines,
-  Spline,
-}
 export interface GraphProps {
   Data: GraphData;
   Mode: GraphingMode;
@@ -117,7 +112,6 @@ export default function Graph(props: GraphProps) {
         BackgroundTransparency={1}
         Position={new UDim2(0.5, 0, 0.45, 0)}
         AnchorPoint={new Vector2(0.5, 0.5)}
-        ref={containerRef}
         Event={{
           MouseMoved: (_: Instance, mouseX, mouseY) => {
             const container = containerRef?.current;
@@ -145,16 +139,20 @@ export default function Graph(props: GraphProps) {
           YPrefix={props.YPrefix}
           GridLines
         />
-        <frame Size={new UDim2(1, 0, 1, 0)} BackgroundTransparency={1}>
-          {props.Mode === GraphingMode.Lines ||
-          props.Mode === GraphingMode.Spline ? (
-            <EditableImageSpline
+        <frame
+          Size={new UDim2(1, 0, 1, 0)}
+          BackgroundTransparency={1}
+          ref={containerRef}
+        >
+          {props.Mode !== GraphingMode.Steps ? (
+            <EditableImage
+              Mode={props.Mode}
               Data={props.Data}
               domainRange={domainRange}
               Container={containerRef}
             />
           ) : (
-            <Lines
+            <Steps
               Data={props.Data}
               domainRange={domainRange}
               Container={containerRef}
@@ -200,3 +198,5 @@ export default function Graph(props: GraphProps) {
     </frame>
   );
 }
+
+export * from "./types";
