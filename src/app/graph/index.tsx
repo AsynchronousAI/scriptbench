@@ -139,26 +139,36 @@ export default function Graph(props: GraphProps) {
           YPrefix={props.YPrefix}
           GridLines
         />
+        {props.Mode !== GraphingMode.Steps ? (
+          <EditableImage
+            Mode={props.Mode}
+            Data={props.Data}
+            domainRange={domainRange}
+          />
+        ) : (
+          <Steps
+            Data={props.Data}
+            domainRange={domainRange}
+            Container={containerRef}
+          />
+        )}
+
+        {/* Trims */}
         <frame
           Size={new UDim2(1, 0, 1, 0)}
-          BackgroundTransparency={1}
-          ref={containerRef}
-        >
-          {props.Mode !== GraphingMode.Steps ? (
-            <EditableImage
-              Mode={props.Mode}
-              Data={props.Data}
-              domainRange={domainRange}
-              Container={containerRef}
-            />
-          ) : (
-            <Steps
-              Data={props.Data}
-              domainRange={domainRange}
-              Container={containerRef}
-            />
-          )}
-        </frame>
+          Position={new UDim2(-1, 0, 0, 0)}
+          BackgroundColor3={COLORS.Background}
+          BorderSizePixel={0}
+          ZIndex={2}
+        />
+        <frame
+          Size={new UDim2(1, 0, 1, 0)}
+          Position={new UDim2(1, 0, 0, 0)}
+          BackgroundColor3={COLORS.Background}
+          BorderSizePixel={0}
+          ZIndex={2}
+        />
+
         {/* Hover Label */}
         {hoveringLine && (
           <frame

@@ -1,8 +1,8 @@
-import React, { RefObject, useEffect, useState } from "@rbxts/react";
+import React, { RefObject, useEffect, useRef, useState } from "@rbxts/react";
 
 import { DomainRange, GraphData, GraphingMode } from "./types";
 import { AsPosition } from "./computation";
-import { GetKeyColor } from "colors";
+import { COLORS, GetKeyColor } from "colors";
 import { EditableImageGradient } from "./imageGradient";
 import { Object } from "@rbxts/luau-polyfill";
 import { LINE_WIDTH } from "configurations";
@@ -64,17 +64,16 @@ function LoadSpline(
 export function EditableImage(props: {
   Data: GraphData;
   domainRange: DomainRange;
-  Container?: RefObject<Frame | CanvasGroup>;
   Mode: GraphingMode;
 }) {
   const { Data, domainRange } = props;
-
+  const containerRef = useRef<Frame>();
   const [interpolateFuncs, setInterpolateFuncs] = useState<
     ((x: number) => number)[]
   >([]);
 
   useEffect(() => {
-    const current = props.Container?.current!;
+    const current = containerRef.current!;
     if (!current) return;
 
     const paths: Path2D[] = [];
@@ -120,19 +119,22 @@ export function EditableImage(props: {
         path.Destroy();
       }
     };
-  }, [Data, domainRange, props.Container, props.Mode]);
+  }, [Data, domainRange, containerRef, props.Mode]);
 
   return (
-    <>
-      {props.Container?.current &&
-        interpolateFuncs.map((func, index) => (
-          <EditableImageGradient
-            key={index}
-            ZIndex={index * 2}
-            Color={GetKeyColor(index + 1)}
-            Function={func}
-          />
-        ))}
-    </>
+    <frame
+      Size={new UDim2(1, 0, 1, 0)}
+      ref={containerRef}
+      BackgroundTransparency={1}
+    >
+      {interpolateFuncs.map((func, index) => (
+        <EditableImageGradient
+          key={index}
+          ZIndex={index * 2}
+          Color={GetKeyColor(index + 1)}
+          Function={func}
+        />
+      ))}
+    </frame>
   );
 }

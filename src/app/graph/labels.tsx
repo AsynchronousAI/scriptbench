@@ -53,6 +53,7 @@ export function Labels(props: {
               }
               BackgroundTransparency={1}
               TextColor3={COLORS.Text}
+              ZIndex={math.huge}
               TextSize={px(LABEL_TEXT_SIZE)}
               TextXAlignment="Center"
               TextYAlignment="Center"
@@ -91,6 +92,7 @@ export function Labels(props: {
               }
               BackgroundTransparency={1}
               TextColor3={COLORS.Text}
+              ZIndex={math.huge}
               TextSize={px(LABEL_TEXT_SIZE)}
               TextXAlignment="Center"
               TextYAlignment="Center"
