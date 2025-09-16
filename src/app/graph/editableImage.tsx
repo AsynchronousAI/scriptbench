@@ -83,7 +83,7 @@ export function EditableImage(props: {
       Data.map((line, index) => {
         const newPath2d = new Instance("Path2D");
         newPath2d.Thickness = LINE_WIDTH * 1.5;
-        newPath2d.ZIndex = math.huge;
+        newPath2d.ZIndex = index + 1;
         newPath2d.Color3 = GetKeyColor(index + 1);
         newPath2d.Parent = current;
         paths.push(newPath2d);
@@ -128,6 +128,7 @@ export function EditableImage(props: {
         interpolateFuncs.map((func, index) => (
           <EditableImageGradient
             key={index}
+            ZIndex={index * 2}
             Color={GetKeyColor(index + 1)}
             Function={func}
           />

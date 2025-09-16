@@ -3,7 +3,7 @@ import { AssetService } from "@rbxts/services";
 import React from "@rbxts/react";
 
 /* Main */
-const GRADIENT_SIZE = 256;
+const GRADIENT_SIZE = 512;
 
 const gradientLUT: number[] = table.create(GRADIENT_SIZE);
 for (let i = 0; i < GRADIENT_SIZE; i++) {
@@ -15,6 +15,7 @@ for (let i = 0; i < GRADIENT_SIZE; i++) {
 export function EditableImageGradient(props: {
   Color: Color3;
   Function: (x: number) => number;
+  ZIndex: number;
 }) {
   /* precompute the color into a partial u32, opacity written later */
   const r = math.floor(props.Color.R * 255);
@@ -60,6 +61,7 @@ export function EditableImageGradient(props: {
       BackgroundTransparency={1}
       Size={new UDim2(1, 0, 1, 0)}
       ImageContent={Content.fromObject(image)}
+      ZIndex={props.ZIndex}
     />
   );
 }
