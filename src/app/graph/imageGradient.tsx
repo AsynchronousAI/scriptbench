@@ -1,30 +1,30 @@
 import { useEffect, useState } from "@rbxts/react";
 import { AssetService } from "@rbxts/services";
 import React from "@rbxts/react";
+import { GRADIENT_RES } from "configurations";
 
 /* Main */
-const GRADIENT_SIZE = 512;
-
-const gradientLUT: number[] = table.create(GRADIENT_SIZE);
-for (let i = 0; i < GRADIENT_SIZE; i++) {
-  /* linear gradient (0.9 -> 0.1) */
+const gradientLUT: number[] = table.create(GRADIENT_RES);
+for (let i = 0; i < GRADIENT_RES; i++) {
+  // linear gradient (0.9 -> 0.1)
   gradientLUT[i] = math.floor(
-    (((GRADIENT_SIZE - i - 1) / (GRADIENT_SIZE - 1)) * 0.8 + 0.1) * 255,
+    (((GRADIENT_RES - i - 1) / (GRADIENT_RES - 1)) * 0.8 + 0.1) * 255,
   );
 }
 export function EditableImageGradient(props: {
   Color: Color3;
   Function: (x: number) => number;
   ZIndex: number;
+  StartClock: number;
+  Label: string;
 }) {
-  /* precompute the color into a partial u32, opacity written later */
   const r = math.floor(props.Color.R * 255);
   const g = math.floor(props.Color.G * 255);
   const b = math.floor(props.Color.B * 255);
   const colorBits = (b << 16) | (g << 8) | r;
 
   const [image] = useState(
-    AssetService.CreateEditableImage({ Size: Vector2.one.mul(GRADIENT_SIZE) }),
+    AssetService.CreateEditableImage({ Size: Vector2.one.mul(GRADIENT_RES) }),
   );
 
   useEffect(() => {
@@ -33,19 +33,19 @@ export function EditableImageGradient(props: {
 
     for (const x of $range(0, resolution.X)) {
       const maxY = math.floor(props.Function(x / resolution.X) * resolution.Y);
-
       for (const y of $range(maxY, resolution.Y)) {
         if (x < 0 || x >= resolution.X || y < 0 || y >= resolution.Y) continue;
-
         const opacity = gradientLUT[y];
         const pixel = colorBits | (opacity << 24);
         const memoryPos = 4 * (y * resolution.X + x);
-
         buffer.writeu32(imageBuffer, memoryPos, pixel);
       }
     }
 
     image.WritePixelsBuffer(Vector2.zero, resolution, imageBuffer);
+    print(
+      `[EditableImage] ${props.Label}: ${string.format("%.2f", (os.clock() - props.StartClock) * 1000)}ms total`,
+    );
 
     return () => {
       image.WritePixelsBuffer(

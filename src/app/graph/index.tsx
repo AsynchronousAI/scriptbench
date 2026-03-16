@@ -8,8 +8,7 @@ import { useAtom } from "@rbxts/react-charm";
 import { GraphAtoms } from "app/graph/atoms";
 import { Button, ScrollFrame } from "@rbxts/studiocomponents-react2";
 import { GraphData, GraphingMode } from "./types";
-import { EditableImage } from "./editableImage";
-import { Steps } from "./steps";
+import { Path2D } from "./path2d";
 
 /* Main */
 export interface GraphProps {
@@ -139,19 +138,7 @@ export default function Graph(props: GraphProps) {
           YPrefix={props.YPrefix}
           GridLines
         />
-        {props.Mode !== GraphingMode.Steps ? (
-          <EditableImage
-            Mode={props.Mode}
-            Data={props.Data}
-            domainRange={domainRange}
-          />
-        ) : (
-          <Steps
-            Data={props.Data}
-            domainRange={domainRange}
-            Container={containerRef}
-          />
-        )}
+        <Path2D Mode={props.Mode} Data={props.Data} domainRange={domainRange} />
 
         {/* Trims */}
         <frame

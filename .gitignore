@@ -7,3 +7,5 @@ default.project.json
 project-lock.json
 bun.lockb
 *.DS_Store
+game.rbxl
+game.rbxl.lock
