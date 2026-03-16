@@ -1,6 +1,5 @@
 import { ScrollFrame } from "@rbxts/studiocomponents-react2";
 import { COLORS, GetKeyColor } from "colors";
-import { usePx } from "hooks/usePx";
 import React, { useState } from "@rbxts/react";
 import { FormatNumber } from "./graph/computation";
 
@@ -27,9 +26,6 @@ const STAT_ORDER: { [key: string]: number } = {
 };
 
 export default function Results(props: ResultsProps) {
-  const px = usePx();
-  const size = px(25);
-
   const [openStates, setOpenStates] = useState<{ [name: string]: boolean }>({});
 
   const isOpen = (name: string) => openStates[name] !== false;
@@ -57,26 +53,29 @@ export default function Results(props: ResultsProps) {
           <textbutton
             Text=""
             Event={{ MouseButton1Click: () => toggleOpen(result.Name) }}
-            Size={new UDim2(1, 0, 0, size)}
+            Size={new UDim2(1, 0, 0, 28)}
             BackgroundColor3={COLORS.LightBackground}
             BorderColor3={COLORS.Border}
             AutoButtonColor={false}
             TextScaled
           >
             <uipadding
-              PaddingBottom={new UDim(0.1, 0)}
-              PaddingRight={new UDim(0.1, 0)}
+              PaddingTop={new UDim(0.2, 0)}
+              PaddingBottom={new UDim(0.2, 0)}
+              PaddingLeft={new UDim(0.02, 0)}
+              PaddingRight={new UDim(0.02, 0)}
             />
             <uilistlayout
               FillDirection="Horizontal"
-              Padding={new UDim(0.025, 0)}
+              Padding={new UDim(0.02, 0)}
               VerticalAlignment="Center"
             />
-            <frame Size={new UDim2(1, 0, 1, 0)} BackgroundTransparency={1}>
+            <frame Size={new UDim2(0, 20, 1, 0)} BackgroundTransparency={1}>
               <imagelabel
                 Image="rbxassetid://139679203012669"
                 ImageColor3={COLORS.Text}
-                Size={new UDim2(0.6, 0, 0.6, 0)}
+                Size={new UDim2(1, 0, 0, 0)}
+                AutomaticSize="Y"
                 Position={new UDim2(0.5, 0, 0.5, 0)}
                 AnchorPoint={new Vector2(0.5, 0.5)}
                 BackgroundTransparency={1}
@@ -85,9 +84,7 @@ export default function Results(props: ResultsProps) {
               <uiaspectratioconstraint />
             </frame>
             <textlabel
-              Size={new UDim2(0.8, 0, 0.6, 0)}
-              Position={new UDim2(0.5, 0, 0.5, 0)}
-              AnchorPoint={new Vector2(0.5, 0.5)}
+              Size={new UDim2(1, -24, 1, 0)}
               Text={`<b>${result.Name}</b>`}
               RichText
               Font={Enum.Font.Code}
@@ -106,7 +103,7 @@ export default function Results(props: ResultsProps) {
                 <frame
                   key={key}
                   LayoutOrder={STAT_ORDER[key] ?? 99}
-                  Size={new UDim2(1, 0, 0, size)}
+                  Size={new UDim2(1, 0, 0, 24)}
                   BorderColor3={COLORS.Border}
                   BackgroundTransparency={1}
                 >
@@ -120,8 +117,9 @@ export default function Results(props: ResultsProps) {
                     BorderColor3={COLORS.Border}
                   >
                     <uipadding
-                      PaddingTop={new UDim(0.3, 0)}
-                      PaddingBottom={new UDim(0.2, 0)}
+                      PaddingTop={new UDim(0.15, 0)}
+                      PaddingBottom={new UDim(0.15, 0)}
+                      PaddingLeft={new UDim(0.05, 0)}
                     />
                   </textlabel>
                   <textlabel
@@ -135,8 +133,9 @@ export default function Results(props: ResultsProps) {
                     BorderColor3={COLORS.Border}
                   >
                     <uipadding
-                      PaddingTop={new UDim(0.3, 0)}
-                      PaddingBottom={new UDim(0.2, 0)}
+                      PaddingTop={new UDim(0.15, 0)}
+                      PaddingBottom={new UDim(0.15, 0)}
+                      PaddingLeft={new UDim(0.05, 0)}
                     />
                   </textlabel>
                 </frame>

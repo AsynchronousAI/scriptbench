@@ -36,10 +36,10 @@ export function useDomainRange(
   const focusedX = useAtom(GraphAtoms.focusedX);
 
   return useMemo(() => {
-    let domainMin = math.huge;
-    let domainMax = -math.huge;
-    let rangeMin = math.huge;
-    let rangeMax = -math.huge;
+    let domainMin = 1;
+    let domainMax = -1;
+    let rangeMin = 1;
+    let rangeMax = -1;
 
     for (const series of Object.values(data)) {
       for (const [domain, range] of Object.entries(series.data)) {
@@ -64,14 +64,23 @@ export function useDomainRange(
 }
 
 export function InIncrements(
-  Min: number,
-  Max: number,
-  Range: number,
-  Amount: number,
+  min: number,
+  max: number,
+  range: number,
+  amount: number,
 ) {
-  const increment = Range / Amount;
+  if (
+    min === math.huge ||
+    max === math.huge ||
+    range === math.huge ||
+    amount === math.huge
+  ) {
+    return [];
+  }
+
+  const increment = range / amount;
   const increments: number[] = [];
-  for (let i = Min; i <= Max; i += increment) {
+  for (let i = min; i <= max; i += increment) {
     increments.push(i);
   }
   return increments;

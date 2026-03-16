@@ -2,7 +2,6 @@ import { Object } from "@rbxts/luau-polyfill";
 import React, { useState } from "@rbxts/react";
 import { Button, ScrollFrame } from "@rbxts/studiocomponents-react2";
 import { COLORS, GetKeyColor, LightenColor } from "colors";
-import { usePx } from "hooks/usePx";
 import { FormatNumber } from "./graph/computation";
 import { Settings } from "settings";
 import { ProfileLog, Stats } from "benchmark/types";
@@ -30,7 +29,6 @@ function MicroProfilerProcesses(props: {
   const entries = props.processes[
     prioritized as keyof Stats<ProfileLog>
   ] as ProfileLog;
-  const px = usePx();
 
   let offset = 0;
   const positioned = entries.map((entry) => {
@@ -68,11 +66,16 @@ function MicroProfilerProcesses(props: {
             TextXAlignment={Enum.TextXAlignment.Left}
             TextYAlignment={Enum.TextYAlignment.Center}
             BackgroundTransparency={1}
-            Size={new UDim2(1, -px(20), 0.75, 0)}
+            Size={new UDim2(1, 0, 0.75, 0)}
             Position={new UDim2(0.5, 0, 0.5, 0)}
             AnchorPoint={new Vector2(0.5, 0.5)}
             ZIndex={zindex + 1}
-          />
+          >
+            <uipadding
+              PaddingLeft={new UDim(0.02, 0)}
+              PaddingRight={new UDim(0.02, 0)}
+            />
+          </textlabel>
         )}
         <uigradient Color={makeGradient(color)} />
       </textbutton>
@@ -84,7 +87,6 @@ const ZOOM_ICON = "rbxassetid://12072054746";
 const SHRINK_ICON = "rbxassetid://15396333997";
 
 export default function MicroProfiler(props: MicroProfilerProps) {
-  const px = usePx();
   const [spacing, setSpacing] = useState(0);
 
   const maxTime = math.max(...Object.values(props.Results)) * 1.01;
@@ -100,8 +102,8 @@ export default function MicroProfiler(props: MicroProfilerProps) {
           UseThemeColor: true,
           Alignment: Enum.HorizontalAlignment.Left,
         }}
-        Size={new UDim2(0, px(25), 0, px(25))}
-        Position={new UDim2(0.95, 0, 0.5, px(-15))}
+        Size={new UDim2(0, 25, 0, 25)}
+        Position={new UDim2(0.95, 0, 0.5, -15)}
         AnchorPoint={new Vector2(0.5, 0.5)}
         OnActivated={() => setSpacing((s) => s - 5)}
       />
@@ -113,8 +115,8 @@ export default function MicroProfiler(props: MicroProfilerProps) {
           UseThemeColor: true,
           Alignment: Enum.HorizontalAlignment.Left,
         }}
-        Size={new UDim2(0, px(25), 0, px(25))}
-        Position={new UDim2(0.95, 0, 0.5, px(15))}
+        Size={new UDim2(0, 25, 0, 25)}
+        Position={new UDim2(0.95, 0, 0.5, 15)}
         AnchorPoint={new Vector2(0.5, 0.5)}
         OnActivated={() => setSpacing((s) => s + 5)}
       />
@@ -145,10 +147,15 @@ export default function MicroProfiler(props: MicroProfilerProps) {
                   TextXAlignment={Enum.TextXAlignment.Left}
                   TextYAlignment={Enum.TextYAlignment.Center}
                   BackgroundTransparency={1}
-                  Size={new UDim2(1, -px(20), 0.65, 0)}
+                  Size={new UDim2(1, 0, 0.65, 0)}
                   Position={new UDim2(0.5, 0, 0.5, 0)}
                   AnchorPoint={new Vector2(0.5, 0.5)}
-                />
+                >
+                  <uipadding
+                    PaddingLeft={new UDim(0.02, 0)}
+                    PaddingRight={new UDim(0.02, 0)}
+                  />
+                </textlabel>
                 <uigradient Color={makeGradient(color)} />
               </frame>
 

@@ -121,14 +121,18 @@ function buildLUT(path2d: Path2D): number[] {
   const SAMPLES = GRADIENT_RES * 2;
   const xToY = new Map<number, number>();
 
-  for (let s = 0; s <= SAMPLES; s++) {
+  for (let s of $range(0, SAMPLES)) {
     const pos = path2d.GetPositionOnCurve(s / SAMPLES);
-    const px = math.clamp(
+    let px = math.clamp(
       math.round(pos.X.Scale * (GRADIENT_RES - 1)),
       0,
       GRADIENT_RES - 1,
     );
-    if (!xToY.has(px)) xToY.set(px, pos.Y.Scale);
+    if (
+      (math as unknown as { isfinite: (x: number) => boolean }).isfinite(px) &&
+      !xToY.has(px)
+    )
+      xToY.set(px, pos.Y.Scale);
   }
 
   // Fill gaps by interpolating between known neighbours
@@ -136,7 +140,7 @@ function buildLUT(path2d: Path2D): number[] {
   let lastX = 0;
   let lastY = xToY.get(0) ?? 0;
 
-  for (let px = 0; px < GRADIENT_RES; px++) {
+  for (let px of $range(0, GRADIENT_RES)) {
     if (xToY.has(px)) {
       lastX = px;
       lastY = xToY.get(px)!;

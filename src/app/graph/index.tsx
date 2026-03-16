@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "@rbxts/react";
 import { COLORS, GetKeyColor } from "colors";
-import { usePx } from "hooks/usePx";
 import { Labels } from "./labels";
 import { useDomainRange, FormatNumber, FromPosition } from "./computation";
 import { LABEL_THICKNESS, LINE_WIDTH } from "configurations";
@@ -19,7 +18,6 @@ export interface GraphProps {
 }
 export default function Graph(props: GraphProps) {
   const domainRange = useDomainRange(props.Data);
-  const px = usePx();
   const zoom = useAtom(GraphAtoms.zoom);
   const fakeScrollObject = useRef<Frame>();
 
@@ -62,8 +60,8 @@ export default function Graph(props: GraphProps) {
           UseThemeColor: true,
           Alignment: Enum.HorizontalAlignment.Left,
         }}
-        Size={new UDim2(0, px(25), 0, px(25))}
-        Position={new UDim2(0.95, 0, 0.5, px(-15))}
+        Size={new UDim2(0, 25, 0, 25)}
+        Position={new UDim2(0.95, 0, 0.5, -15)}
         AnchorPoint={new Vector2(0.5, 0.5)}
         OnActivated={() => GraphAtoms.zoom((r) => r + 1)}
       />
@@ -75,8 +73,8 @@ export default function Graph(props: GraphProps) {
           UseThemeColor: true,
           Alignment: Enum.HorizontalAlignment.Left,
         }}
-        Size={new UDim2(0, px(25), 0, px(25))}
-        Position={new UDim2(0.95, 0, 0.5, px(15))}
+        Size={new UDim2(0, 25, 0, 25)}
+        Position={new UDim2(0.95, 0, 0.5, 15)}
         AnchorPoint={new Vector2(0.5, 0.5)}
         OnActivated={() => GraphAtoms.zoom((r) => math.max(r - 1, 1))}
       />

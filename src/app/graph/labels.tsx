@@ -1,4 +1,3 @@
-import { usePx } from "hooks/usePx";
 import React from "@rbxts/react";
 import { COLORS } from "colors";
 import { AsPosition, FormatNumber, InIncrements } from "./computation";
@@ -16,7 +15,6 @@ export function Labels(props: {
   YPrefix?: string;
   GridLines?: boolean;
 }) {
-  const px = usePx();
   const { DomainMin, DomainMax, Domain, RangeMin, RangeMax, Range } =
     props.domainRange;
 
@@ -41,7 +39,8 @@ export function Labels(props: {
           <>
             <textlabel
               Font={Enum.Font.Code}
-              Text={FormatNumber(value, props.XPrefix)}
+              Text={`<b>${FormatNumber(value, props.XPrefix)}</b>`}
+              RichText
               Size={new UDim2(LABEL_THICKNESS, 0, LABEL_THICKNESS, 0)}
               Position={
                 new UDim2(
@@ -54,7 +53,7 @@ export function Labels(props: {
               BackgroundTransparency={1}
               TextColor3={COLORS.Text}
               ZIndex={math.huge}
-              TextSize={px(LABEL_TEXT_SIZE)}
+              TextSize={LABEL_TEXT_SIZE}
               TextXAlignment="Center"
               TextYAlignment="Center"
             />
@@ -79,7 +78,8 @@ export function Labels(props: {
           <>
             <textlabel
               Font={Enum.Font.Code}
-              Text={FormatNumber(value, props.YPrefix)}
+              Text={`<b>${FormatNumber(value, props.YPrefix)}</b>`}
+              RichText
               Size={new UDim2(LABEL_THICKNESS, 0, LABEL_THICKNESS, 0)}
               Position={
                 new UDim2(
@@ -93,7 +93,7 @@ export function Labels(props: {
               BackgroundTransparency={1}
               TextColor3={COLORS.Text}
               ZIndex={math.huge}
-              TextSize={px(LABEL_TEXT_SIZE)}
+              TextSize={LABEL_TEXT_SIZE}
               TextXAlignment="Center"
               TextYAlignment="Center"
             />

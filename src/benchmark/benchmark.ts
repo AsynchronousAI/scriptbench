@@ -7,7 +7,7 @@ import { GraphData } from "app/graph/types";
 
 const clock = os.clock;
 
-const BINS = 100; // Path2D only supports up to 100 control points
+const BINS = 50; // Path2D only supports up to 100 control points (50 since steps makes 2)
 export function BinData(
   data: GraphData,
   threshold: number,
