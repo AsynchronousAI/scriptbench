@@ -5,7 +5,7 @@ import { GraphData } from "./graph/types";
 export namespace Atoms {
   export const availableBenchmarks = atom<ModuleScript[]>([]);
   export const openedBenchmark = atom<ModuleScript | undefined>(undefined);
-  export const calls = atom<number>(1250);
+  export const calls = atom<number>(100);
   export const mode = atom<"FPS" | "Histogram">("Histogram");
   export const openedMenu = atom<"settings" | "benchmark" | undefined>(
     undefined,

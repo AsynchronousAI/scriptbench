@@ -26,7 +26,7 @@ export interface Settings {
 
 export const DefaultSettings: Settings = {
   PrioritizedStat: "50%",
-  Batching: 1250,
+  Batching: 10,
   LineHue: 0,
   LineSat: 63,
   LineVal: 84,

@@ -6,7 +6,7 @@ import { GRADIENT_RES } from "configurations";
 /* Main */
 const gradientLUT: number[] = table.create(GRADIENT_RES);
 for (let i = 0; i < GRADIENT_RES; i++) {
-  gradientLUT[i] = math.floor(math.map(i, 0, GRADIENT_RES - 1, 0.75, 0) * 255);
+  gradientLUT[i] = math.floor(math.map(i, 0, GRADIENT_RES - 1, 0.5, 0) * 255);
 }
 export function EditableImageGradient(props: {
   Color: Color3;

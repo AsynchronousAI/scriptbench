@@ -1,24 +1,12 @@
 import { Object } from "@rbxts/luau-polyfill";
 import React, { useState } from "@rbxts/react";
-import {
-  Button,
-  MainButton,
-  ScrollFrame,
-} from "@rbxts/studiocomponents-react2";
+import { Button, ScrollFrame } from "@rbxts/studiocomponents-react2";
 import { COLORS, GetKeyColor, LightenColor } from "colors";
 import { usePx } from "hooks/usePx";
 import { FormatNumber } from "./graph/computation";
 import { Settings } from "settings";
 import { ProfileLog, Stats } from "benchmark/types";
 
-/* Constants  */
-const gradient = (color: Color3) =>
-  new ColorSequence([
-    new ColorSequenceKeypoint(0, LightenColor(color, 0.025)),
-    new ColorSequenceKeypoint(1, color),
-  ]);
-
-/* Types */
 export type MicroProfilerData = { [key: string]: number };
 export interface MicroProfilerProps {
   Results: MicroProfilerData;
@@ -26,52 +14,52 @@ export interface MicroProfilerProps {
   OnClick?: (parentName: string, name: string) => void;
 }
 
-/* Export */
+const makeGradient = (color: Color3) =>
+  new ColorSequence([
+    new ColorSequenceKeypoint(0, LightenColor(color, 0.025)),
+    new ColorSequenceKeypoint(1, color),
+  ]);
+
 function MicroProfilerProcesses(props: {
   processes: Stats<ProfileLog>;
   maxTime: number;
-  time: number;
   color: Color3;
   onClick?: (name: string) => void;
 }) {
-  const usingProcesses =
-    props.processes[
-      Settings.GetSetting("PrioritizedStat") as keyof Stats<ProfileLog>
-    ];
+  const prioritized = Settings.GetSetting("PrioritizedStat");
+  const entries = props.processes[
+    prioritized as keyof Stats<ProfileLog>
+  ] as ProfileLog;
   const px = usePx();
 
-  let position = 0;
-  let color = props.color;
+  let offset = 0;
+  const positioned = entries.map((entry) => {
+    const pos = offset;
+    offset += entry.time / props.maxTime;
+    return { entry, pos };
+  });
 
-  return usingProcesses.map(({ time, name }, index) => {
+  return positioned.map(({ entry, pos }, index) => {
+    const label = entry.name === false ? "Untracked" : (entry.name as string);
+    const width = entry.time / props.maxTime;
+    const color = LightenColor(props.color, index * 0.025);
     const zindex = index + 2;
-
-    const thisPosition = position;
-    position += time / props.maxTime;
-
-    color = LightenColor(color);
-
-    if (name === false) name = "Untracked";
 
     return (
       <textbutton
+        key={label}
         ZIndex={zindex}
         BorderColor3={COLORS.Border}
         BackgroundColor3={new Color3(1, 1, 1)}
-        Size={new UDim2(time / props.maxTime, 0, 1, 0)}
-        Position={new UDim2(thisPosition, 0, 0, 0)}
+        Size={new UDim2(width, 0, 1, 0)}
+        Position={new UDim2(pos, 0, 0, 0)}
         Text=""
         AutoButtonColor={false}
-        Event={{
-          MouseButton1Click: () => {
-            props.onClick?.(name);
-          },
-        }}
+        Event={{ MouseButton1Click: () => props.onClick?.(label) }}
       >
-        {time / props.maxTime >
-          0 /* do not show if the frame is too small */ && (
+        {width > 0 && (
           <textlabel
-            Text={`<b>${name as string}</b> ${FormatNumber(time)}µs`}
+            Text={`<b>${label}</b> ${FormatNumber(entry.time)}µs`}
             RichText
             TextColor3={COLORS.DarkText}
             TextTransparency={0.2}
@@ -86,17 +74,20 @@ function MicroProfilerProcesses(props: {
             ZIndex={zindex + 1}
           />
         )}
-        <uigradient Color={gradient(color)} />
+        <uigradient Color={makeGradient(color)} />
       </textbutton>
     );
   });
 }
+
+const ZOOM_ICON = "rbxassetid://12072054746";
+const SHRINK_ICON = "rbxassetid://15396333997";
+
 export default function MicroProfiler(props: MicroProfilerProps) {
   const px = usePx();
-  const [spacing, setSpacing] = useState(1);
-  const maxTime =
-    math.max(...Object.values(props.Results)) *
-    1.01; /* multiply for a bit of padding */
+  const [spacing, setSpacing] = useState(0);
+
+  const maxTime = math.max(...Object.values(props.Results)) * 1.01;
   const displaySize = maxTime + spacing;
 
   return (
@@ -104,7 +95,7 @@ export default function MicroProfiler(props: MicroProfilerProps) {
       <Button
         ZIndex={2}
         Icon={{
-          Image: "rbxassetid://12072054746",
+          Image: ZOOM_ICON,
           Size: Vector2.one.mul(24),
           UseThemeColor: true,
           Alignment: Enum.HorizontalAlignment.Left,
@@ -112,12 +103,12 @@ export default function MicroProfiler(props: MicroProfilerProps) {
         Size={new UDim2(0, px(25), 0, px(25))}
         Position={new UDim2(0.95, 0, 0.5, px(-15))}
         AnchorPoint={new Vector2(0.5, 0.5)}
-        OnActivated={() => setSpacing((r) => (r -= 5))}
+        OnActivated={() => setSpacing((s) => s - 5)}
       />
       <Button
         ZIndex={2}
         Icon={{
-          Image: "rbxassetid://15396333997",
+          Image: SHRINK_ICON,
           Size: Vector2.one.mul(24),
           UseThemeColor: true,
           Alignment: Enum.HorizontalAlignment.Left,
@@ -125,24 +116,22 @@ export default function MicroProfiler(props: MicroProfilerProps) {
         Size={new UDim2(0, px(25), 0, px(25))}
         Position={new UDim2(0.95, 0, 0.5, px(15))}
         AnchorPoint={new Vector2(0.5, 0.5)}
-        OnActivated={() => setSpacing((r) => (r += 5))}
+        OnActivated={() => setSpacing((s) => s + 5)}
       />
       <ScrollFrame ScrollingDirection={Enum.ScrollingDirection.XY}>
         {Object.entries(props.Results).map(([name, time], index) => {
           const color = GetKeyColor(index + 1);
-
           const microprofiler = props.MicroProfiler?.get(name as string);
-          const microprofilerItems = microprofiler?.Avg?.size();
-          const microprofilerExists =
-            microprofilerItems && microprofilerItems > 0;
+          const hasProcesses = (microprofiler?.Avg?.size() ?? 0) > 0;
+          const barWidth = new UDim2(time / displaySize, 0, 0.25, 0);
 
           return (
             <>
-              {/* Main frame */}
               <frame
+                key={`bar-${name}`}
                 BorderColor3={COLORS.Border}
                 BackgroundColor3={new Color3(1, 1, 1)}
-                Size={new UDim2(time / displaySize, 0, 0.25, 0)}
+                Size={barWidth}
                 LayoutOrder={maxTime - time}
               >
                 <textlabel
@@ -160,27 +149,26 @@ export default function MicroProfiler(props: MicroProfilerProps) {
                   Position={new UDim2(0.5, 0, 0.5, 0)}
                   AnchorPoint={new Vector2(0.5, 0.5)}
                 />
-                <uigradient Color={gradient(color)} />
+                <uigradient Color={makeGradient(color)} />
               </frame>
 
-              {/* MicroProfiler frame */}
-              {microprofilerExists ? (
+              {hasProcesses && (
                 <frame
+                  key={`processes-${name}`}
                   BackgroundTransparency={1}
-                  Size={new UDim2(time / displaySize, 0, 0.25, 0)}
+                  Size={barWidth}
                   LayoutOrder={maxTime - time}
                 >
                   <MicroProfilerProcesses
                     processes={microprofiler!}
                     maxTime={displaySize}
-                    time={time}
                     color={color}
-                    onClick={(thisName) =>
-                      props.OnClick?.(name as string, thisName)
+                    onClick={(blockName) =>
+                      props.OnClick?.(name as string, blockName)
                     }
                   />
                 </frame>
-              ) : undefined}
+              )}
             </>
           );
         })}

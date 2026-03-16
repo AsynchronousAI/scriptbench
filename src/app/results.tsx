@@ -1,7 +1,7 @@
-import { Button, ScrollFrame } from "@rbxts/studiocomponents-react2";
+import { ScrollFrame } from "@rbxts/studiocomponents-react2";
 import { COLORS, GetKeyColor } from "colors";
 import { usePx } from "hooks/usePx";
-import React, { useState } from "react";
+import React, { useState } from "@rbxts/react";
 import { FormatNumber } from "./graph/computation";
 
 export interface Result {
@@ -14,29 +14,27 @@ export interface ResultsProps {
   Results: Result[];
 }
 
-function bytesToNumberLE(str: string): number {
-  const bytes = str.split("").map((char) => string.byte(char)[0]);
-  let result = 0;
-  for (let i = 0; i < bytes.size(); i++) {
-    result += bytes[i] * math.pow(256, i);
-  }
-  return result % 100;
-}
+const STAT_ORDER: { [key: string]: number } = {
+  Avg: 0,
+  "50%": 1,
+  "10%": 2,
+  "90%": 3,
+  Min: 4,
+  Max: 5,
+  StdDev: 6,
+  Mode: 7,
+  MAD: 8,
+};
 
 export default function Results(props: ResultsProps) {
   const px = usePx();
   const size = px(25);
-  const [openStates, setOpenStates] = useState(() =>
-    props.Results.map(() => true),
-  );
 
-  const toggleOpen = (index: number) => {
-    setOpenStates((prev) => {
-      const newStates = [...prev];
-      newStates[index] = !newStates[index];
-      return newStates;
-    });
-  };
+  const [openStates, setOpenStates] = useState<{ [name: string]: boolean }>({});
+
+  const isOpen = (name: string) => openStates[name] !== false;
+  const toggleOpen = (name: string) =>
+    setOpenStates((prev) => ({ ...prev, [name]: !isOpen(name) }));
 
   return (
     <ScrollFrame
@@ -47,7 +45,7 @@ export default function Results(props: ResultsProps) {
     >
       {props.Results.map((result, index) => (
         <frame
-          key={`result-${index}`}
+          key={result.Name}
           Size={new UDim2(1, 0, 0, 0)}
           AutomaticSize="Y"
           BackgroundColor3={COLORS.LightBackground}
@@ -58,9 +56,7 @@ export default function Results(props: ResultsProps) {
           {/* Toggle Button */}
           <textbutton
             Text=""
-            Event={{
-              MouseButton1Click: () => toggleOpen(index),
-            }}
+            Event={{ MouseButton1Click: () => toggleOpen(result.Name) }}
             Size={new UDim2(1, 0, 0, size)}
             BackgroundColor3={COLORS.LightBackground}
             BorderColor3={COLORS.Border}
@@ -84,7 +80,7 @@ export default function Results(props: ResultsProps) {
                 Position={new UDim2(0.5, 0, 0.5, 0)}
                 AnchorPoint={new Vector2(0.5, 0.5)}
                 BackgroundTransparency={1}
-                Rotation={openStates[index] ? 180 : 0}
+                Rotation={isOpen(result.Name) ? 180 : 0}
               />
               <uiaspectratioconstraint />
             </frame>
@@ -102,47 +98,49 @@ export default function Results(props: ResultsProps) {
             />
           </textbutton>
 
-          {/* Only render if open */}
-          {openStates[index] &&
-            result.NumberData.map(([key, val]) => (
-              <frame
-                key={`data-${index}-${key}`}
-                LayoutOrder={result.Order * 100 + bytesToNumberLE(key)}
-                Size={new UDim2(1, 0, 0, size)}
-                BorderColor3={COLORS.Border}
-                BackgroundTransparency={1}
-              >
-                <textlabel
-                  Text={key}
-                  Font={Enum.Font.Code}
-                  TextColor3={COLORS.FocusText}
-                  TextScaled
-                  Size={new UDim2(0.5, 0, 1, 0)}
-                  BackgroundColor3={COLORS.Background}
+          {/* Stat rows, shown when open */}
+          {isOpen(result.Name) &&
+            [...result.NumberData]
+              .sort(([a], [b]) => (STAT_ORDER[a] ?? 99) < (STAT_ORDER[b] ?? 99))
+              .map(([key, val]) => (
+                <frame
+                  key={key}
+                  LayoutOrder={STAT_ORDER[key] ?? 99}
+                  Size={new UDim2(1, 0, 0, size)}
                   BorderColor3={COLORS.Border}
+                  BackgroundTransparency={1}
                 >
-                  <uipadding
-                    PaddingTop={new UDim(0.3, 0)}
-                    PaddingBottom={new UDim(0.2, 0)}
-                  />
-                </textlabel>
-                <textlabel
-                  Text={`${FormatNumber(val)} µs`}
-                  Font={Enum.Font.Code}
-                  TextColor3={COLORS.FocusText}
-                  TextScaled
-                  Size={new UDim2(0.5, 0, 1, 0)}
-                  Position={new UDim2(0.5, 0, 0, 0)}
-                  BackgroundColor3={COLORS.Background}
-                  BorderColor3={COLORS.Border}
-                >
-                  <uipadding
-                    PaddingTop={new UDim(0.3, 0)}
-                    PaddingBottom={new UDim(0.2, 0)}
-                  />
-                </textlabel>
-              </frame>
-            ))}
+                  <textlabel
+                    Text={key}
+                    Font={Enum.Font.Code}
+                    TextColor3={COLORS.FocusText}
+                    TextScaled
+                    Size={new UDim2(0.5, 0, 1, 0)}
+                    BackgroundColor3={COLORS.Background}
+                    BorderColor3={COLORS.Border}
+                  >
+                    <uipadding
+                      PaddingTop={new UDim(0.3, 0)}
+                      PaddingBottom={new UDim(0.2, 0)}
+                    />
+                  </textlabel>
+                  <textlabel
+                    Text={`${FormatNumber(val)} µs`}
+                    Font={Enum.Font.Code}
+                    TextColor3={COLORS.FocusText}
+                    TextScaled
+                    Size={new UDim2(0.5, 0, 1, 0)}
+                    Position={new UDim2(0.5, 0, 0, 0)}
+                    BackgroundColor3={COLORS.Background}
+                    BorderColor3={COLORS.Border}
+                  >
+                    <uipadding
+                      PaddingTop={new UDim(0.3, 0)}
+                      PaddingBottom={new UDim(0.2, 0)}
+                    />
+                  </textlabel>
+                </frame>
+              ))}
         </frame>
       ))}
     </ScrollFrame>

@@ -35,12 +35,30 @@ function makePointWithTangents(
 }
 
 // Control point loaders
+function padDomainEdges(
+  entries: [number, number][],
+  domainRange: DomainRange,
+): [number, number][] {
+  const padded = [...entries];
+  const domainMin = domainRange.DomainMin;
+  const domainMax = domainRange.DomainMax;
+  const rangeMin = domainRange.RangeMin;
+
+  if (padded[0][0] > domainMin) {
+    padded.unshift([domainMin, rangeMin]);
+  }
+  if (padded[padded.size() - 1][0] < domainMax) {
+    padded.push([domainMax, rangeMin]);
+  }
+
+  return padded;
+}
 function LoadLines(
   path2d: Path2D,
   line: GraphData[number],
   domainRange: DomainRange,
 ) {
-  const entries = Object.entries(line.data);
+  const entries = padDomainEdges(Object.entries(line.data), domainRange);
   path2d.SetControlPoints(
     entries.map(([x, y]) => makePoint(...normalizePoint(domainRange, x, y))),
   );
@@ -50,15 +68,25 @@ function LoadSpline(
   line: GraphData[number],
   domainRange: DomainRange,
 ) {
-  const entries = Object.entries(line.data);
+  const entries = padDomainEdges(Object.entries(line.data), domainRange);
   const points = entries.map(([x, y]) => normalizePoint(domainRange, x, y));
 
   path2d.SetControlPoints(
     points.map(([nx, ny], i) => {
-      const [prevNx] = points[i - 1] ?? [nx];
-      const [nextNx] = points[i + 1] ?? [nx];
-      const tx = (nextNx - prevNx) / 3;
-      return makePointWithTangents(nx, ny, tx, 0);
+      const prev = points[i - 1];
+      const next_ = points[i + 1];
+
+      if (!prev || !next_) {
+        return makePoint(nx, ny);
+      }
+
+      const [prevNx, prevNy] = prev;
+      const [nextNx, nextNy] = next_;
+
+      const tx = (nextNx - prevNx) / 4;
+      const ty = (nextNy - prevNy) / 4;
+
+      return makePointWithTangents(nx, ny, tx, ty);
     }),
   );
 }
@@ -67,7 +95,7 @@ function LoadSteps(
   line: GraphData[number],
   domainRange: DomainRange,
 ) {
-  const entries = Object.entries(line.data);
+  const entries = padDomainEdges(Object.entries(line.data), domainRange);
   const controlPoints: Path2DControlPoint[] = [];
 
   for (let i = 0; i < entries.size(); i++) {

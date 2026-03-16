@@ -2,10 +2,8 @@ import { Object } from "@rbxts/luau-polyfill";
 import { GraphAtoms } from "./atoms";
 import { useAtom } from "@rbxts/react-charm";
 import { DomainRange, GraphData } from "./types";
-import { GetKeyColor } from "colors";
-import { useEffect, useMemo } from "@rbxts/react";
+import { useMemo } from "@rbxts/react";
 
-/* Handles math for rendering, like converting values to position */
 export function AsPosition(
   Min: number,
   Max: number,
@@ -13,52 +11,46 @@ export function AsPosition(
   IsRange = false,
 ) {
   const value = math.map(Value, Min, Max, 0, 1);
-
-  if (IsRange) {
-    return 1 - value;
-  }
-  return value;
+  return IsRange ? 1 - value : value;
 }
+
 export function FromPosition(
   Min: number,
   Max: number,
   Value: number,
   IsRange = false,
 ) {
-  if (IsRange) {
-    Value = 1 - Value;
-  }
-
-  const value = math.map(Value, 0, 1, Min, Max);
-
-  return math.max(value, 0);
+  const mapped = math.map(IsRange ? 1 - Value : Value, 0, 1, Min, Max);
+  return math.max(mapped, 0);
 }
+
 export function FormatNumber(value: number, prefix?: string): string {
-  return string.format("%.2f", value) + (prefix || "");
+  return string.format("%.2f", value) + (prefix ?? "");
 }
+
 export function useDomainRange(
   data: GraphData,
-  baseline: number = 0 /* set to math.huge to disable */,
+  baseline = 0 /* set to math.huge to disable baseline */,
 ): DomainRange {
   const zoom = useAtom(GraphAtoms.zoom);
   const focusedX = useAtom(GraphAtoms.focusedX);
 
-  let domainMin = math.huge;
-  let domainMax = -math.huge;
-  let rangeMin = math.huge;
-  let rangeMax = -math.huge;
+  return useMemo(() => {
+    let domainMin = math.huge;
+    let domainMax = -math.huge;
+    let rangeMin = math.huge;
+    let rangeMax = -math.huge;
 
-  for (const series of Object.values(data)) {
-    for (const [domain, range] of Object.entries(series.data)) {
-      domainMin = math.min(domainMin, domain);
-      domainMax = math.max(domainMax, domain);
-      rangeMin = math.min(rangeMin, range);
-      rangeMax = math.max(rangeMax, range);
+    for (const series of Object.values(data)) {
+      for (const [domain, range] of Object.entries(series.data)) {
+        domainMin = math.min(domainMin, domain);
+        domainMax = math.max(domainMax, domain);
+        rangeMin = math.min(rangeMin, range);
+        rangeMax = math.max(rangeMax, range);
+      }
     }
-  }
 
-  return useMemo(
-    () => ({
+    return {
       DomainMin: domainMin + focusedX,
       DomainMax: domainMin + focusedX + (domainMax - domainMin) / zoom,
       RangeMin: math.min(rangeMin, baseline),
@@ -67,59 +59,20 @@ export function useDomainRange(
       Range: rangeMax - rangeMin,
       FullDomainMin: domainMin,
       FullDomainMax: domainMax,
-    }),
-    [domainMin, domainMax, rangeMin, rangeMax, focusedX, zoom, baseline],
-  );
+    };
+  }, [data, focusedX, zoom, baseline]);
 }
+
 export function InIncrements(
   Min: number,
   Max: number,
   Range: number,
   Amount: number,
 ) {
-  let increment = Range / Amount;
-  let increments = [];
+  const increment = Range / Amount;
+  const increments: number[] = [];
   for (let i = Min; i <= Max; i += increment) {
     increments.push(i);
   }
   return increments;
-}
-export function forEachLine(
-  graphData: GraphData,
-  action: (
-    x: number,
-    y: number,
-    nextX: number,
-    nextY: number,
-    data: GraphData[0],
-    color: Color3,
-    index: number,
-  ) => void,
-) {
-  const allXSet = new Set<number>();
-  for (const series of Object.values(graphData)) {
-    for (const x of Object.keys(series.data)) {
-      allXSet.add(tonumber(x) as number);
-    }
-  }
-  const allX = [...allXSet];
-  allX.sort((a, b) => a < b);
-
-  for (const [index, data] of pairs(graphData)) {
-    const color = GetKeyColor(index);
-
-    let prevY: number | undefined = undefined;
-    for (let i = 0; i < allX.size(); i++) {
-      const x = allX[i];
-      const nextX = allX[i + 1];
-      if (nextX === undefined) continue;
-
-      const y = (data.data[x] ? data.data[x] : prevY ? prevY : 0) as number;
-      const nextY = data.data[nextX] !== undefined ? data.data[nextX] : y;
-
-      prevY = y;
-
-      action(x, y, nextX, nextY, data, color, index);
-    }
-  }
 }

@@ -6,17 +6,20 @@ import { ToMicroseconds } from "./profiler";
 import { GraphData } from "app/graph/types";
 
 const clock = os.clock;
+
+/**
+ * Removes time buckets from graph data whose frequency is below `threshold`.
+ * This strips outlier spikes that occur fewer times than calls/OutlierDivider.
+ */
 export function FilterMap(data: GraphData, threshold: number): GraphData {
   const result: GraphData = [];
 
-  for (const [index, inner] of Object.entries(data)) {
+  for (const inner of data) {
     const filtered: { [key: number]: number } = {};
 
-    for (const [numKey, value] of Object.entries(inner.data)) {
-      const numericKey = tonumber(numKey)!;
-      if (value === undefined) continue;
-      if (value > threshold) {
-        filtered[numericKey] = value;
+    for (const [key, count] of Object.entries(inner.data)) {
+      if (count >= threshold) {
+        filtered[tonumber(key)!] = count;
       }
     }
 
@@ -31,44 +34,36 @@ export function FilterMap(data: GraphData, threshold: number): GraphData {
 
   return result;
 }
+
 function Benchmark(
   requiredModule: FormattedBenchmarkScript<unknown>,
   use: string,
   calls: number,
-
   setCount: (count: number) => void,
 ): [{ [key: number]: number }, ProfileLog[]] {
-  /* benchmark a single case in a module */
-  let recordedTimes: { [key: number]: number } =
-    {}; /* time taken to calls map */
+  const recordedTimes: { [key: number]: number } = {};
   const batching = Settings.GetSetting("Batching");
 
   table.clear(BenchmarkLibrary.ProfileLog);
+
+  const usingFunction = requiredModule.Functions![use];
+
   for (let count = 0; count <= calls; count++) {
-    let parameter: unknown[] = [];
+    const parameter: unknown[] = requiredModule.Parameter
+      ? [requiredModule.Parameter()]
+      : requiredModule.ParameterGenerator
+        ? [requiredModule.ParameterGenerator()]
+        : [];
 
-    /* this is extremely weird hacking of the typescript compiler so we can absorb lua tuples */
-    if (requiredModule.Parameter) parameter = [requiredModule.Parameter()];
-    else if (requiredModule.ParameterGenerator)
-      /* compatible with Benchmarker plugin */
-      parameter = [requiredModule.ParameterGenerator()];
-
-    /* benchmark! */
-    BenchmarkLibrary.ProfileLog.push([]); /* start on a new entry */
-
-    const usingFunction = requiredModule.Functions![use];
+    BenchmarkLibrary.ProfileLog.push([]);
 
     requiredModule.BeforeEach?.();
     const start = clock();
     usingFunction(BenchmarkLibrary, ...(parameter as [unknown]));
-    const end_ = clock();
+    const elapsed = ToMicroseconds(clock() - start);
     requiredModule.AfterEach?.();
 
-    const elapsedTime = ToMicroseconds(end_ - start);
-
-    /* record */
-    const current = recordedTimes[elapsedTime] ?? 0;
-    recordedTimes[elapsedTime] = current + 1;
+    recordedTimes[elapsed] = (recordedTimes[elapsed] ?? 0) + 1;
 
     if (count % batching === 0) task.wait();
     setCount(count);
@@ -76,46 +71,39 @@ function Benchmark(
 
   return [recordedTimes, table.clone(BenchmarkLibrary.ProfileLog)];
 }
+
 export default function BenchmarkAll(
   module: ModuleScript,
   calls: number,
   setCount?: (count: number, status: string) => void,
   onError?: (error: string) => void,
 ): [GraphData, Map<string, ProfileLog[]>] | [] {
-  /* benchmark all cases of a module */
   const totalResults: GraphData = [];
   const totalProfileLogs = new Map<string, ProfileLog[]>();
 
   const requiredModule = require(
     module.Clone(),
   ) as FormattedBenchmarkScript<unknown>;
+  const functions = Object.keys(requiredModule.Functions!);
 
-  // First, run all benchmarks and store the results
   xpcall(
     () => {
-      const functions = Object.keys(requiredModule.Functions!);
-
-      let index = 0;
-
       requiredModule.BeforeAll?.();
 
-      for (const benchmarkName of functions) {
+      for (const [index, benchmarkName] of Object.entries(functions)) {
         const [results, profileLog] = Benchmark(
           requiredModule,
           benchmarkName as string,
           calls,
-          (v) => {
+          (v) =>
             setCount?.(
-              (index * calls + v) / functions.size(),
+              ((index - 1) * calls + v) / functions.size(),
               `${benchmarkName} (${v})`,
-            );
-          },
+            ),
         );
 
         totalResults.push({ name: benchmarkName as string, data: results });
         totalProfileLogs.set(benchmarkName as string, profileLog);
-
-        index++;
       }
 
       requiredModule.AfterAll?.();
@@ -123,18 +111,19 @@ export default function BenchmarkAll(
     (errorMessage) => onError?.(errorMessage as string),
   );
 
-  /* Post processing */
-  /** Make sure all data has matching indexs, and if one does not have data make it 0 */
+  // Fill gaps: ensure every series has an entry for every time bucket present
+  // in any series, so graph lines share the same X domain.
   let minimumX = math.huge;
-  for (const [_, results] of pairs(totalResults)) {
-    for (const [x, y] of pairs(results.data)) {
+  let maximumX = -math.huge;
+  for (const results of totalResults) {
+    for (const x of Object.keys(results.data)) {
       minimumX = math.min(minimumX, x);
+      maximumX = math.max(maximumX, x);
     }
   }
-
-  for (const [_, results] of pairs(totalResults)) {
-    for (let i = minimumX; i <= math.max(...Object.keys(results.data)); i++) {
-      if (results.data[i] === undefined) results.data[i] = 0;
+  for (const results of totalResults) {
+    for (let i = minimumX; i <= maximumX; i++) {
+      results.data[i] ??= 0;
     }
   }
 
