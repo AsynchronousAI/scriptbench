@@ -11,7 +11,7 @@ import {
   getStatsForBlock,
   buildFrequencyMap,
 } from "benchmark/profiler";
-import BenchmarkAll, { FilterMap } from "benchmark/benchmark";
+import BenchmarkAll, { BinData } from "benchmark/benchmark";
 
 export const clearResults = () => {
   Atoms.errorMessage(undefined);
@@ -46,21 +46,28 @@ export const refreshBenchmarks = () => {
   clearExecution();
 };
 
+const getBinArgs = (): [number, boolean] => [
+  peek(Atoms.calls) / Settings.GetSetting("OutlierDivider"),
+  Settings.GetSetting("FilterOutliers"),
+];
+
 export const pinMicroProfiler = (parentName: string, name: string) => {
   const fullName = `${parentName} (${name})`;
 
+  // Toggle: if already pinned, remove it
   const isInResults = peek(Atoms.results)?.some((r) => r.Name === fullName);
   if (isInResults) {
     Atoms.results((prev) => prev!.filter((r) => r.Name !== fullName));
     Atoms.data((prev) =>
-      FilterMap(
+      BinData(
         prev!.filter((d) => d.name !== fullName),
-        peek(Atoms.calls) / Settings.GetSetting("OutlierDivider"),
+        ...getBinArgs(),
       ),
     );
     return;
   }
 
+  // Extract Stats<number> for this block from the already-computed microprofiler stats
   const blockStats = getStatsForBlock(
     peek(Atoms.microprofilerStats)!,
     parentName,
@@ -75,6 +82,8 @@ export const pinMicroProfiler = (parentName: string, name: string) => {
     NumberData: statEntries,
     IsMicroProfiler: true,
   };
+
+  // Build and bin the graph series for this microprofiler block
   const freqMap = buildFrequencyMap(
     peek(Atoms.profileLogs)!.get(parentName)!,
     name,
@@ -82,10 +91,7 @@ export const pinMicroProfiler = (parentName: string, name: string) => {
 
   Atoms.results((prev) => [...prev!, newResult]);
   Atoms.data((prev) =>
-    FilterMap(
-      [...prev!, { name: fullName, data: freqMap }],
-      peek(Atoms.calls) / Settings.GetSetting("OutlierDivider"),
-    ),
+    BinData([...prev!, { name: fullName, data: freqMap }], ...getBinArgs()),
   );
 };
 
@@ -113,16 +119,16 @@ export const startBenchmark = () => {
 
   if (!result) return;
 
-  const filteredResults = FilterMap(
+  // Raw data goes to ComputeResults so stats reflect actual measured times.
+  // Binned data goes to the graph so the X axis is compressed and the outlier
+  // filter works meaningfully (each bin aggregates many readings).
+  const binnedData = BinData(
     result,
     calls / Settings.GetSetting("OutlierDivider"),
+    Settings.GetSetting("FilterOutliers"),
   );
+  const computedResults = ComputeResults(result);
 
-  const computedResults = ComputeResults(
-    Settings.GetSetting("FilterOutliers") ? filteredResults : result,
-  );
-
-  // Compute microprofiler stats for all benchmarks upfront
   const microprofilerStats = new Map<string, Stats<ProfileLog>>();
   for (const [key, value] of Object.entries(profileLogs!)) {
     microprofilerStats.set(key as string, ProfileLogStats(value));
@@ -130,7 +136,7 @@ export const startBenchmark = () => {
 
   GraphAtoms.zoom(1);
   GraphAtoms.focusedX(0);
-  Atoms.data(filteredResults);
+  Atoms.data(binnedData);
   Atoms.results(computedResults);
   Atoms.microprofilerStats(microprofilerStats);
   Atoms.profileLogs(profileLogs);

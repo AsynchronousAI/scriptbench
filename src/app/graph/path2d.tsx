@@ -7,7 +7,6 @@ import { Object } from "@rbxts/luau-polyfill";
 import { GRADIENT_RES, LINE_WIDTH } from "configurations";
 import { RunService } from "@rbxts/services";
 
-/// Utilities
 function normalizePoint(
   domainRange: DomainRange,
   x: number,
@@ -39,19 +38,22 @@ function padDomainEdges(
   entries: [number, number][],
   domainRange: DomainRange,
 ): [number, number][] {
-  const padded = [...entries];
+  // Sort by X first — Object.entries returns Luau table keys in arbitrary order,
+  // which caused the path to zigzag wildly between out-of-order points.
+  const sorted = [...entries].sort(([a], [b]) => a < b);
+
   const domainMin = domainRange.DomainMin;
   const domainMax = domainRange.DomainMax;
   const rangeMin = domainRange.RangeMin;
 
-  if (padded[0][0] > domainMin) {
-    padded.unshift([domainMin, rangeMin]);
+  if (sorted[0][0] > domainMin) {
+    sorted.unshift([domainMin, rangeMin]);
   }
-  if (padded[padded.size() - 1][0] < domainMax) {
-    padded.push([domainMax, rangeMin]);
+  if (sorted[sorted.size() - 1][0] < domainMax) {
+    sorted.push([domainMax, rangeMin]);
   }
 
-  return padded;
+  return sorted;
 }
 function LoadLines(
   path2d: Path2D,

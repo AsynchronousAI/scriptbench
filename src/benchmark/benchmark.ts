@@ -7,32 +7,49 @@ import { GraphData } from "app/graph/types";
 
 const clock = os.clock;
 
-/**
- * Removes time buckets from graph data whose frequency is below `threshold`.
- * This strips outlier spikes that occur fewer times than calls/OutlierDivider.
- */
-export function FilterMap(data: GraphData, threshold: number): GraphData {
-  const result: GraphData = [];
+const BINS = 100; // Path2D only supports up to 100 control points
+export function BinData(
+  data: GraphData,
+  threshold: number,
+  filterOutliers: boolean,
+): GraphData {
+  return data.map((series) => {
+    const keys = Object.keys(series.data).map((k) => tonumber(k) as number);
+    if (keys.size() === 0) return series;
 
-  for (const inner of data) {
-    const filtered: { [key: number]: number } = {};
+    const domainMin = math.min(...keys);
+    const domainMax = math.max(...keys);
+    const domainRange = domainMax - domainMin;
 
-    for (const [key, count] of Object.entries(inner.data)) {
-      if (count >= threshold) {
-        filtered[tonumber(key)!] = count;
+    // Degenerate case: all measurements identical
+    if (domainRange === 0) {
+      return { ...series, data: { [domainMin]: series.data[domainMin] } };
+    }
+
+    const binWidth = domainRange / BINS;
+    const bins: { [key: number]: number } = {};
+
+    for (const [key, count] of Object.entries(series.data)) {
+      const x = tonumber(key) as number;
+      const binIndex = math.floor((x - domainMin) / binWidth);
+      const binX = math.floor(domainMin + (binIndex + 0.5) * binWidth);
+      bins[binX] = (bins[binX] ?? 0) + (count as number);
+    }
+
+    // Apply outlier threshold
+    const binned: { [key: number]: number } = {};
+    for (const [x, count] of Object.entries(bins)) {
+      if (!filterOutliers || (count as number) >= threshold) {
+        binned[tonumber(x) as number] = count as number;
       }
     }
 
-    if (Object.keys(filtered).size() > 0) {
-      result.push({
-        name: inner.name,
-        data: filtered,
-        highlightedX: inner.highlightedX,
-      });
-    }
-  }
-
-  return result;
+    return {
+      name: series.name,
+      data: binned,
+      highlightedX: series.highlightedX,
+    };
+  });
 }
 
 function Benchmark(
@@ -110,22 +127,6 @@ export default function BenchmarkAll(
     },
     (errorMessage) => onError?.(errorMessage as string),
   );
-
-  // Fill gaps: ensure every series has an entry for every time bucket present
-  // in any series, so graph lines share the same X domain.
-  let minimumX = math.huge;
-  let maximumX = -math.huge;
-  for (const results of totalResults) {
-    for (const x of Object.keys(results.data)) {
-      minimumX = math.min(minimumX, x);
-      maximumX = math.max(maximumX, x);
-    }
-  }
-  for (const results of totalResults) {
-    for (let i = minimumX; i <= maximumX; i++) {
-      results.data[i] ??= 0;
-    }
-  }
 
   return [totalResults, totalProfileLogs];
 }
