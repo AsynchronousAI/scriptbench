@@ -6,10 +6,7 @@ import { GRADIENT_RES } from "configurations";
 /* Main */
 const gradientLUT: number[] = table.create(GRADIENT_RES);
 for (let i = 0; i < GRADIENT_RES; i++) {
-  // linear gradient (0.9 -> 0.1)
-  gradientLUT[i] = math.floor(
-    (((GRADIENT_RES - i - 1) / (GRADIENT_RES - 1)) * 0.8 + 0.1) * 255,
-  );
+  gradientLUT[i] = math.floor(math.map(i, 0, GRADIENT_RES - 1, 0.75, 0) * 255);
 }
 export function EditableImageGradient(props: {
   Color: Color3;
@@ -29,32 +26,44 @@ export function EditableImageGradient(props: {
 
   useEffect(() => {
     const resolution = image.Size;
-    const imageBuffer = image.ReadPixelsBuffer(Vector2.zero, resolution);
 
-    for (const x of $range(0, resolution.X)) {
-      const maxY = math.floor(props.Function(x / resolution.X) * resolution.Y);
-      for (const y of $range(maxY, resolution.Y)) {
-        if (x < 0 || x >= resolution.X || y < 0 || y >= resolution.Y) continue;
-        const opacity = gradientLUT[y];
-        const pixel = colorBits | (opacity << 24);
-        const memoryPos = 4 * (y * resolution.X + x);
-        buffer.writeu32(imageBuffer, memoryPos, pixel);
-      }
+    // Pre-build a full-height gradient column once (reused for every X)
+    const gradientCol = buffer.create(4 * resolution.Y);
+    for (const y of $range(0, resolution.Y - 1)) {
+      buffer.writeu32(gradientCol, 4 * y, colorBits | (gradientLUT[y] << 24));
     }
 
-    image.WritePixelsBuffer(Vector2.zero, resolution, imageBuffer);
-    print(
-      `[EditableImage] ${props.Label}: ${string.format("%.2f", (os.clock() - props.StartClock) * 1000)}ms total`,
-    );
+    // For each column, write only the below-curve slice directly into the image
+    for (const x of $range(0, resolution.X - 1)) {
+      const maxY = math.clamp(
+        math.floor(props.Function(x / resolution.X) * resolution.Y),
+        0,
+        resolution.Y,
+      );
+      const height = resolution.Y - maxY;
+      if (height <= 0) continue;
+
+      const slice = buffer.create(4 * height);
+      buffer.copy(slice, 0, gradientCol, 4 * maxY, 4 * height);
+      image.WritePixelsBuffer(
+        new Vector2(x, maxY),
+        new Vector2(1, height),
+        slice,
+      );
+    }
+
+    // print(
+    //   `[EditableImage] ${props.Label}: ${string.format("%.2f", (os.clock() - props.StartClock) * 1000)}ms total`,
+    // );
 
     return () => {
       image.WritePixelsBuffer(
         Vector2.zero,
         resolution,
-        buffer.create(buffer.len(imageBuffer)),
+        buffer.create(4 * resolution.X * resolution.Y),
       );
     };
-  }, [props.Function]);
+  }, [props.Function, props.Color]);
 
   return (
     <imagelabel

@@ -5,6 +5,7 @@ import { GetKeyColor } from "colors";
 import { EditableImageGradient } from "./imageGradient";
 import { Object } from "@rbxts/luau-polyfill";
 import { GRADIENT_RES, LINE_WIDTH } from "configurations";
+import { RunService } from "@rbxts/services";
 
 /// Utilities
 function normalizePoint(
@@ -155,6 +156,7 @@ export function Path2D(props: {
     if (!current) return;
 
     const paths: Path2D[] = [];
+    const events: RBXScriptConnection[] = [];
     startClockRef.current = os.clock(); // set before work begins
 
     setInterpolateFuncs(
@@ -162,9 +164,14 @@ export function Path2D(props: {
         const path2d = new Instance("Path2D");
         path2d.Thickness = LINE_WIDTH * 1.5;
         path2d.ZIndex = index + 1;
-        path2d.Color3 = GetKeyColor(index + 1);
         path2d.Parent = current;
         paths.push(path2d);
+
+        events.push(
+          RunService.Heartbeat.Connect(() => {
+            path2d.Color3 = GetKeyColor(index + 1);
+          }),
+        );
 
         LOADERS[Mode](path2d, line, domainRange);
 
@@ -172,7 +179,10 @@ export function Path2D(props: {
       }),
     );
 
-    return () => paths.forEach((p) => p.Destroy());
+    return () => {
+      paths.forEach((p) => p.Destroy());
+      events.forEach((e) => e.Disconnect());
+    };
   }, [Data, domainRange, containerRef, Mode]);
 
   return (
