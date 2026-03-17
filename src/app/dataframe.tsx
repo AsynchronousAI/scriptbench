@@ -75,6 +75,7 @@ export function DataFrame(props: {
     const threshold = math.max(1, math.floor(callCount / divider));
     return BinData(rawData, threshold, filterOutliers);
   }, [rawData, callCount, outlierDivider, filterOutliers]);
+  const seriesOrder = graphData?.map((series) => series.name);
 
   if (!hasResults) {
     return (
@@ -103,7 +104,7 @@ export function DataFrame(props: {
         OnChanged={setAlpha2}
       >
         {{
-          Side0: <Results Results={results} />,
+          Side0: <Results Results={results} SeriesOrder={seriesOrder} />,
           Side1: (
             <Splitter
               Alpha={alpha1}
@@ -124,6 +125,7 @@ export function DataFrame(props: {
                   <MicroProfiler
                     Results={ToMicroprofilerData(results)}
                     MicroProfiler={microprofilerStats}
+                    SeriesOrder={seriesOrder}
                     OnClick={props.onMicroProfilerClick}
                   />
                 ) : (

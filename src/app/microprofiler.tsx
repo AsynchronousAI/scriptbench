@@ -11,6 +11,7 @@ export interface MicroProfilerProps {
   Results: MicroProfilerData;
   MicroProfiler?: Map<string, Stats<ProfileLog>>;
   OnClick?: (parentName: string, name: string) => void;
+  SeriesOrder?: string[];
 }
 
 const makeGradient = (color: Color3) =>
@@ -18,6 +19,18 @@ const makeGradient = (color: Color3) =>
     new ColorSequenceKeypoint(0, LightenColor(color, 0.025)),
     new ColorSequenceKeypoint(1, color),
   ]);
+
+const getSeriesColor = (
+  name: string,
+  fallbackIndex: number,
+  seriesOrder?: string[],
+) => {
+  const matchedIndex = seriesOrder?.findIndex((series) => series === name);
+  if (matchedIndex !== undefined && matchedIndex >= 0) {
+    return GetKeyColor(matchedIndex + 1);
+  }
+  return GetKeyColor(fallbackIndex + 1);
+};
 
 function MicroProfilerProcesses(props: {
   processes: Stats<ProfileLog>;
@@ -122,7 +135,11 @@ export default function MicroProfiler(props: MicroProfilerProps) {
       />
       <ScrollFrame ScrollingDirection={Enum.ScrollingDirection.XY}>
         {Object.entries(props.Results).map(([name, time], index) => {
-          const color = GetKeyColor(index + 1);
+          const color = getSeriesColor(
+            name as string,
+            index,
+            props.SeriesOrder,
+          );
           const microprofiler = props.MicroProfiler?.get(name as string);
           const hasProcesses = (microprofiler?.Avg?.size() ?? 0) > 0;
           const barWidth = new UDim2(time / displaySize, 0, 0.25, 0);

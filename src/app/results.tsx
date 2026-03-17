@@ -11,6 +11,7 @@ export interface Result {
 }
 export interface ResultsProps {
   Results: Result[];
+  SeriesOrder?: string[];
 }
 
 const STAT_ORDER: { [key: string]: number } = {
@@ -24,6 +25,20 @@ const STAT_ORDER: { [key: string]: number } = {
   Mode: 7,
   MAD: 8,
 };
+
+function getColorForResult(
+  name: string,
+  fallbackIndex: number,
+  seriesOrder?: string[],
+) {
+  const matchedIndex = seriesOrder?.findIndex(
+    (seriesName) => seriesName === name,
+  );
+  if (matchedIndex !== undefined && matchedIndex >= 0) {
+    return GetKeyColor(matchedIndex + 1);
+  }
+  return GetKeyColor(fallbackIndex + 1);
+}
 
 export default function Results(props: ResultsProps) {
   const [openStates, setOpenStates] = useState<{ [name: string]: boolean }>({});
@@ -88,7 +103,11 @@ export default function Results(props: ResultsProps) {
               Text={`<b>${result.Name}</b>`}
               RichText
               Font={Enum.Font.Code}
-              TextColor3={GetKeyColor(index + 1)}
+              TextColor3={getColorForResult(
+                result.Name,
+                index,
+                props.SeriesOrder,
+              )}
               TextScaled
               TextXAlignment="Left"
               BackgroundTransparency={1}
