@@ -55,6 +55,8 @@ function padDomainEdges(
     sorted.push([domainMax, rangeMin]);
   }
 
+  sorted.push([domainMax, 0]);
+
   return sorted;
 }
 function LoadLines(
