@@ -6,6 +6,7 @@ export namespace Atoms {
   export const availableBenchmarks = atom<ModuleScript[]>([]);
   export const openedBenchmark = atom<ModuleScript | undefined>(undefined);
   export const calls = atom<number>(100);
+  export const lastRunCallCount = atom<number | undefined>(undefined);
   export const mode = atom<"FPS" | "Histogram">("Histogram");
   export const openedMenu = atom<"settings" | "benchmark" | undefined>(
     undefined,

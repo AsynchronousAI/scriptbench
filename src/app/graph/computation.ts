@@ -77,11 +77,18 @@ export function InIncrements(
   ) {
     return [];
   }
+  if (range === 0 || amount === 0) {
+    return table.create(amount, min);
+  }
 
   const increment = range / amount;
-  const increments: number[] = [];
-  for (let i = min; i <= max; i += increment) {
-    increments.push(i);
+  const length = math.floor((max - min) / increment) + 1;
+
+  const increments = new Array<number>(length);
+
+  for (let i = 0; i < length; i++) {
+    increments[i] = min + i * increment;
   }
+
   return increments;
 }

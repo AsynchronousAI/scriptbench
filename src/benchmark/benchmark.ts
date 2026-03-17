@@ -13,30 +13,51 @@ export function BinData(
   threshold: number,
   filterOutliers: boolean,
 ): GraphData {
-  return data.map((series) => {
-    const keys = Object.keys(series.data).map((k) => tonumber(k) as number);
-    if (keys.size() === 0) return series;
-
-    const domainMin = math.min(...keys);
-    const domainMax = math.max(...keys);
-    const domainRange = domainMax - domainMin;
-
-    // Degenerate case: all measurements identical
-    if (domainRange === 0) {
-      return { ...series, data: { [domainMin]: series.data[domainMin] } };
+  const globalKeys: number[] = [];
+  for (const series of data) {
+    for (const key of Object.keys(series.data)) {
+      globalKeys.push(tonumber(key) as number);
     }
+  }
 
-    const binWidth = domainRange / BINS;
+  if (globalKeys.size() === 0) return data;
+
+  const domainMin = math.min(...globalKeys);
+  const domainMax = math.max(...globalKeys);
+  const domainRange = domainMax - domainMin;
+
+  if (domainRange === 0) {
+    return data.map((series) => {
+      let total = 0;
+      for (const count of Object.values(series.data)) {
+        total += count as number;
+      }
+      if (total === 0) return series;
+
+      return {
+        name: series.name,
+        data: { [domainMin]: total },
+        highlightedX: series.highlightedX,
+      };
+    });
+  }
+
+  const binWidth = domainRange / BINS;
+
+  return data.map((series) => {
     const bins: { [key: number]: number } = {};
 
     for (const [key, count] of Object.entries(series.data)) {
       const x = tonumber(key) as number;
-      const binIndex = math.floor((x - domainMin) / binWidth);
+      const binIndex = math.clamp(
+        math.floor((x - domainMin) / binWidth),
+        0,
+        BINS - 1,
+      );
       const binX = math.floor(domainMin + (binIndex + 0.5) * binWidth);
       bins[binX] = (bins[binX] ?? 0) + (count as number);
     }
 
-    // Apply outlier threshold
     const binned: { [key: number]: number } = {};
     for (const [x, count] of Object.entries(bins)) {
       if (!filterOutliers || (count as number) >= threshold) {

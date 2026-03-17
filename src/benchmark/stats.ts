@@ -8,7 +8,18 @@ function getPercentile(sorted: number[], percent: number): number {
 
 export function ComputeStats(data: number[]): Stats<number> {
   if (data.size() === 0) {
-    throw "Data array must not be empty.";
+    // throw "Data array must not be empty.";
+    return {
+      Avg: 0,
+      "10%": 0,
+      "50%": 0,
+      "90%": 0,
+      Min: 0,
+      Max: 0,
+      StdDev: 0,
+      Mode: 0,
+      MAD: 0,
+    };
   }
 
   const sorted = [...data].sort();

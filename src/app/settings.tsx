@@ -139,7 +139,7 @@ export default function Settings() {
             <SettingsTitle Text="Graph Rendering" />
             <Dropdown
               Size={new UDim2(1, 0, 0, ROW_H)}
-              Items={["Steps", "Lines" /*, "Spline" */]}
+              Items={["Steps", "Lines", "Spline"]}
               SelectedItem={settings.Rendering}
               OnItemSelected={(v) => setSettingsItem("Rendering", v)}
             />

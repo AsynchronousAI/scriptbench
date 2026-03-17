@@ -38,17 +38,19 @@ function padDomainEdges(
   entries: [number, number][],
   domainRange: DomainRange,
 ): [number, number][] {
-  // Sort by X first — Object.entries returns Luau table keys in arbitrary order,
-  // which caused the path to zigzag wildly between out-of-order points.
   const sorted = [...entries].sort(([a], [b]) => a < b);
+  if (sorted.size() === 0) return [];
 
   const domainMin = domainRange.DomainMin;
   const domainMax = domainRange.DomainMax;
   const rangeMin = domainRange.RangeMin;
 
   if (sorted[0][0] > domainMin) {
-    sorted.unshift([domainMin, rangeMin]);
+    const firstX = sorted[0][0];
+    sorted.unshift([firstX, rangeMin]); // vertical up at first domain
+    sorted.unshift([domainMin, rangeMin]); // original padding point
   }
+
   if (sorted[sorted.size() - 1][0] < domainMax) {
     sorted.push([domainMax, rangeMin]);
   }
@@ -118,6 +120,8 @@ function LoadSteps(
 
 // Curve sampling → X→Y LUT
 function buildLUT(path2d: Path2D): number[] {
+  if (path2d.GetControlPoints().size() === 0) return [];
+
   const SAMPLES = GRADIENT_RES * 2;
   const xToY = new Map<number, number>();
 
@@ -225,16 +229,19 @@ export function Path2D(props: {
       ref={containerRef}
       BackgroundTransparency={1}
     >
-      {interpolateFuncs.map((func, index) => (
-        <EditableImageGradient
-          key={index}
-          ZIndex={index * 2}
-          Color={GetKeyColor(index + 1)}
-          Function={func}
-          StartClock={startClockRef.current}
-          Label={`line ${index + 1} of ${interpolateFuncs.size()} (${Mode})`}
-        />
-      ))}
+      {interpolateFuncs.map(
+        (func, index) =>
+          func(0) !== undefined && (
+            <EditableImageGradient
+              key={index}
+              ZIndex={index * 2}
+              Color={GetKeyColor(index + 1)}
+              Function={func}
+              StartClock={startClockRef.current}
+              Label={`line ${index + 1} of ${interpolateFuncs.size()} (${Mode})`}
+            />
+          ),
+      )}
     </frame>
   );
 }
