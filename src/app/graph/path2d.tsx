@@ -33,38 +33,80 @@ function makePointWithTangents(
   );
 }
 
-// Control point loaders
-function padDomainEdges(
-  entries: [number, number][],
+function sampleAt(sorted: [number, number][], x: number) {
+  if (x <= sorted[0][0]) return sorted[0][1];
+  if (x >= sorted[sorted.size() - 1][0]) return sorted[sorted.size() - 1][1];
+
+  for (let i = 0; i < sorted.size() - 1; i++) {
+    const [x0, y0] = sorted[i];
+    const [x1, y1] = sorted[i + 1];
+    if (x0 === x1) return y1;
+    if (x >= x0 && x <= x1) {
+      const alpha = (x - x0) / (x1 - x0);
+      return y0 + (y1 - y0) * alpha;
+    }
+  }
+
+  return sorted[sorted.size() - 1][1];
+}
+
+function clampDomainEntries(
+  entries: [string, number][],
   domainRange: DomainRange,
 ): [number, number][] {
-  const sorted = [...entries].sort(([a], [b]) => a < b);
-  if (sorted.size() === 0) return [];
+  if (entries.size() === 0) return [];
+
+  const parsed = entries
+    .map(([rawX, rawY]) => [tonumber(rawX) as number, rawY] as [number, number])
+    .filter(([x]) => typeIs(x, "number"));
+
+  if (parsed.size() === 0) return [];
 
   const domainMin = domainRange.DomainMin;
   const domainMax = domainRange.DomainMax;
   const rangeMin = domainRange.RangeMin;
 
-  if (sorted[0][0] > domainMin) {
-    const firstX = sorted[0][0];
-    sorted.unshift([firstX, rangeMin]); // vertical up at first domain
-    sorted.unshift([domainMin, rangeMin]); // original padding point
+  const sorted = parsed.sort(([a], [b]) => a < b);
+
+  const domainSpan = math.max(domainMax - domainMin, 1e-6);
+
+  const leftSample = sampleAt(sorted, domainMin);
+  const rightSample = sampleAt(sorted, domainMax);
+
+  const clamped: [number, number][] = [];
+
+  clamped.push([domainMin, rangeMin]);
+  clamped.push([domainMin, leftSample]);
+
+  for (const [x, y] of sorted) {
+    if (x > domainMin && x < domainMax) {
+      clamped.push([x, y]);
+    }
   }
 
-  if (sorted[sorted.size() - 1][0] < domainMax) {
-    sorted.push([domainMax, rangeMin]);
+  clamped.push([domainMax, rightSample]);
+  clamped.push([domainMax, rangeMin]);
+  clamped.push([domainMax, 0]);
+
+  if (domainSpan <= 1e-6) {
+    return [
+      [domainMin, rangeMin],
+      [domainMin, leftSample],
+      [domainMin, rangeMin],
+      [domainMin, 0],
+    ];
   }
 
-  sorted.push([domainMax, 0]);
-
-  return sorted;
+  return clamped;
 }
+
+// Control point loaders
 function LoadLines(
   path2d: Path2D,
   line: GraphData[number],
   domainRange: DomainRange,
 ) {
-  const entries = padDomainEdges(Object.entries(line.data), domainRange);
+  const entries = clampDomainEntries(Object.entries(line.data), domainRange);
   path2d.SetControlPoints(
     entries.map(([x, y]) => makePoint(...normalizePoint(domainRange, x, y))),
   );
@@ -74,7 +116,7 @@ function LoadSpline(
   line: GraphData[number],
   domainRange: DomainRange,
 ) {
-  const entries = padDomainEdges(Object.entries(line.data), domainRange);
+  const entries = clampDomainEntries(Object.entries(line.data), domainRange);
   const points = entries.map(([x, y]) => normalizePoint(domainRange, x, y));
 
   path2d.SetControlPoints(
@@ -101,7 +143,7 @@ function LoadSteps(
   line: GraphData[number],
   domainRange: DomainRange,
 ) {
-  const entries = padDomainEdges(Object.entries(line.data), domainRange);
+  const entries = clampDomainEntries(Object.entries(line.data), domainRange);
   const controlPoints: Path2DControlPoint[] = [];
 
   for (let i = 0; i < entries.size(); i++) {
@@ -141,7 +183,6 @@ function buildLUT(path2d: Path2D): number[] {
       xToY.set(px, pos.Y.Scale);
   }
 
-  // Fill gaps by interpolating between known neighbours
   const lut: number[] = table.create(GRADIENT_RES, 0);
   let lastX = 0;
   let lastY = xToY.get(0) ?? 0;
@@ -197,7 +238,7 @@ export function Path2D(props: {
 
     const paths: Path2D[] = [];
     const events: RBXScriptConnection[] = [];
-    startClockRef.current = os.clock(); // set before work begins
+    startClockRef.current = os.clock();
 
     setInterpolateFuncs(
       Data.map((line, index) => {
@@ -223,7 +264,7 @@ export function Path2D(props: {
       paths.forEach((p) => p.Destroy());
       events.forEach((e) => e.Disconnect());
     };
-  }, [Data, domainRange, containerRef, Mode]);
+  }, [Data, domainRange, Mode]);
 
   return (
     <frame
