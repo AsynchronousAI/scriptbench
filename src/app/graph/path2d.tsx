@@ -4,7 +4,7 @@ import { AsPosition } from "./computation";
 import { GetKeyColor } from "colors";
 import { EditableImageGradient } from "./imageGradient";
 import { Object } from "@rbxts/luau-polyfill";
-import { GRADIENT_RES, LINE_WIDTH } from "configurations";
+import { GRADIENT_RES, LINE_WIDTH, ZINDEX } from "configurations";
 import { RunService } from "@rbxts/services";
 
 function normalizePoint(
@@ -269,14 +269,15 @@ export function Path2D(props: {
       Size={new UDim2(1, 0, 1, 0)}
       ref={containerRef}
       BackgroundTransparency={1}
+      ZIndex={ZINDEX.GRID_LINES + 1}
     >
       {interpolateFuncs.map(
         (func, index) =>
           func(0) !== undefined && (
-            <EditableImageGradient
-              key={index}
-              ZIndex={index * 2}
-              Color={GetKeyColor(index + 1)}
+             <EditableImageGradient
+               key={index}
+               ZIndex={ZINDEX.GRID_LINES + 1 + index * 2}
+               Color={GetKeyColor(index + 1)}
               Function={func}
               StartClock={startClockRef.current}
               Label={`line ${index + 1} of ${interpolateFuncs.size()} (${Mode})`}

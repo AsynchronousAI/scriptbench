@@ -137,11 +137,11 @@ export default function Settings() {
             />
 
             <SettingsTitle Text="Graph Rendering" />
-            <Dropdown
-              Size={new UDim2(1, 0, 0, ROW_H)}
-              Items={["Steps", "Lines", "Spline"]}
-              SelectedItem={settings.Rendering}
-              OnItemSelected={(v) => setSettingsItem("Rendering", v)}
+             <Dropdown
+               Size={new UDim2(1, 0, 0, ROW_H)}
+               Items={["Steps", "Lines"]}
+               SelectedItem={settings.Rendering}
+               OnItemSelected={(v) => setSettingsItem("Rendering", v)}
             />
 
             <SettingsTitle Text="Line Color" />

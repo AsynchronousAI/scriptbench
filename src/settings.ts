@@ -15,7 +15,7 @@ export interface Settings {
   LineVal: number;
   FilterOutliers: boolean;
   OutlierDivider: number;
-  Rendering: "Lines" | "Steps" | "Spline";
+    Rendering: "Lines" | "Steps";
 
   /* Panes */
   RightPaneAlpha: number;

@@ -24,7 +24,7 @@ export const ZINDEX = {
   /** Grid lines, behind content */
   GRID_LINES: 1,
   /** Buttons, interactive controls */
-  CONTROLS: 20,
+  CONTROLS: 35,
   /** Trim frames, masks, decorative overlays */
   OVERLAY: 30,
   /** Hover tooltips, always on top */
