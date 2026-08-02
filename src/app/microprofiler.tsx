@@ -5,6 +5,7 @@ import { COLORS, GetKeyColor, LightenColor } from "colors";
 import { FormatNumber } from "./graph/computation";
 import { Settings } from "settings";
 import { ProfileLog, Stats } from "benchmark/types";
+import { ZINDEX } from "configurations";
 
 export type MicroProfilerData = { [key: string]: number };
 export interface MicroProfilerProps {
@@ -54,7 +55,8 @@ function MicroProfilerProcesses(props: {
     const label = entry.name === false ? "Untracked" : (entry.name as string);
     const width = entry.time / props.maxTime;
     const color = LightenColor(props.color, index * 0.025);
-    const zindex = index + 2;
+    const zindex =
+      ZINDEX.CONTENT + ZINDEX.ZONE.MICROPROFILER + 4 + index;
 
     return (
       <textbutton
@@ -108,7 +110,7 @@ export default function MicroProfiler(props: MicroProfilerProps) {
   return (
     <>
       <Button
-        ZIndex={2}
+        ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.MICROPROFILER + 1}
         Icon={{
           Image: ZOOM_ICON,
           Size: Vector2.one.mul(24),
@@ -121,7 +123,7 @@ export default function MicroProfiler(props: MicroProfilerProps) {
         OnActivated={() => setSpacing((s) => s - 5)}
       />
       <Button
-        ZIndex={2}
+        ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.MICROPROFILER + 1}
         Icon={{
           Image: SHRINK_ICON,
           Size: Vector2.one.mul(24),
@@ -133,7 +135,10 @@ export default function MicroProfiler(props: MicroProfilerProps) {
         AnchorPoint={new Vector2(0.5, 0.5)}
         OnActivated={() => setSpacing((s) => s + 5)}
       />
-      <ScrollFrame ScrollingDirection={Enum.ScrollingDirection.XY}>
+      <ScrollFrame
+        ScrollingDirection={Enum.ScrollingDirection.XY}
+        ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.MICROPROFILER}
+      >
         {Object.entries(props.Results).map(([name, time], index) => {
           const color = getSeriesColor(
             name as string,
@@ -152,13 +157,14 @@ export default function MicroProfiler(props: MicroProfilerProps) {
                 BackgroundColor3={new Color3(1, 1, 1)}
                 Size={barWidth}
                 LayoutOrder={maxTime - time}
+                ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.MICROPROFILER + 2}
               >
                 <textlabel
                   Text={`<b>${name as string}</b> ${FormatNumber(time)}µs`}
                   RichText
                   TextColor3={COLORS.DarkText}
                   TextTransparency={0.2}
-                  ZIndex={3}
+                  ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.MICROPROFILER + 3}
                   Font={"Code"}
                   TextScaled
                   TextXAlignment={Enum.TextXAlignment.Left}
@@ -182,6 +188,7 @@ export default function MicroProfiler(props: MicroProfilerProps) {
                   BackgroundTransparency={1}
                   Size={barWidth}
                   LayoutOrder={maxTime - time}
+                  ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.MICROPROFILER + 2}
                 >
                   <MicroProfilerProcesses
                     processes={microprofiler!}

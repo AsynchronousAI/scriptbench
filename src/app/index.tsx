@@ -4,7 +4,7 @@ import { DropShadowFrame, Splitter } from "@rbxts/studiocomponents-react2";
 import { COLORS } from "colors";
 import { GetBenchmarkableModules, GetBenchmarkName } from "benchmark";
 import { Workspace } from "@rbxts/services";
-import { TITLE_HEIGHT } from "configurations";
+import { TITLE_HEIGHT, ZINDEX } from "configurations";
 import Settings from "./settings";
 import { Settings as SettingsNamespace, useSetting } from "settings";
 import { useAtom } from "@rbxts/react-charm";
@@ -21,7 +21,7 @@ function BenchmarkPicker() {
   const openedMenu = useAtom(Atoms.openedMenu);
 
   return (
-    <DropShadowFrame Size={new UDim2(1, 0, 1, 0)} ZIndex={2}>
+    <DropShadowFrame Size={new UDim2(1, 0, 1, 0)} ZIndex={ZINDEX.CONTENT}>
       <Sidebar
         Benchmarks={availableBenchmarks.map((benchmark) =>
           GetBenchmarkName(benchmark),
@@ -100,6 +100,7 @@ export function App() {
           <frame
             BackgroundColor3={COLORS.Background}
             Size={new UDim2(1, 0, 1, 0)}
+            ZIndex={ZINDEX.BASE}
           >
             <textlabel
               Text={
@@ -117,7 +118,7 @@ export function App() {
               BackgroundTransparency={1}
               TextXAlignment={"Left"}
               TextColor3={COLORS.FocusText}
-              ZIndex={2}
+              ZIndex={ZINDEX.CONTENT}
             />
 
             {openedMenu === "settings" ? (
@@ -134,7 +135,7 @@ export function App() {
                 Font={Enum.Font.Code}
                 TextXAlignment={"Left"}
                 TextColor3={COLORS.ErrorText}
-                ZIndex={2}
+                ZIndex={ZINDEX.CONTENT}
               />
             ) : showBenchmarkView ? (
               <DataFrame onMicroProfilerClick={pinMicroProfiler} />

@@ -14,7 +14,7 @@ import {
   useSetting,
 } from "settings";
 import { Settings as SettingsNamespace } from "settings";
-import { TITLE_HEIGHT } from "configurations";
+import { TITLE_HEIGHT, ZINDEX } from "configurations";
 import Graph, { GraphingMode } from "./graph";
 import { MockupGraphData } from "mockup";
 
@@ -32,6 +32,7 @@ function SettingsTitle(props: { Text: string }) {
       TextXAlignment="Left"
       Font={"BuilderSans"}
       TextScaled
+      ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.SETTINGS + 1}
     />
   );
 }
@@ -46,6 +47,7 @@ function SettingsLabel(props: { Text: string }) {
       TextXAlignment="Left"
       Font={"BuilderSans"}
       TextScaled
+      ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.SETTINGS + 1}
     />
   );
 }
@@ -113,6 +115,7 @@ export default function Settings() {
               SortOrder: Enum.SortOrder.LayoutOrder,
               Padding: new UDim(0, 6),
             }}
+            ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.SETTINGS}
           >
             <uipadding
               PaddingTop={new UDim(0, 10)}
@@ -127,6 +130,7 @@ export default function Settings() {
               Items={["10%", "50%", "90%", "Avg", "Min", "Max", "Mode"]}
               SelectedItem={settings.PrioritizedStat}
               OnItemSelected={(v) => setSettingsItem("PrioritizedStat", v)}
+              ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.SETTINGS + 2}
             />
 
             <SettingsTitle Text="Batching" />
@@ -134,6 +138,7 @@ export default function Settings() {
               Size={new UDim2(1, 0, 0, ROW_H)}
               Value={settings.Batching}
               OnValidChanged={(v: number) => setSettingsItem("Batching", v)}
+              ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.SETTINGS + 2}
             />
 
             <SettingsTitle Text="Graph Rendering" />
@@ -142,6 +147,7 @@ export default function Settings() {
               Items={["Steps", "Lines", "Spline"]}
               SelectedItem={settings.Rendering}
               OnItemSelected={(v) => setSettingsItem("Rendering", v)}
+              ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.SETTINGS + 2}
             />
 
             <SettingsTitle Text="Line Color" />
@@ -154,6 +160,7 @@ export default function Settings() {
               Max={100}
               Step={1}
               Slider
+              ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.SETTINGS + 2}
             />
             <SettingsLabel Text="Saturation" />
             <NumericInput
@@ -164,6 +171,7 @@ export default function Settings() {
               Max={100}
               Step={1}
               Slider
+              ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.SETTINGS + 2}
             />
             <SettingsLabel Text="Value" />
             <NumericInput
@@ -174,9 +182,14 @@ export default function Settings() {
               Max={100}
               Step={1}
               Slider
+              ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.SETTINGS + 2}
             />
 
-            <frame Size={new UDim2(1, 0, 0, ROW_H)} BackgroundTransparency={1}>
+            <frame
+              Size={new UDim2(1, 0, 0, ROW_H)}
+              BackgroundTransparency={1}
+              ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.SETTINGS + 2}
+            >
               <uilistlayout
                 FillDirection="Horizontal"
                 VerticalAlignment="Center"
@@ -187,11 +200,13 @@ export default function Settings() {
                 Text="Save"
                 Size={new UDim2(0, 80, 1, 0)}
                 OnActivated={saveSettings}
+                ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.SETTINGS + 3}
               />
               <Button
                 Text="Cancel"
                 Size={new UDim2(0, 80, 1, 0)}
                 OnActivated={resetSettings}
+                ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.SETTINGS + 3}
               />
             </frame>
           </ScrollFrame>

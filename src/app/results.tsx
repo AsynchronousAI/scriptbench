@@ -2,6 +2,7 @@ import { ScrollFrame } from "@rbxts/studiocomponents-react2";
 import { COLORS, GetKeyColor } from "colors";
 import React, { useState } from "@rbxts/react";
 import { FormatNumber } from "./graph/computation";
+import { ZINDEX } from "configurations";
 
 export interface Result {
   Name: string;
@@ -53,6 +54,7 @@ export default function Results(props: ResultsProps) {
         ClassName: "UIListLayout",
         SortOrder: Enum.SortOrder.LayoutOrder,
       }}
+      ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.RESULTS}
     >
       {props.Results.map((result, index) => (
         <frame
@@ -61,6 +63,7 @@ export default function Results(props: ResultsProps) {
           AutomaticSize="Y"
           BackgroundColor3={COLORS.LightBackground}
           LayoutOrder={result.Order * 100}
+          ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.RESULTS + 1}
         >
           <uilistlayout FillDirection="Vertical" SortOrder="LayoutOrder" />
 
@@ -73,6 +76,7 @@ export default function Results(props: ResultsProps) {
             BorderColor3={COLORS.Border}
             AutoButtonColor={false}
             TextScaled
+            ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.RESULTS + 2}
           >
             <uipadding
               PaddingTop={new UDim(0.2, 0)}
@@ -85,7 +89,11 @@ export default function Results(props: ResultsProps) {
               Padding={new UDim(0.02, 0)}
               VerticalAlignment="Center"
             />
-            <frame Size={new UDim2(0, 20, 1, 0)} BackgroundTransparency={1}>
+            <frame
+              Size={new UDim2(0, 20, 1, 0)}
+              BackgroundTransparency={1}
+              ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.RESULTS + 3}
+            >
               <imagelabel
                 Image="rbxassetid://139679203012669"
                 ImageColor3={COLORS.Text}
@@ -95,6 +103,7 @@ export default function Results(props: ResultsProps) {
                 AnchorPoint={new Vector2(0.5, 0.5)}
                 BackgroundTransparency={1}
                 Rotation={isOpen(result.Name) ? 180 : 0}
+                ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.RESULTS + 4}
               />
               <uiaspectratioconstraint />
             </frame>
@@ -111,6 +120,7 @@ export default function Results(props: ResultsProps) {
               TextScaled
               TextXAlignment="Left"
               BackgroundTransparency={1}
+              ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.RESULTS + 3}
             />
           </textbutton>
 
@@ -125,6 +135,7 @@ export default function Results(props: ResultsProps) {
                   Size={new UDim2(1, 0, 0, 24)}
                   BorderColor3={COLORS.Border}
                   BackgroundTransparency={1}
+                  ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.RESULTS + 2}
                 >
                   <textlabel
                     Text={key}
@@ -134,6 +145,7 @@ export default function Results(props: ResultsProps) {
                     Size={new UDim2(0.5, 0, 1, 0)}
                     BackgroundColor3={COLORS.Background}
                     BorderColor3={COLORS.Border}
+                    ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.RESULTS + 3}
                   >
                     <uipadding
                       PaddingTop={new UDim(0.15, 0)}
@@ -150,6 +162,7 @@ export default function Results(props: ResultsProps) {
                     Position={new UDim2(0.5, 0, 0, 0)}
                     BackgroundColor3={COLORS.Background}
                     BorderColor3={COLORS.Border}
+                    ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.RESULTS + 3}
                   >
                     <uipadding
                       PaddingTop={new UDim(0.15, 0)}

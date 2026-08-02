@@ -6,6 +6,7 @@ import {
   LABEL_TEXT_SIZE,
   LABEL_THICKNESS,
   RANGE_LABELS,
+  ZINDEX,
 } from "configurations";
 import { DomainRange } from "./types";
 
@@ -26,6 +27,7 @@ export function Labels(props: {
         Position={new UDim2(-LABEL_THICKNESS - 0.2, 0, -0.2, 0)}
         BackgroundColor3={COLORS.Background}
         BorderSizePixel={0}
+        ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.GRAPH}
       />
 
       {/* Domain tags + grid lines */}
@@ -52,7 +54,7 @@ export function Labels(props: {
               }
               BackgroundTransparency={1}
               TextColor3={COLORS.Text}
-              ZIndex={math.huge}
+              ZIndex={ZINDEX.ALWAYS_ON_TOP}
               TextSize={LABEL_TEXT_SIZE}
               TextXAlignment="Center"
               TextYAlignment="Center"
@@ -65,7 +67,7 @@ export function Labels(props: {
                 }
                 BackgroundColor3={COLORS.Border}
                 BorderSizePixel={0}
-                ZIndex={-1}
+                ZIndex={ZINDEX.GRID_LINES}
               />
             )}
           </>
@@ -92,7 +94,7 @@ export function Labels(props: {
               }
               BackgroundTransparency={1}
               TextColor3={COLORS.Text}
-              ZIndex={math.huge}
+              ZIndex={ZINDEX.ALWAYS_ON_TOP}
               TextSize={LABEL_TEXT_SIZE}
               TextXAlignment="Center"
               TextYAlignment="Center"
@@ -110,7 +112,7 @@ export function Labels(props: {
                 }
                 BackgroundColor3={COLORS.Border}
                 BorderSizePixel={0}
-                ZIndex={-1}
+                ZIndex={ZINDEX.GRID_LINES}
               />
             )}
           </>

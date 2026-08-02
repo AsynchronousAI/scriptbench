@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "@rbxts/react";
 import { COLORS, GetKeyColor } from "colors";
 import { Labels } from "./labels";
 import { useDomainRange, FormatNumber, FromPosition } from "./computation";
-import { LABEL_THICKNESS, LINE_WIDTH } from "configurations";
+import { LABEL_THICKNESS, LINE_WIDTH, ZINDEX } from "configurations";
 import { useAtom } from "@rbxts/react-charm";
 import { GraphAtoms } from "app/graph/atoms";
 import { Button, ScrollFrame } from "@rbxts/studiocomponents-react2";
@@ -51,9 +51,10 @@ export default function Graph(props: GraphProps) {
       Position={new UDim2(0.5, 0, 0.5, 0)}
       AnchorPoint={new Vector2(0.5, 0.5)}
       BorderSizePixel={0}
+      ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.GRAPH}
     >
       <Button
-        ZIndex={2}
+        ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.GRAPH + 3}
         Icon={{
           Image: "rbxassetid://12072054746",
           Size: Vector2.one.mul(24),
@@ -66,7 +67,7 @@ export default function Graph(props: GraphProps) {
         OnActivated={() => GraphAtoms.zoom((r) => r + 1)}
       />
       <Button
-        ZIndex={2}
+        ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.GRAPH + 3}
         Icon={{
           Image: "rbxassetid://15396333997",
           Size: Vector2.one.mul(24),
@@ -86,6 +87,7 @@ export default function Graph(props: GraphProps) {
         Position={new UDim2(0.5, 0, 0.5, 0)}
         AnchorPoint={new Vector2(0.5, 0.5)}
         BorderSizePixel={0}
+        ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.GRAPH + 1}
         OnScrolled={(pos) => {
           const fakeScroller = fakeScrollObject.current;
           if (!fakeScroller) return;
@@ -101,6 +103,7 @@ export default function Graph(props: GraphProps) {
           Size={new UDim2(zoom, 0, 1, 0)}
           BackgroundTransparency={1}
           ref={fakeScrollObject}
+          ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.GRAPH + 2}
         />
       </ScrollFrame>
 
@@ -109,6 +112,7 @@ export default function Graph(props: GraphProps) {
         BackgroundTransparency={1}
         Position={new UDim2(0.5, 0, 0.45, 0)}
         AnchorPoint={new Vector2(0.5, 0.5)}
+        ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.GRAPH + 2}
         Event={{
           MouseMoved: (_: Instance, mouseX, mouseY) => {
             const container = containerRef?.current;
@@ -144,14 +148,14 @@ export default function Graph(props: GraphProps) {
           Position={new UDim2(-1, 0, 0, 0)}
           BackgroundColor3={COLORS.Background}
           BorderSizePixel={0}
-          ZIndex={2}
+          ZIndex={ZINDEX.OVERLAY}
         />
         <frame
           Size={new UDim2(1, 0, 1, 0)}
           Position={new UDim2(1, 0, 0, 0)}
           BackgroundColor3={COLORS.Background}
           BorderSizePixel={0}
-          ZIndex={2}
+          ZIndex={ZINDEX.OVERLAY}
         />
 
         {/* Hover Label */}
@@ -168,7 +172,7 @@ export default function Graph(props: GraphProps) {
                 0,
               )
             }
-            ZIndex={math.huge}
+            ZIndex={ZINDEX.TOOLTIP}
           >
             <uipadding
               PaddingTop={new UDim(0.1, 0)}
@@ -181,6 +185,7 @@ export default function Graph(props: GraphProps) {
               TextColor3={COLORS.FocusText}
               TextScaled
               RichText
+              ZIndex={ZINDEX.TOOLTIP + 1}
               Text={
                 (hoveringLine.text
                   ? `<b><font color="#${hoveringLine.color.ToHex()}">${hoveringLine.text}</font></b>\n`

@@ -3,7 +3,7 @@ import { BinData } from "benchmark/benchmark";
 import { useAtom } from "@rbxts/react-charm";
 import { ProgressBar, Splitter } from "@rbxts/studiocomponents-react2";
 import { Atoms } from "./atoms";
-import { TITLE_HEIGHT, VERSION_NUMBER } from "configurations";
+import { TITLE_HEIGHT, VERSION_NUMBER, ZINDEX } from "configurations";
 import Results from "./results";
 import MicroProfiler from "./microprofiler";
 import Graph, { GraphingMode } from "./graph";
@@ -20,19 +20,25 @@ function StartOrProgress() {
   const status = useAtom(Atoms.status);
 
   return (
-    <frame Size={new UDim2(1, 0, 1, 0)} BackgroundTransparency={1}>
+    <frame
+      Size={new UDim2(1, 0, 1, 0)}
+      BackgroundTransparency={1}
+      ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.DATAFRAME}
+    >
       {isRunning ? (
         <frame
           Size={new UDim2(0.6, 0, 0, 48)}
           AnchorPoint={new Vector2(0.5, 0.5)}
           Position={new UDim2(0.5, 0, 0.5, 0)}
           BackgroundTransparency={1}
+          ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.DATAFRAME + 1}
         >
           <ProgressBar
             Value={progress ?? 0}
             Max={100}
             Formatter={() => status ?? ""}
             Size={new UDim2(1, 0, 1, 0)}
+            ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.DATAFRAME + 2}
           />
         </frame>
       ) : (
@@ -41,6 +47,7 @@ function StartOrProgress() {
           AnchorPoint={new Vector2(0.5, 0.5)}
           Position={new UDim2(0.5, 0, 0.5, 0)}
           BackgroundTransparency={1}
+          ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.DATAFRAME + 1}
         >
           <StartPanel />
         </frame>
@@ -89,6 +96,7 @@ export function DataFrame(props: {
           TextScaled
           TextColor3={COLORS.FocusText}
           Font={"BuilderSansBold"}
+          ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.DATAFRAME + 1}
         />
       </>
     );
@@ -145,6 +153,7 @@ export function DataFrame(props: {
         TextScaled
         TextColor3={COLORS.FocusText}
         Font={"BuilderSansBold"}
+        ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.DATAFRAME + 1}
       />
     </>
   );
