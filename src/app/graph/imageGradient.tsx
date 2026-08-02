@@ -62,9 +62,9 @@ export function EditableImageGradient(props: {
       );
     }
 
-    print(
-      `[EditableImage] ${props.Label}: ${string.format("%.2f", (os.clock() - props.StartClock) * 1000)}ms total`,
-    );
+    // print(
+    //   `[EditableImage] ${props.Label}: ${string.format("%.2f", (os.clock() - props.StartClock) * 1000)}ms total`,
+    // );
 
     return () => {
       image.WritePixelsBuffer(
