@@ -5,7 +5,7 @@ import { useDomainRange, FormatNumber, FromPosition } from "./computation";
 import { LABEL_THICKNESS, LINE_WIDTH, ZINDEX } from "configurations";
 import { useAtom } from "@rbxts/react-charm";
 import { GraphAtoms } from "app/graph/atoms";
-import { Button, ScrollFrame } from "@rbxts/studiocomponents-react2";
+import { Button, ScrollFrame } from "components";
 import { GraphData, GraphingMode } from "./types";
 import { Path2D } from "./path2d";
 
@@ -51,10 +51,9 @@ export default function Graph(props: GraphProps) {
       Position={new UDim2(0.5, 0, 0.5, 0)}
       AnchorPoint={new Vector2(0.5, 0.5)}
       BorderSizePixel={0}
-      ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.GRAPH}
     >
       <Button
-        ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.GRAPH + 3}
+        ZIndex={ZINDEX.CONTROLS}
         Icon={{
           Image: "rbxassetid://12072054746",
           Size: Vector2.one.mul(24),
@@ -67,7 +66,7 @@ export default function Graph(props: GraphProps) {
         OnActivated={() => GraphAtoms.zoom((r) => r + 1)}
       />
       <Button
-        ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.GRAPH + 3}
+        ZIndex={ZINDEX.CONTROLS}
         Icon={{
           Image: "rbxassetid://15396333997",
           Size: Vector2.one.mul(24),
@@ -87,7 +86,6 @@ export default function Graph(props: GraphProps) {
         Position={new UDim2(0.5, 0, 0.5, 0)}
         AnchorPoint={new Vector2(0.5, 0.5)}
         BorderSizePixel={0}
-        ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.GRAPH + 1}
         OnScrolled={(pos) => {
           const fakeScroller = fakeScrollObject.current;
           if (!fakeScroller) return;
@@ -103,7 +101,6 @@ export default function Graph(props: GraphProps) {
           Size={new UDim2(zoom, 0, 1, 0)}
           BackgroundTransparency={1}
           ref={fakeScrollObject}
-          ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.GRAPH + 2}
         />
       </ScrollFrame>
 
@@ -112,7 +109,6 @@ export default function Graph(props: GraphProps) {
         BackgroundTransparency={1}
         Position={new UDim2(0.5, 0, 0.45, 0)}
         AnchorPoint={new Vector2(0.5, 0.5)}
-        ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.GRAPH + 2}
         Event={{
           MouseMoved: (_: Instance, mouseX, mouseY) => {
             const container = containerRef?.current;

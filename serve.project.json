@@ -9,12 +9,12 @@
         "$path": "out",
 
         "include": {
-          "$path": "include",
-          "node_modules": {
-            "$className": "Folder",
-            "@rbxts": {
-              "$path": "node_modules/@rbxts"
-            }
+          "$path": "include"
+        },
+        "node_modules": {
+          "$className": "Folder",
+          "@rbxts": {
+            "$path": "node_modules/@rbxts"
           }
         }
       }

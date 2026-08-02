@@ -1,7 +1,7 @@
 import React, { StrictMode } from "@rbxts/react";
 import { createPortal, createRoot } from "@rbxts/react-roblox";
 import { RunService } from "@rbxts/services";
-import { PluginProvider } from "@rbxts/studiocomponents-react2";
+import { PluginProvider } from "components";
 import App from "app";
 import { VERSION_NUMBER } from "configurations";
 import { Settings } from "settings";

@@ -17,22 +17,13 @@ export const GRADIENT_RES = 1024;
 
 /* ZIndex Layer Constants
  *
- * Hierarchy (bottom → top):
- *   GRID_LINES → BASE → CONTENT → CONTROLS → OVERLAY → TOOLTIP
- *
- * Every component explicitly sets its own ZIndex. Children always get
- * a higher ZIndex than their parent within the same zone. Each zone
- * (Sidebar, Results, Graph, etc.) offsets by +5 so sibling zones
- * never collide.
+ * Only used for elements that need explicit layering.
+ * Most elements rely on default Roblox rendering order.
  */
 export const ZINDEX = {
-  /** Grid lines, decorations behind everything */
-  GRID_LINES: -1,
-  /** Default / unstyled elements */
-  BASE: 1,
-  /** Text, data display, general content */
-  CONTENT: 10,
-  /** Buttons, inputs, interactive controls */
+  /** Grid lines, behind content */
+  GRID_LINES: 1,
+  /** Buttons, interactive controls */
   CONTROLS: 20,
   /** Trim frames, masks, decorative overlays */
   OVERLAY: 30,
@@ -40,14 +31,4 @@ export const ZINDEX = {
   TOOLTIP: 40,
   /** Axis labels that must never be occluded */
   ALWAYS_ON_TOP: math.huge,
-
-  /** Per-zone offsets: children get parent + offset */
-  ZONE: {
-    SIDEBAR: 5,
-    RESULTS: 5,
-    GRAPH: 5,
-    MICROPROFILER: 5,
-    SETTINGS: 5,
-    DATAFRAME: 5,
-  },
 } as const;

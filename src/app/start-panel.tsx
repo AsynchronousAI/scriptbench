@@ -1,9 +1,8 @@
 import React from "@rbxts/react";
 import { useAtom } from "@rbxts/react-charm";
-import { MainButton, NumericInput } from "@rbxts/studiocomponents-react2";
+import { MainButton, NumericInput } from "components";
 import { startBenchmark } from "./actions";
 import { Atoms } from "./atoms";
-import { ZINDEX } from "configurations";
 
 export function StartPanel() {
   const calls = useAtom(Atoms.calls);
@@ -12,7 +11,6 @@ export function StartPanel() {
     <frame
       Size={new UDim2(1, 0, 1, 0)}
       BackgroundTransparency={1}
-      ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.DATAFRAME}
     >
       <uipadding
         PaddingTop={new UDim(0, 12)}
@@ -30,7 +28,6 @@ export function StartPanel() {
         Text="Start Benchmark"
         Size={new UDim2(1, 0, 0, 32)}
         OnActivated={startBenchmark}
-        ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.DATAFRAME + 1}
       />
       <NumericInput
         Value={calls}
@@ -38,7 +35,6 @@ export function StartPanel() {
         Size={new UDim2(1, 0, 0, 32)}
         Arrows
         Slider={false}
-        ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.DATAFRAME + 1}
       />
     </frame>
   );

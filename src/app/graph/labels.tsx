@@ -27,7 +27,6 @@ export function Labels(props: {
         Position={new UDim2(-LABEL_THICKNESS - 0.2, 0, -0.2, 0)}
         BackgroundColor3={COLORS.Background}
         BorderSizePixel={0}
-        ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.GRAPH}
       />
 
       {/* Domain tags + grid lines */}

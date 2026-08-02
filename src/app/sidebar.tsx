@@ -5,9 +5,8 @@ import {
   MainButton,
   ScrollFrame,
   TextInput,
-} from "@rbxts/studiocomponents-react2";
+} from "components";
 import { COLORS } from "colors";
-import { ZINDEX } from "configurations";
 
 export interface SidebarProps {
   Benchmarks: string[];
@@ -73,7 +72,6 @@ function BottomOptions(props: BottomButtonProps) {
       Size={new UDim2(1, 0, 0, BOTTOM_BAR_HEIGHT)}
       Position={new UDim2(0, 0, 1, -BOTTOM_BAR_HEIGHT)}
       BackgroundTransparency={1}
-      ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.SIDEBAR + 4}
     >
       <uilistlayout
         FillDirection={"Horizontal"}
@@ -123,7 +121,6 @@ export default function Sidebar(props: SidebarProps) {
       Size={new UDim2(1, 0, 1, 0)}
       BorderSizePixel={0}
       BackgroundTransparency={1}
-      ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.SIDEBAR}
     >
       <uipadding
         PaddingTop={new UDim(0, 8)}
@@ -137,14 +134,12 @@ export default function Sidebar(props: SidebarProps) {
           ClassName: "UIListLayout",
           Padding: new UDim(0, 6),
         }}
-        ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.SIDEBAR + 2}
       >
         <TextInput
           Size={new UDim2(1, 0, 0, ITEM_SIZE)}
           PlaceholderText="Filter"
           Text={searchTerm}
           OnChanged={(t) => setSearchTerm(t)}
-          ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.SIDEBAR + 3}
         />
         {props.Benchmarks.map((name, index) => {
           if (!String.includes(name.lower(), searchTerm.lower())) return <></>;
@@ -155,7 +150,6 @@ export default function Sidebar(props: SidebarProps) {
               Text={name}
               Icon={GraphIcon}
               Size={new UDim2(1, 0, 0, ITEM_SIZE)}
-              ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.SIDEBAR + 3}
             />
           ) : (
             <Button
@@ -164,7 +158,6 @@ export default function Sidebar(props: SidebarProps) {
               Icon={GraphIcon}
               Size={new UDim2(1, 0, 0, ITEM_SIZE)}
               OnActivated={() => setCurrentlySelected(name)}
-              ZIndex={ZINDEX.CONTENT + ZINDEX.ZONE.SIDEBAR + 3}
             />
           );
         })}
