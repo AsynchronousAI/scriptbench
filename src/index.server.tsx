@@ -3,7 +3,7 @@ import { createPortal, createRoot } from "@rbxts/react-roblox";
 import { RunService } from "@rbxts/services";
 import { PluginProvider } from "components";
 import App from "app";
-import { VERSION_NUMBER } from "configurations";
+import { VERSION_NUMBER, PLAYTIME } from "configurations";
 import { Settings } from "settings";
 
 const toolbar = plugin.CreateToolbar(`Scriptbench v${VERSION_NUMBER}`);
@@ -15,6 +15,19 @@ const toggle = toolbar.CreateButton(
 
 function main() {
   if (RunService.IsRunMode()) return;
+
+  if (PLAYTIME) {
+    const suppressed = plugin.GetSetting("Scriptbench_SuppressPlayPrompt", false);
+    if (!suppressed) {
+      const [accepted, checked] = plugin.PromptGlobalConfirm(
+        "Auto-Start Game",
+        "Would you like to automatically start the game simulation for benchmarks?",
+        "Do not show again"
+      );
+      if (checked) plugin.SetSetting("Scriptbench_SuppressPlayPrompt", true);
+      if (accepted) task.defer(() => RunService.Run());
+    }
+  }
 
   const widgetInfo = new DockWidgetPluginGuiInfo(
     Enum.InitialDockState.Float,

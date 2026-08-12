@@ -32,3 +32,6 @@ export const ZINDEX = {
   /** Axis labels that must never be occluded */
   ALWAYS_ON_TOP: math.huge,
 } as const;
+
+/* Benchmark Execution */
+export const PLAYTIME = false;
